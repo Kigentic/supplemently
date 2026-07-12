@@ -113,15 +113,15 @@ export default function LandingPage() {
           />
           <div className="relative mx-auto max-w-4xl px-5 pb-16 pt-16 text-center sm:pt-24">
             <p className="mb-5 inline-block rounded-full border border-outline px-4 py-1.5 text-sm text-text-muted">
-              Das Partner-Tool für Fitnessstudios in DACH
+              Das Partner-Tool für Fitnessstudios
             </p>
             <h1 className="text-4xl font-semibold leading-[1.1] tracking-tight text-text sm:text-6xl">
-              Ehrliche Supplement-Empfehlungen für deine Mitglieder
+              Nur die Nährstoffe, die deine Mitglieder wirklich brauchen
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-text-muted">
-              Supplemently ist ein Whitelabel-Fragebogen für dein Studio. Deine Mitglieder erhalten
-              individuelle, evidenzbasierte Empfehlungen — nur was wirklich sinnvoll ist. Kein Scam,
-              keine Pauschalpakete, kein Verkaufsdruck.
+              Supplemently ist der Whitelabel-Ratgeber für dein Studio. Deine Mitglieder beantworten
+              ein paar Fragen zu Ernährung, Lifestyle und Training — und bekommen eine ehrliche,
+              individuelle Empfehlung. Nur was sinnvoll ist, in Formen, die der Körper auch aufnimmt.
             </p>
 
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -134,9 +134,9 @@ export default function LandingPage() {
             </div>
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+              <TrustBadge>Nur was wirklich nötig ist</TrustBadge>
+              <TrustBadge>Auf Bioverfügbarkeit optimiert</TrustBadge>
               <TrustBadge>Evidenzbasiert</TrustBadge>
-              <TrustBadge>DSGVO-konform · Hosting in Frankfurt</TrustBadge>
-              <TrustBadge>Kein Verkaufsdruck für deine Mitglieder</TrustBadge>
             </div>
           </div>
         </section>
@@ -145,13 +145,13 @@ export default function LandingPage() {
         <section id="so-funktionierts" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16 sm:py-20">
           <SectionHeading
             eyebrow="Was das Tool macht"
-            title="In zwei Minuten von der Frage zur passenden Empfehlung"
-            sub="Deine Mitglieder füllen einen kurzen Fragebogen aus und bekommen eine ehrliche, individuelle Auswertung — direkt in deinem Studio-Branding."
+            title="Ein verlässlicher Ratgeber statt Regal-Raten"
+            sub="Deine Mitglieder beantworten ein paar Fragen zu Ernährung, Lifestyle und Trainingslevel und bekommen eine ehrliche, individuelle Auswertung — direkt in deinem Studio-Branding."
           />
           <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <FeatureCard icon={IconClipboard} title="Persönlicher Fragebogen" text="2 Minuten zu Ernährung, Lifestyle und Trainingslevel — verständlich und ohne Fachchinesisch." />
-            <FeatureCard icon={IconTarget} title="Individuelle Empfehlung" text="Getrennt nach essenziell und optional. Kein Pauschalpaket, sondern auf die Antworten zugeschnitten." />
-            <FeatureCard icon={IconShield} title="Kein Scam-Versprechen" text="Empfohlen wird nur, was evidenzbasiert wirklich sinnvoll ist — mit klarem medizinischem Hinweis." />
+            <FeatureCard icon={IconClipboard} title="Persönlicher Fragebogen" text="Ein paar Fragen zu Ernährung, Lifestyle und Trainingslevel — verständlich, in rund zwei Minuten." />
+            <FeatureCard icon={IconShield} title="Nur was wirklich nötig ist" text="Empfohlen wird ausschließlich, was für die Nährstoffversorgung sinnvoll ist. Das spart deinen Mitgliedern unnötige Ausgaben." />
+            <FeatureCard icon={IconTarget} title="Auf Bioverfügbarkeit geachtet" text="Nicht jede Form wirkt gleich. Empfohlen wird die, die der Körper auch wirklich aufnimmt." />
             <FeatureCard icon={IconQr} title="Gebrandete Studio-Microsite" text="Eigenes Branding, eigener Link und QR-Code. Deine Mitglieder sehen dein Studio, nicht uns." />
           </div>
         </section>
@@ -160,19 +160,19 @@ export default function LandingPage() {
         <section className="bg-surface">
           <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 sm:py-20 lg:grid-cols-2">
             <div>
-              <Kicker>Neukunden gewinnen</Kicker>
+              <Kicker>Vorteil fürs Studio</Kicker>
               <h2 className="mt-3 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
-                Ein Akquise-Kanal — nicht nur ein Mitglieder-Feature
+                Ein Angebot, das kaum ein Studio hat
               </h2>
               <p className="mt-4 leading-relaxed text-text-muted">
-                Supplemently arbeitet auch für dich, wenn jemand noch gar kein Mitglied ist. Der Check
-                wird zum Einstieg in dein Studio.
+                Die wenigsten Studios geben ihren Mitgliedern beim Thema Nahrungsergänzung echte
+                Orientierung. Mit Supplemently lieferst du sofort Mehrwert — unter deinem eigenen Namen.
               </p>
               <ul className="mt-6 space-y-4">
                 {[
-                  ['Gebrandeter QR-Code', 'Auf Flyern, in Social Media oder direkt vor Ort — ein Scan führt zum Check in deinem Branding.'],
-                  ['Trial-Voucher im Ergebnis', 'Nicht-Mitglieder, die den Check machen, bekommen direkt ein Probetraining-Angebot eingeblendet.'],
-                  ['Positionierung als Türöffner', 'Ein echtes Neukundengewinnungs-Tool statt reinem Add-on für Bestandsmitglieder.'],
+                  ['Sofort Mehrwert für Mitglieder', 'Ein nützliches Tool, das du ab Tag eins anbieten kannst — ohne eigenes Fachwissen aufzubauen.'],
+                  ['Gebrandete Microsite', 'Alles läuft unter deinem Studio. Das stärkt dein Image und den Trust bei deinen Mitgliedern.'],
+                  ['Eigener QR-Code', 'Auf Flyern, in Social Media oder vor Ort — ein Scan führt zum Check in deinem Branding.'],
                 ].map(([t, d]) => (
                   <li key={t} className="flex gap-3">
                     <span className="mt-1"><CheckIcon /></span>
@@ -208,7 +208,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="order-1 lg:order-2">
-              <Kicker>Mehr Umsatz an der Theke</Kicker>
+              <Kicker>Zusätzliche Einnahmen</Kicker>
               <h2 className="mt-3 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
                 Verkaufe, was deine Mitglieder wirklich brauchen
               </h2>
@@ -232,25 +232,25 @@ export default function LandingPage() {
               <div className="flex flex-col justify-center rounded-3xl bg-bg p-8 sm:p-10">
                 <Kicker>Transparenter Einstieg</Kicker>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-5xl font-semibold tracking-tight text-text">ab 24,90&nbsp;€</span>
+                  <span className="text-5xl font-semibold tracking-tight text-text">29,90&nbsp;€<sup className="align-super text-2xl">*</sup></span>
                   <span className="text-text-muted">/ Monat</span>
                 </div>
-                <p className="mt-3 text-sm text-text-muted">Platzhalter — finaler Preis wird noch festgelegt.</p>
+                <p className="mt-3 text-sm text-text-muted">* Alle Preise netto, zzgl. gesetzlicher MwSt. — B2B-Angebot für Studios.</p>
                 <ul className="mt-6 space-y-3 text-text">
-                  {['Keine versteckten Kosten', 'Monatlich kündbar', 'Eigenes Branding inklusive'].map((t) => (
+                  {['Keine versteckten Kosten', 'Eigenes Branding inklusive', 'In wenigen Minuten startklar'].map((t) => (
                     <li key={t} className="flex items-center gap-3"><CheckIcon />{t}</li>
                   ))}
                 </ul>
                 <a href="#registrierung" className={btnPrimary + ' mt-8 text-center'}>Unverbindlich starten</a>
               </div>
               <div className="flex flex-col justify-center rounded-3xl border border-outline bg-bg p-8 sm:p-10">
-                <h3 className="text-2xl font-semibold text-text">Worauf du dich verlassen kannst</h3>
+                <h3 className="text-2xl font-semibold text-text">Worauf deine Mitglieder sich verlassen können</h3>
                 <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {[
-                    ['Made for DACH', 'Gebaut für den Markt in Deutschland, Österreich und der Schweiz.'],
-                    ['Kein Datenverkauf', 'Die Daten deiner Mitglieder werden nicht verkauft — Punkt.'],
-                    ['Support auf Deutsch', 'Persönliche Ansprechpartner, keine Ticket-Warteschleife.'],
-                    ['DSGVO & Frankfurt', 'Hosting in der EU, datenschutzkonform aufgesetzt.'],
+                    ['Ehrliche Empfehlungen', 'Nur was wirklich nötig ist — das spart deinen Mitgliedern unnötige Ausgaben.'],
+                    ['Bioverfügbarkeit im Blick', 'Empfohlen wird die Form eines Wirkstoffs, die der Körper auch aufnimmt.'],
+                    ['Evidenzbasiert', 'Empfehlungen nach fachlichem Stand, immer mit klarem medizinischem Hinweis.'],
+                    ['Dein Branding, dein Kanal', 'Die Microsite läuft komplett unter deinem Studio.'],
                   ].map(([t, d]) => (
                     <div key={t} className="rounded-xl bg-surface p-4">
                       <p className="font-semibold text-text">{t}</p>
@@ -289,7 +289,7 @@ export default function LandingPage() {
                 style={{ height: 64, width: 'auto' }}
               />
               <p className="mt-4 text-sm leading-relaxed text-text-muted">
-                Ehrliche, evidenzbasierte Supplement-Empfehlungen — als Partner-Tool für Fitnessstudios.
+                Der ehrliche Nährstoff-Ratgeber für Fitnessstudios und ihre Mitglieder.
               </p>
             </div>
             <div className="flex flex-col gap-2 text-sm">

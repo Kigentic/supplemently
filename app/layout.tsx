@@ -13,7 +13,7 @@ const inter = Inter({
 export const metadata = {
   title: 'Supplemently — Ehrliche Supplement-Empfehlungen für dein Studio',
   description:
-    'Das Whitelabel-Tool für Fitnessstudios: individuelle, evidenzbasierte Supplement-Empfehlungen für deine Mitglieder. Kein Verkaufsdruck, keine Pauschalpakete.',
+    'Der Whitelabel-Nährstoff-Ratgeber für Fitnessstudios: individuelle, evidenzbasierte Empfehlungen für deine Mitglieder — nur was wirklich nötig ist, in Formen mit guter Bioverfügbarkeit.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
