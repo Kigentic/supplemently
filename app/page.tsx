@@ -119,9 +119,9 @@ export default function LandingPage() {
               Nur die Nährstoffe, die deine Mitglieder wirklich brauchen
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-text-muted">
-              Supplemently ist der Whitelabel-Ratgeber für dein Studio. Deine Mitglieder beantworten
-              ein paar Fragen zu Ernährung, Lifestyle und Training — und bekommen eine ehrliche,
-              individuelle Empfehlung. Nur was sinnvoll ist, in Formen, die der Körper auch aufnimmt.
+              Supplemently ist der Whitelabel-Fragebogen für dein Studio: In zwei Minuten finden deine
+              Mitglieder heraus, welche Nahrungsergänzung zu ihrer Ernährung, ihrem Training und ihrem
+              Alltag passt — und welche nicht. Unter deinem eigenen Namen, unter deinem Branding.
             </p>
 
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -145,8 +145,8 @@ export default function LandingPage() {
         <section id="so-funktionierts" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16 sm:py-20">
           <SectionHeading
             eyebrow="Was das Tool macht"
-            title="Ein verlässlicher Ratgeber statt Regal-Raten"
-            sub="Deine Mitglieder beantworten ein paar Fragen zu Ernährung, Lifestyle und Trainingslevel und bekommen eine ehrliche, individuelle Auswertung — direkt in deinem Studio-Branding."
+            title="Von der Frage zur konkreten Supplement-Empfehlung"
+            sub="Deine Mitglieder beantworten ein paar Fragen zu Ernährung, Lifestyle und Trainingslevel und erhalten daraufhin eine klare Supplement-Empfehlung — als Ergebnis in deinem Studio-Branding."
           />
           <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             <FeatureCard icon={IconClipboard} title="Persönlicher Fragebogen" text="Ein paar Fragen zu Ernährung, Lifestyle und Trainingslevel — verständlich, in rund zwei Minuten." />
@@ -214,8 +214,8 @@ export default function LandingPage() {
               </h2>
               <p className="mt-4 leading-relaxed text-text-muted">
                 Viele Studios verkaufen bereits Supplements am Tresen oder im eigenen Shop. Supplemently
-                lenkt die Empfehlung direkt dorthin — individuell und vertrauenswürdig statt generischer
-                Regal-Verkauf.
+                lenkt die Empfehlung direkt dorthin — individuell und vertrauenswürdig statt wahllosem
+                Griff ins Regal.
               </p>
               <p className="mt-4 leading-relaxed text-text-muted">
                 Das Ergebnis: mehr qualifizierte Kaufanlässe. Wer eine ehrliche, auf sich zugeschnittene
@@ -237,12 +237,13 @@ export default function LandingPage() {
                 </div>
                 <p className="mt-3 text-sm text-text-muted">* Alle Preise netto, zzgl. gesetzlicher MwSt. — B2B-Angebot für Studios.</p>
                 <ul className="mt-6 space-y-3 text-text">
-                  {['Keine versteckten Kosten', 'Eigenes Branding inklusive', 'In wenigen Minuten startklar'].map((t) => (
+                  {['Keine versteckten Kosten', 'Eigenes Branding inklusive', 'Persönliche Einrichtung für dein Studio'].map((t) => (
                     <li key={t} className="flex items-center gap-3"><CheckIcon />{t}</li>
                   ))}
                 </ul>
                 <a href="#registrierung" className={btnPrimary + ' mt-8 text-center'}>Unverbindlich starten</a>
                 <a href="/fragebogen" className={btnSecondary + ' mt-3 text-center'}>Jetzt direkt ausprobieren</a>
+                <p className="mt-4 text-xs text-text-muted">Zzgl. einmaliger Einrichtungsgebühr für dein individuelles Branding.</p>
               </div>
               <div className="flex flex-col justify-center rounded-3xl border border-outline bg-bg p-8 sm:p-10">
                 <h3 className="text-2xl font-semibold text-text">Worauf deine Mitglieder sich verlassen können</h3>
@@ -268,8 +269,8 @@ export default function LandingPage() {
         <section id="registrierung" className="mx-auto max-w-3xl scroll-mt-20 px-5 py-16 sm:py-24">
           <SectionHeading
             eyebrow="Jetzt Partnerstudio werden"
-            title="Lass uns dein Studio startklar machen"
-            sub="Trag dich unverbindlich ein — wir melden uns innerhalb von 24 Stunden und richten deine gebrandete Microsite ein."
+            title="Lass uns über dein Studio sprechen"
+            sub="Trag dich unverbindlich ein — wir melden uns innerhalb von 24 Stunden bei dir und zeigen dir das Tool im Detail."
           />
           <div className="mt-10">
             <RegistrierungForm />

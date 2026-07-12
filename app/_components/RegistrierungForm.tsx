@@ -161,9 +161,6 @@ export default function RegistrierungForm() {
       >
         {status === 'submitting' ? 'Wird gesendet …' : 'Jetzt Partnerstudio werden'}
       </button>
-      <p className="mt-3 text-xs text-text-muted">
-        Kein Account nötig. Wir nutzen deine Daten ausschließlich zur Kontaktaufnahme.
-      </p>
     </form>
   );
 }
