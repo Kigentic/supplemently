@@ -1,4 +1,4 @@
-// Supplemently — öffentliche B2B-Landingpage (Stage 4).
+// Supplemently — öffentliche B2B-Landingpage (helles Theme).
 // Zielgruppe: Fitnessstudio-Inhaber in DACH. Mobile-first, Single-Page.
 import Image from 'next/image';
 import type { ReactNode } from 'react';
@@ -6,9 +6,13 @@ import RegistrierungForm from './_components/RegistrierungForm';
 
 // --- kleine Bausteine -------------------------------------------------------
 
+function Kicker({ children }: { children: ReactNode }) {
+  return <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{children}</p>;
+}
+
 function TrustBadge({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3.5 py-1.5 text-sm text-text-muted ring-1 ring-white/10">
+    <span className="inline-flex items-center gap-2 rounded-full border border-outline bg-bg px-3.5 py-1.5 text-sm text-text-muted">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
         <path d="M20 6 9 17l-5-5" stroke="var(--color-accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
@@ -19,11 +23,11 @@ function TrustBadge({ children }: { children: ReactNode }) {
 
 function FeatureCard({ icon, title, text }: { icon: ReactNode; title: string; text: string }) {
   return (
-    <div className="rounded-2xl bg-surface p-6 shadow-lg ring-1 ring-white/5 transition hover:ring-accent/30">
-      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-accent/15 text-accent">
+    <div className="rounded-2xl bg-surface p-6 transition hover:-translate-y-0.5">
+      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-on-accent">
         {icon}
       </div>
-      <h3 className="font-heading text-lg text-text">{title}</h3>
+      <h3 className="text-lg font-semibold text-text">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-text-muted">{text}</p>
     </div>
   );
@@ -32,12 +36,17 @@ function FeatureCard({ icon, title, text }: { icon: ReactNode; title: string; te
 function SectionHeading({ eyebrow, title, sub }: { eyebrow: string; title: string; sub?: string }) {
   return (
     <div className="mx-auto max-w-2xl text-center">
-      <p className="text-sm font-semibold uppercase tracking-widest text-accent">{eyebrow}</p>
-      <h2 className="mt-3 font-heading text-3xl text-text sm:text-4xl">{title}</h2>
+      <Kicker>{eyebrow}</Kicker>
+      <h2 className="mt-3 text-3xl font-semibold tracking-tight text-text sm:text-4xl">{title}</h2>
       {sub && <p className="mt-4 text-base leading-relaxed text-text-muted">{sub}</p>}
     </div>
   );
 }
+
+const btnPrimary =
+  'rounded-full bg-accent px-7 py-3.5 text-base font-semibold text-on-accent transition hover:bg-accent-hover';
+const btnSecondary =
+  'rounded-full border border-outline bg-transparent px-7 py-3.5 text-base font-medium text-text transition hover:border-text';
 
 // --- Icons (inline, keine externe Lib) --------------------------------------
 
@@ -67,11 +76,19 @@ const IconQr = (
 
 const HEADER_LOGO = 44;
 
+function CheckIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="shrink-0">
+      <path d="M20 6 9 17l-5-5" stroke="var(--color-accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export default function LandingPage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-bg">
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-white/5 bg-bg/85 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-outline/40 bg-bg/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
           <Image
             src="/supplemently_logo.png"
@@ -81,10 +98,7 @@ export default function LandingPage() {
             style={{ height: HEADER_LOGO, width: 'auto' }}
             priority
           />
-          <a
-            href="#registrierung"
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
-          >
+          <a href="#registrierung" className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition hover:bg-accent-hover">
             Partnerstudio werden
           </a>
         </div>
@@ -94,14 +108,14 @@ export default function LandingPage() {
         {/* 1 — Hero */}
         <section className="relative overflow-hidden">
           <div
-            className="pointer-events-none absolute inset-0 opacity-60"
-            style={{ background: 'radial-gradient(60% 60% at 50% 0%, rgba(229,200,14,0.12), transparent 70%)' }}
+            className="pointer-events-none absolute inset-0"
+            style={{ background: 'radial-gradient(55% 55% at 50% 0%, rgba(246,139,53,0.10), transparent 70%)' }}
           />
           <div className="relative mx-auto max-w-4xl px-5 pb-16 pt-16 text-center sm:pt-24">
-            <p className="mb-4 inline-block rounded-full bg-white/5 px-4 py-1.5 text-sm text-text-muted ring-1 ring-white/10">
+            <p className="mb-5 inline-block rounded-full border border-outline px-4 py-1.5 text-sm text-text-muted">
               Das Partner-Tool für Fitnessstudios in DACH
             </p>
-            <h1 className="font-heading text-4xl leading-tight text-text sm:text-6xl">
+            <h1 className="text-4xl font-semibold leading-[1.1] tracking-tight text-text sm:text-6xl">
               Ehrliche Supplement-Empfehlungen für deine Mitglieder
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-text-muted">
@@ -111,16 +125,10 @@ export default function LandingPage() {
             </p>
 
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <a
-                href="#registrierung"
-                className="w-full rounded-xl bg-accent px-7 py-4 text-base font-semibold text-on-accent transition hover:bg-accent-hover sm:w-auto"
-              >
+              <a href="#registrierung" className={btnPrimary + ' w-full text-center sm:w-auto'}>
                 Jetzt Partnerstudio werden
               </a>
-              <a
-                href="#so-funktionierts"
-                className="w-full rounded-xl px-7 py-4 text-base font-medium text-text ring-1 ring-white/15 transition hover:ring-white/30 sm:w-auto"
-              >
+              <a href="#so-funktionierts" className={btnSecondary + ' w-full text-center sm:w-auto'}>
                 So funktioniert&rsquo;s
               </a>
             </div>
@@ -149,11 +157,11 @@ export default function LandingPage() {
         </section>
 
         {/* 3 — Marketing-Optionen */}
-        <section className="bg-surface/40">
+        <section className="bg-surface">
           <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 sm:py-20 lg:grid-cols-2">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-accent">Neukunden gewinnen</p>
-              <h2 className="mt-3 font-heading text-3xl text-text sm:text-4xl">
+              <Kicker>Neukunden gewinnen</Kicker>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
                 Ein Akquise-Kanal — nicht nur ein Mitglieder-Feature
               </h2>
               <p className="mt-4 leading-relaxed text-text-muted">
@@ -167,19 +175,17 @@ export default function LandingPage() {
                   ['Positionierung als Türöffner', 'Ein echtes Neukundengewinnungs-Tool statt reinem Add-on für Bestandsmitglieder.'],
                 ].map(([t, d]) => (
                   <li key={t} className="flex gap-3">
-                    <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                    </span>
-                    <span><strong className="text-text">{t}.</strong> <span className="text-text-muted">{d}</span></span>
+                    <span className="mt-1"><CheckIcon /></span>
+                    <span><strong className="font-semibold text-text">{t}.</strong> <span className="text-text-muted">{d}</span></span>
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="rounded-3xl bg-surface p-8 shadow-xl ring-1 ring-white/5">
-              <div className="mx-auto flex aspect-square max-w-xs flex-col items-center justify-center gap-4 rounded-2xl bg-bg/50 p-8 text-center ring-1 ring-white/10">
+            <div className="rounded-3xl bg-bg p-8">
+              <div className="mx-auto flex aspect-square max-w-xs flex-col items-center justify-center gap-4 rounded-2xl border border-outline p-8 text-center">
                 <div className="grid h-28 w-28 grid-cols-4 grid-rows-4 gap-1">
                   {Array.from({ length: 16 }).map((_, i) => (
-                    <span key={i} className={((i * 7) % 3 === 0 ? 'bg-accent' : 'bg-text-muted/30') + ' rounded-sm'} />
+                    <span key={i} className={((i * 7) % 3 === 0 ? 'bg-accent' : 'bg-outline/50') + ' rounded-sm'} />
                   ))}
                 </div>
                 <p className="text-sm text-text-muted">Dein Studio-QR — ein Scan, ein neuer Lead.</p>
@@ -194,16 +200,16 @@ export default function LandingPage() {
             <div className="order-2 lg:order-1">
               <div className="grid grid-cols-3 gap-3">
                 {['Whey', 'Kreatin', 'Omega-3', 'Magnesium', 'Vitamin D', 'Zink'].map((p, i) => (
-                  <div key={p} className={'rounded-xl bg-surface p-4 text-center ring-1 ring-white/5 ' + (i === 1 ? 'ring-accent/40' : '')}>
-                    <div className="mx-auto mb-2 h-10 w-7 rounded bg-accent/20" />
+                  <div key={p} className={'rounded-xl bg-surface p-4 text-center ' + (i === 1 ? 'ring-2 ring-accent' : '')}>
+                    <div className="mx-auto mb-2 h-10 w-7 rounded bg-accent/25" />
                     <span className="text-xs text-text-muted">{p}</span>
                   </div>
                 ))}
               </div>
             </div>
             <div className="order-1 lg:order-2">
-              <p className="text-sm font-semibold uppercase tracking-widest text-accent">Mehr Umsatz an der Theke</p>
-              <h2 className="mt-3 font-heading text-3xl text-text sm:text-4xl">
+              <Kicker>Mehr Umsatz an der Theke</Kicker>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
                 Verkaufe, was deine Mitglieder wirklich brauchen
               </h2>
               <p className="mt-4 leading-relaxed text-text-muted">
@@ -220,30 +226,25 @@ export default function LandingPage() {
         </section>
 
         {/* 5 — Preis / Trust */}
-        <section className="bg-surface/40">
+        <section className="bg-surface">
           <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
             <div className="grid gap-8 lg:grid-cols-2 lg:items-stretch">
-              <div className="flex flex-col justify-center rounded-3xl bg-surface p-8 shadow-xl ring-1 ring-white/5 sm:p-10">
-                <p className="text-sm font-semibold uppercase tracking-widest text-accent">Transparenter Einstieg</p>
+              <div className="flex flex-col justify-center rounded-3xl bg-bg p-8 sm:p-10">
+                <Kicker>Transparenter Einstieg</Kicker>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="font-heading text-5xl text-text">ab 24,90&nbsp;€</span>
+                  <span className="text-5xl font-semibold tracking-tight text-text">ab 24,90&nbsp;€</span>
                   <span className="text-text-muted">/ Monat</span>
                 </div>
                 <p className="mt-3 text-sm text-text-muted">Platzhalter — finaler Preis wird noch festgelegt.</p>
                 <ul className="mt-6 space-y-3 text-text">
                   {['Keine versteckten Kosten', 'Monatlich kündbar', 'Eigenes Branding inklusive'].map((t) => (
-                    <li key={t} className="flex items-center gap-3">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="var(--color-accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      {t}
-                    </li>
+                    <li key={t} className="flex items-center gap-3"><CheckIcon />{t}</li>
                   ))}
                 </ul>
-                <a href="#registrierung" className="mt-8 inline-block rounded-xl bg-accent px-6 py-3.5 text-center font-semibold text-on-accent transition hover:bg-accent-hover">
-                  Unverbindlich starten
-                </a>
+                <a href="#registrierung" className={btnPrimary + ' mt-8 text-center'}>Unverbindlich starten</a>
               </div>
-              <div className="flex flex-col justify-center rounded-3xl bg-bg/40 p-8 ring-1 ring-white/10 sm:p-10">
-                <h3 className="font-heading text-2xl text-text">Worauf du dich verlassen kannst</h3>
+              <div className="flex flex-col justify-center rounded-3xl border border-outline bg-bg p-8 sm:p-10">
+                <h3 className="text-2xl font-semibold text-text">Worauf du dich verlassen kannst</h3>
                 <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {[
                     ['Made for DACH', 'Gebaut für den Markt in Deutschland, Österreich und der Schweiz.'],
@@ -251,7 +252,7 @@ export default function LandingPage() {
                     ['Support auf Deutsch', 'Persönliche Ansprechpartner, keine Ticket-Warteschleife.'],
                     ['DSGVO & Frankfurt', 'Hosting in der EU, datenschutzkonform aufgesetzt.'],
                   ].map(([t, d]) => (
-                    <div key={t} className="rounded-xl bg-surface/70 p-4 ring-1 ring-white/5">
+                    <div key={t} className="rounded-xl bg-surface p-4">
                       <p className="font-semibold text-text">{t}</p>
                       <p className="mt-1 text-sm text-text-muted">{d}</p>
                     </div>
@@ -276,7 +277,7 @@ export default function LandingPage() {
       </main>
 
       {/* 7 — Footer */}
-      <footer className="border-t border-white/5 bg-bg">
+      <footer className="border-t border-outline/50 bg-bg">
         <div className="mx-auto max-w-6xl px-5 py-12">
           <div className="flex flex-col items-start justify-between gap-8 sm:flex-row">
             <div className="max-w-sm">
@@ -299,7 +300,7 @@ export default function LandingPage() {
               </a>
             </div>
           </div>
-          <div className="mt-10 border-t border-white/5 pt-6 text-xs text-text-muted">
+          <div className="mt-10 border-t border-outline/50 pt-6 text-xs text-text-muted">
             © {new Date().getFullYear()} Supplemently. Alle Rechte vorbehalten.
           </div>
         </div>

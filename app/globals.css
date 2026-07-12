@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
-/* Supplemently — Design-System (verbindliche Tokens). */
+/* Supplemently — Design-System (verbindliche Tokens, helles Theme). */
 @theme {
-  --color-bg: #434a69;
-  --color-surface: #4f5780;
-  --color-accent: #e5c80e;
-  --color-accent-hover: #c9ad0c;
-  --color-text: #c7c8b2;
-  --color-text-muted: #9a9db8;
-  --color-on-accent: #433a04;
+  --color-bg: #ffffff;
+  --color-surface: #dfd8ce;
+  --color-accent: #f68b35;
+  --color-accent-hover: #e07a24;
+  --color-outline: #b6b6aa;
+  --color-text: #262626;
+  --color-text-muted: #959595;
+  --color-on-accent: #ffffff;
 
-  --font-heading: var(--font-fraunces), serif;
   --font-body: var(--font-inter), system-ui, sans-serif;
 }
 

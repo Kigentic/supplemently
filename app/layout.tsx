@@ -1,16 +1,11 @@
-// Supplemently — Root-Layout: Fonts + globales Design-System.
+// Supplemently — Root-Layout: Inter (nur Sans) + globales Design-System.
 import type { ReactNode } from 'react';
-import { Fraunces, Inter } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import './globals.css';
-
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-fraunces',
-  display: 'swap',
-});
 
 const inter = Inter({
   subsets: ['latin'],
+  weight: ['400', '500', '600'],
   variable: '--font-inter',
   display: 'swap',
 });
@@ -23,7 +18,7 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="de" className={`${fraunces.variable} ${inter.variable}`}>
+    <html lang="de" className={inter.variable}>
       <body>{children}</body>
     </html>
   );

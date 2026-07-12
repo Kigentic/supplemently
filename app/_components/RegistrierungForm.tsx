@@ -6,8 +6,8 @@ import { useState } from 'react';
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
 const inputBase =
-  'w-full rounded-lg border border-white/10 bg-bg/40 px-4 py-3 text-text placeholder:text-text-muted/70 ' +
-  'outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40';
+  'w-full rounded-lg border border-outline bg-bg px-4 py-3 text-text placeholder:text-text-muted ' +
+  'outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30';
 
 const labelBase = 'mb-1.5 block text-sm font-medium text-text';
 
@@ -61,11 +61,11 @@ export default function RegistrierungForm() {
 
   if (status === 'success') {
     return (
-      <div className="rounded-2xl bg-surface p-8 text-center shadow-xl ring-1 ring-white/5">
+      <div className="rounded-2xl bg-surface p-8 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-2xl text-on-accent">
           ✓
         </div>
-        <h3 className="font-[family-name:var(--font-heading)] text-2xl text-text">Danke!</h3>
+        <h3 className="text-2xl font-semibold text-text">Danke!</h3>
         <p className="mt-2 text-text-muted">
           Wir melden uns innerhalb von 24 Stunden bei dir. Bis dahin: gute Trainingseinheit.
         </p>
@@ -76,7 +76,7 @@ export default function RegistrierungForm() {
   return (
     <form
       onSubmit={onSubmit}
-      className="rounded-2xl bg-surface p-6 shadow-xl ring-1 ring-white/5 sm:p-8"
+      className="rounded-2xl bg-surface p-6 sm:p-8"
       noValidate
     >
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -149,7 +149,7 @@ export default function RegistrierungForm() {
       </div>
 
       {error && (
-        <p role="alert" className="mt-4 text-sm text-red-300">
+        <p role="alert" className="mt-4 text-sm text-red-600">
           {error}
         </p>
       )}
@@ -157,7 +157,7 @@ export default function RegistrierungForm() {
       <button
         type="submit"
         disabled={status === 'submitting'}
-        className="mt-6 w-full rounded-xl bg-accent px-6 py-4 text-base font-semibold text-on-accent transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+        className="mt-6 w-full rounded-full bg-accent px-7 py-3.5 text-base font-semibold text-on-accent transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
       >
         {status === 'submitting' ? 'Wird gesendet …' : 'Jetzt Partnerstudio werden'}
       </button>
