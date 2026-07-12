@@ -74,7 +74,7 @@ const IconQr = (
   </svg>
 );
 
-const HEADER_LOGO = 44;
+const HEADER_LOGO = 88;
 
 function CheckIcon({ size = 18 }: { size?: number }) {
   return (
@@ -128,8 +128,8 @@ export default function LandingPage() {
               <a href="#registrierung" className={btnPrimary + ' w-full text-center sm:w-auto'}>
                 Jetzt Partnerstudio werden
               </a>
-              <a href="#so-funktionierts" className={btnSecondary + ' w-full text-center sm:w-auto'}>
-                So funktioniert&rsquo;s
+              <a href="/fragebogen" className={btnSecondary + ' w-full text-center sm:w-auto'}>
+                Jetzt direkt live testen
               </a>
             </div>
 
@@ -242,6 +242,7 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <a href="#registrierung" className={btnPrimary + ' mt-8 text-center'}>Unverbindlich starten</a>
+                <a href="/fragebogen" className={btnSecondary + ' mt-3 text-center'}>Jetzt direkt ausprobieren</a>
               </div>
               <div className="flex flex-col justify-center rounded-3xl border border-outline bg-bg p-8 sm:p-10">
                 <h3 className="text-2xl font-semibold text-text">Worauf deine Mitglieder sich verlassen können</h3>
@@ -284,9 +285,9 @@ export default function LandingPage() {
               <Image
                 src="/supplemently-logo-final.png"
                 alt="Supplemently"
-                width={64}
-                height={64}
-                style={{ height: 64, width: 'auto' }}
+                width={128}
+                height={128}
+                style={{ height: 128, width: 'auto' }}
               />
               <p className="mt-4 text-sm leading-relaxed text-text-muted">
                 Der ehrliche Nährstoff-Ratgeber für Fitnessstudios und ihre Mitglieder.
