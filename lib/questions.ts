@@ -69,12 +69,12 @@ export const FRAGEN: Frage[] = [
   // ── Schritt 1: Persönliche Daten ─────────────────────────────────────────
   {
     id: 'geschlecht',
-    frage: 'Wie identifizierst du dich?',
+    frage: 'Dein Geschlecht?',
     typ: 'single',
     optionen: [
       { value: 'männlich', label: 'Männlich' },
       { value: 'weiblich', label: 'Weiblich' },
-      { value: 'divers', label: 'Divers' },
+      { value: 'divers', label: 'Keine Angabe' },
     ],
   },
   {
