@@ -1,12 +1,10 @@
 'use client';
 
-// Supplemently — Fragebogen im Design-System der Landingpage.
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '../_components/SiteHeader';
 import SiteFooter from '../_components/SiteFooter';
-import { FRAGEN, type Answers } from '@/lib/questions';
+import { FRAGEN_MAP, GRUPPEN, type Answers } from '@/lib/questions';
 
 type FormState = Record<string, any>;
 
@@ -17,13 +15,24 @@ const initial: FormState = {
   trainingsziel: '',
   ernaehrungsstil: '',
   restriktionen: [] as string[],
-  schlafqualitaet: '',
+  kochverhalten: '',
+  mahlzeiten_pro_tag: '',
+  auswaerts_essen: '',
+  alkohol: '',
+  schlafdauer: '',
+  aufwachgefuehl: '',
+  schlaf_durchschlafen: '',
   stresslevel: '',
+  entspannung: '',
+  gedanken_abschalten: '',
+  verdauung_blaeungen: '',
+  heisshunger: '',
+  medikamente: [] as string[],
   aktuelle_supplements: '',
 };
 
 const inputBase =
-  'w-full rounded-lg border border-outline bg-bg px-4 py-3 text-text placeholder:text-text-muted ' +
+  'rounded-lg border border-outline bg-bg px-4 py-3 text-text placeholder:text-text-muted ' +
   'outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30';
 
 function OptionPill({
@@ -55,68 +64,115 @@ function OptionPill({
 function QuestionBlock({
   nr,
   frage,
+  optional,
   children,
 }: {
   nr: number;
   frage: string;
+  optional?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <div className="border-b border-outline/50 py-7 first:pt-0 last:border-b-0 last:pb-0">
+    <div className="border-b border-outline/50 py-6 first:pt-0 last:border-b-0 last:pb-0">
       <p className="mb-3 text-sm font-semibold text-text">
         <span className="mr-2 text-accent">{String(nr).padStart(2, '0')}</span>
         {frage}
+        {optional && (
+          <span className="ml-2 text-xs font-normal text-text-muted">(optional)</span>
+        )}
       </p>
       {children}
     </div>
   );
 }
 
+function validateStep(step: number, form: FormState): string | null {
+  const gruppe = GRUPPEN[step];
+  for (const id of gruppe.frageIds) {
+    const frage = FRAGEN_MAP.get(id);
+    if (!frage || frage.optional) continue;
+    if (id === 'restriktionen' || id === 'medikamente') continue;
+
+    if (frage.typ === 'number') {
+      if (!form[id] && form[id] !== 0) return `Bitte "${frage.frage}" ausfüllen.`;
+      const v = Number(form[id]);
+      if (isNaN(v)) return `Bitte eine gültige Zahl eingeben.`;
+      if (frage.min !== undefined && v < frage.min)
+        return `Wert muss mindestens ${frage.min} sein.`;
+      if (frage.max !== undefined && v > frage.max)
+        return `Wert darf höchstens ${frage.max} sein.`;
+    } else if (frage.typ === 'single') {
+      if (!form[id]) return `Bitte bei "${frage.frage}" eine Antwort wählen.`;
+    }
+  }
+  return null;
+}
+
 export default function FragebogenPage() {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(initial);
-  const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
+  const [animKey, setAnimKey] = useState(0);
+  const [stepError, setStepError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const totalSteps = GRUPPEN.length;
+  const gruppe = GRUPPEN[step];
+  const isLast = step === totalSteps - 1;
+  const progress = ((step + 1) / totalSteps) * 100;
 
   function setField(id: string, value: any) {
     setForm((f) => ({ ...f, [id]: value }));
+    setStepError(null);
   }
 
-  function toggleRestriktion(value: string) {
+  function toggleMulti(field: string, value: string) {
     setForm((f) => {
-      let list: string[] = Array.isArray(f.restriktionen) ? [...f.restriktionen] : [];
+      let list: string[] = Array.isArray(f[field]) ? [...f[field]] : [];
       const checked = !list.includes(value);
       if (value === 'keine') {
-        return { ...f, restriktionen: checked ? ['keine'] : [] };
+        return { ...f, [field]: checked ? ['keine'] : [] };
       }
       list = list.filter((r) => r !== 'keine');
       if (checked) list.push(value);
       else list = list.filter((r) => r !== value);
-      return { ...f, restriktionen: list };
+      return { ...f, [field]: list };
     });
+    setStepError(null);
   }
 
-  function validate(): string | null {
-    if (!form.geschlecht) return 'Bitte Geschlecht wählen.';
-    const alter = Number(form.alter);
-    if (!form.alter || Number.isNaN(alter)) return 'Bitte ein gültiges Alter (Zahl) angeben.';
-    if (alter < 14 || alter > 120) return 'Alter muss zwischen 14 und 120 liegen.';
-    if (!form.trainingslevel) return 'Bitte Trainingslevel wählen.';
-    if (!form.trainingsziel) return 'Bitte Trainingsziel wählen.';
-    if (!form.ernaehrungsstil) return 'Bitte Ernährungsstil wählen.';
-    if (!form.schlafqualitaet) return 'Bitte Schlafqualität wählen.';
-    if (!form.stresslevel) return 'Bitte Stresslevel wählen.';
-    return null;
+  function goNext() {
+    const err = validateStep(step, form);
+    if (err) { setStepError(err); return; }
+    setStepError(null);
+    setDirection(1);
+    setAnimKey((k) => k + 1);
+    setStep((s) => s + 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    const v = validate();
-    if (v) {
-      setError(v);
-      return;
-    }
+  function goBack() {
+    setStepError(null);
+    setDirection(-1);
+    setAnimKey((k) => k + 1);
+    setStep((s) => s - 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function onSubmit() {
+    const err = validateStep(step, form);
+    if (err) { setStepError(err); return; }
+
+    const restriktionen =
+      Array.isArray(form.restriktionen) && form.restriktionen.length
+        ? form.restriktionen
+        : ['keine'];
+    const medikamente =
+      Array.isArray(form.medikamente) && form.medikamente.length
+        ? form.medikamente
+        : ['keine'];
 
     const antworten: Answers = {
       geschlecht: form.geschlecht,
@@ -124,9 +180,20 @@ export default function FragebogenPage() {
       trainingslevel: form.trainingslevel,
       trainingsziel: form.trainingsziel,
       ernaehrungsstil: form.ernaehrungsstil,
-      restriktionen: form.restriktionen.length ? form.restriktionen : ['keine'],
-      schlafqualitaet: form.schlafqualitaet,
+      restriktionen,
+      kochverhalten: form.kochverhalten,
+      mahlzeiten_pro_tag: form.mahlzeiten_pro_tag,
+      auswaerts_essen: form.auswaerts_essen,
+      alkohol: form.alkohol,
+      schlafdauer: Number(form.schlafdauer),
+      aufwachgefuehl: form.aufwachgefuehl,
+      schlaf_durchschlafen: form.schlaf_durchschlafen,
       stresslevel: form.stresslevel,
+      entspannung: form.entspannung,
+      gedanken_abschalten: form.gedanken_abschalten,
+      verdauung_blaeungen: form.verdauung_blaeungen,
+      heisshunger: form.heisshunger,
+      medikamente,
       aktuelle_supplements: String(form.aktuelle_supplements || '')
         .split(',')
         .map((s) => s.trim())
@@ -134,6 +201,7 @@ export default function FragebogenPage() {
     };
 
     setSubmitting(true);
+    setSubmitError(null);
     try {
       const res = await fetch('/api/match', {
         method: 'POST',
@@ -142,18 +210,18 @@ export default function FragebogenPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data?.error || 'Fehler beim Absenden.');
+        setSubmitError(data?.error || 'Fehler beim Absenden.');
         setSubmitting(false);
         return;
       }
       if (!data.session_id) {
-        setError('Ergebnis konnte nicht gespeichert werden (keine Session-ID).');
+        setSubmitError('Ergebnis konnte nicht gespeichert werden.');
         setSubmitting(false);
         return;
       }
       router.push(`/ergebnis/${data.session_id}`);
     } catch {
-      setError('Netzwerkfehler beim Absenden.');
+      setSubmitError('Netzwerkfehler beim Absenden.');
       setSubmitting(false);
     }
   }
@@ -163,7 +231,8 @@ export default function FragebogenPage() {
       <SiteHeader />
 
       <main className="mx-auto max-w-2xl px-5 py-16 sm:py-20">
-        <div className="text-center">
+        {/* Headline */}
+        <div className="mb-10 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
             Persönlicher Check
           </p>
@@ -171,81 +240,146 @@ export default function FragebogenPage() {
             Dein individueller Nährstoff-Check
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-text-muted">
-            Ein paar kurze Fragen zu Ernährung, Training und Alltag — am Ende erhältst du eine klare
+            Kurze Fragen zu Alltag, Ernährung und Training — am Ende erhältst du eine klare
             Empfehlung, was für dich wirklich sinnvoll ist.
           </p>
         </div>
 
-        <form onSubmit={onSubmit} noValidate className="mt-10 rounded-2xl bg-surface p-6 sm:p-8">
-          {FRAGEN.map((frage, i) => (
-            <QuestionBlock key={frage.id} nr={i + 1} frage={frage.frage}>
-              {frage.typ === 'number' && (
-                <input
-                  type="number"
-                  min={14}
-                  max={120}
-                  required
-                  value={form[frage.id]}
-                  onChange={(e) => setField(frage.id, e.target.value)}
-                  placeholder="z. B. 32"
-                  className={inputBase + ' max-w-[10rem]'}
-                />
-              )}
+        {/* Card */}
+        <div className="rounded-2xl bg-surface p-6 sm:p-8">
+          {/* Progress */}
+          <div className="mb-8">
+            <div className="mb-2.5 flex items-center justify-between">
+              <span className="text-xs text-text-muted">
+                Schritt {step + 1} von {totalSteps}
+              </span>
+              <span className="text-sm font-semibold text-text">{gruppe.titel}</span>
+            </div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-outline/40">
+              <div
+                className="h-1.5 rounded-full bg-accent transition-all duration-500 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
 
-              {frage.typ === 'single' && (
-                <div className="flex flex-wrap gap-2.5">
-                  {frage.optionen.map((opt) => (
-                    <OptionPill
-                      key={opt.value}
-                      label={opt.label}
-                      selected={form[frage.id] === opt.value}
-                      onClick={() => setField(frage.id, opt.value)}
+          {/* Fragen — mit Slide-Animation */}
+          <div
+            key={animKey}
+            className={direction > 0 ? 'animate-step-forward' : 'animate-step-back'}
+          >
+            {gruppe.frageIds.map((id, i) => {
+              const frage = FRAGEN_MAP.get(id);
+              if (!frage) return null;
+              return (
+                <QuestionBlock
+                  key={id}
+                  nr={i + 1}
+                  frage={frage.frage}
+                  optional={frage.optional}
+                >
+                  {frage.typ === 'number' && (
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="number"
+                        min={frage.min}
+                        max={frage.max}
+                        value={form[id]}
+                        onChange={(e) => setField(id, e.target.value)}
+                        placeholder={frage.placeholder}
+                        className={inputBase + ' w-32'}
+                      />
+                      {frage.einheit && (
+                        <span className="text-sm text-text-muted">{frage.einheit}</span>
+                      )}
+                    </div>
+                  )}
+
+                  {frage.typ === 'single' && (
+                    <div className="flex flex-wrap gap-2.5">
+                      {(frage.optionen ?? []).map((opt) => (
+                        <OptionPill
+                          key={opt.value}
+                          label={opt.label}
+                          selected={form[id] === opt.value}
+                          onClick={() =>
+                            setField(id, form[id] === opt.value ? '' : opt.value)
+                          }
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {frage.typ === 'multi' && (
+                    <div className="flex flex-wrap gap-2.5">
+                      {(frage.optionen ?? []).map((opt) => (
+                        <OptionPill
+                          key={opt.value}
+                          label={opt.label}
+                          selected={
+                            Array.isArray(form[id]) && form[id].includes(opt.value)
+                          }
+                          onClick={() => toggleMulti(id, opt.value)}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {frage.typ === 'multi_freetext' && (
+                    <input
+                      type="text"
+                      placeholder={frage.placeholder}
+                      value={form[id]}
+                      onChange={(e) => setField(id, e.target.value)}
+                      className={inputBase + ' w-full'}
                     />
-                  ))}
-                </div>
-              )}
+                  )}
+                </QuestionBlock>
+              );
+            })}
+          </div>
 
-              {frage.typ === 'multi' && (
-                <div className="flex flex-wrap gap-2.5">
-                  {frage.optionen.map((opt) => (
-                    <OptionPill
-                      key={opt.value}
-                      label={opt.label}
-                      selected={
-                        Array.isArray(form[frage.id]) && form[frage.id].includes(opt.value)
-                      }
-                      onClick={() => toggleRestriktion(opt.value)}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {frage.typ === 'multi_freetext' && (
-                <input
-                  type="text"
-                  placeholder="z. B. Vitamin D3, Kreatin (Komma-getrennt)"
-                  value={form[frage.id]}
-                  onChange={(e) => setField(frage.id, e.target.value)}
-                  className={inputBase}
-                />
-              )}
-            </QuestionBlock>
-          ))}
-
-          {error && (
-            <p role="alert" className="mt-6 text-sm text-red-600">
-              {error}
+          {/* Fehlermeldungen */}
+          {(stepError || submitError) && (
+            <p role="alert" className="mt-5 text-sm text-red-600">
+              {stepError || submitError}
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="mt-8 w-full rounded-full bg-accent px-7 py-3.5 text-base font-semibold text-on-accent transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
-          >
-            {submitting ? 'Wird berechnet …' : 'Empfehlung berechnen'}
-          </button>
-        </form>
+          {/* Navigation */}
+          <div className="mt-8 flex items-center justify-between gap-4">
+            {step > 0 ? (
+              <button
+                type="button"
+                onClick={goBack}
+                className="rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text hover:bg-outline/20"
+              >
+                ← Zurück
+              </button>
+            ) : (
+              <div />
+            )}
+
+            {isLast ? (
+              <button
+                type="button"
+                onClick={onSubmit}
+                disabled={submitting}
+                className="rounded-full bg-accent px-7 py-3 text-base font-semibold text-on-accent transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {submitting ? 'Wird berechnet …' : 'Empfehlung berechnen'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={goNext}
+                className="rounded-full bg-accent px-7 py-3 text-base font-semibold text-on-accent transition hover:bg-accent-hover"
+              >
+                Weiter →
+              </button>
+            )}
+          </div>
+        </div>
       </main>
 
       <SiteFooter />

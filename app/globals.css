@@ -18,6 +18,17 @@ html {
   scroll-behavior: smooth;
 }
 
+@keyframes stepForward {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes stepBack {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-step-forward { animation: stepForward 0.22s ease-out; }
+.animate-step-back    { animation: stepBack    0.22s ease-out; }
+
 body {
   background-color: var(--color-bg);
   color: var(--color-text);

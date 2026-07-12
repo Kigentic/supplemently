@@ -1,11 +1,10 @@
-// Supplemently — Matching-/Scoring-Logik (Stage 2)
+// Supplemently — Matching-/Scoring-Logik
 // Regelbasiert, kein LLM. Pur & testbar: Input (Answers + Supplements) -> Result.
 // Keine UI-, keine DB-Abhängigkeit in diesem Modul.
 
 import type { Answers } from './questions';
 import { DISCLAIMER } from './disclaimer';
 
-// Subset einer supplements-Zeile (DB), das die Logik braucht.
 export interface Supplement {
   id: string;
   name: string;
@@ -23,8 +22,8 @@ export interface Empfehlung {
   id: string;
   name: string;
   score: number;
-  begruendung: string;      // 1-2 Sätze, Platzhalter-Text (kein LLM in Stage 2)
-  dosierung: string | null; // aus DB
+  begruendung: string;
+  dosierung: string | null;
 }
 
 export interface MatchResult {
@@ -37,17 +36,13 @@ export interface MatchResult {
   };
 }
 
-// Schwellenwerte + Caps.
 const THRESHOLD_ESSENZIELL = 3.0;
 const THRESHOLD_OPTIONAL = 1.5;
 const MAX_ESSENZIELL = 4;
 const MAX_OPTIONAL = 2;
 
-// --- Helfer -----------------------------------------------------------------
-
 const norm = (s: string) => s.toLowerCase();
 
-// Erkennt ein Supplement anhand von Namens-Keywords (robust ggü. exakten Namen).
 function is(supp: Supplement, ...keys: string[]): boolean {
   const n = norm(supp.name);
   return keys.some((k) => n.includes(k));
@@ -60,21 +55,16 @@ function ingredientNames(supp: Supplement): string[] {
     .filter(Boolean);
 }
 
-// Allergen-Keywords je Restriktion.
 const ALLERGEN_KEYWORDS: Record<string, string[]> = {
   laktose: ['laktose', 'milch', 'molke', 'whey', 'casein'],
   gluten: ['gluten', 'weizen', 'gerste'],
   nuesse: ['nuss', 'nüsse', 'nuesse', 'erdnuss', 'mandel', 'cashew'],
 };
 
-// --- Ergebnis-Akkumulator ---------------------------------------------------
-
 interface Acc {
   score: number;
   gruende: string[];
 }
-
-// --- Hauptfunktion ----------------------------------------------------------
 
 export function match(answers: Answers, supplements: Supplement[]): MatchResult {
   const ausgeschlossen: Array<{ name: string; grund: string }> = [];
@@ -84,14 +74,14 @@ export function match(answers: Answers, supplements: Supplement[]): MatchResult 
   const alreadyTaking = (answers.aktuelle_supplements ?? []).map(norm);
 
   for (const supp of supplements) {
-    // 1) Zielgruppe-Filter (Geschlecht).
+    // Zielgruppe-Filter
     const zg = supp.zielgruppe ?? [];
     if (zg.length && !zg.includes('alle') && !zg.includes(answers.geschlecht)) {
       ausgeschlossen.push({ name: supp.name, grund: `Zielgruppe (${zg.join('/')}) passt nicht zum Geschlecht` });
       continue;
     }
 
-    // 2) Allergie-/Restriktions-Ausschluss.
+    // Allergie-/Restriktions-Ausschluss
     const haystack = [norm(supp.name), norm(supp.kontraindikationen ?? ''), ...ingredientNames(supp)].join(' ');
     let excluded = false;
     for (const r of restr) {
@@ -105,46 +95,141 @@ export function match(answers: Answers, supplements: Supplement[]): MatchResult 
     }
     if (excluded) continue;
 
-    // 3) Bereits eingenommen -> nicht erneut empfehlen.
+    // Bereits eingenommen -> nicht erneut empfehlen
     if (alreadyTaking.length && alreadyTaking.some((t) => t.length >= 3 && norm(supp.name).includes(t))) {
       ausgeschlossen.push({ name: supp.name, grund: 'Wird bereits eingenommen' });
       continue;
     }
 
-    // 4) Scoring.
     const acc: Acc = { score: 0, gruende: [] };
     const add = (delta: number, grund?: string) => {
       acc.score += delta;
       if (grund) acc.gruende.push(grund);
     };
 
-    // Evidenz-Baseline (hohe Evidenz leicht bevorzugt, dient als Tiebreaker).
+    // Evidenz-Baseline (Tiebreaker)
     if (typeof supp.evidenzlevel === 'number') add(supp.evidenzlevel * 0.2);
 
-    // --- Ernährung ---
+    // ── Ernährungsstil ───────────────────────────────────────────────────────
     if (answers.ernaehrungsstil === 'vegan' || answers.ernaehrungsstil === 'vegetarisch') {
       if (is(supp, 'b12', 'cobalamin')) add(3, 'Bei pflanzenbasierter Ernährung ist Vitamin B12 kritisch, da es fast nur in tierischen Lebensmitteln vorkommt.');
       if (is(supp, 'eisen')) add(2, 'Pflanzliches Eisen wird schlechter aufgenommen – eine Ergänzung kann den Bedarf decken.');
       if (is(supp, 'omega')) add(2, 'Ohne Fisch fehlen oft EPA/DHA – Omega-3 (ideal algenbasiert) schließt diese Lücke.');
     }
 
-    // --- Stress & Schlaf ---
-    if (answers.stresslevel === 'hoch') {
-      if (is(supp, 'magnesium')) add(2, 'Bei hohem Stress steigt der Magnesiumbedarf; es unterstützt Nerven- und Muskelfunktion.');
-      if (is(supp, 'ashwagandha')) add(2, 'Als Adaptogen kann Ashwagandha das Stressempfinden senken.');
+    // ── Kochverhalten & Essgewohnheiten ──────────────────────────────────────
+    if (answers.kochverhalten === 'fertiggerichte') {
+      if (is(supp, 'multivitamin')) add(2, 'Bei überwiegenden Fertiggerichten deckt ein Multivitamin Mikronährstofflücken ab.');
+      if (is(supp, 'omega')) add(1.5, 'Fertiggerichte enthalten kaum hochwertige Omega-3-Fettsäuren.');
+      if (is(supp, 'magnesium')) add(1, 'Verarbeitete Lebensmittel sind oft magnesiumarm.');
+    } else if (answers.kochverhalten === 'gemischt') {
+      if (is(supp, 'multivitamin')) add(1);
+      if (is(supp, 'omega')) add(1);
     }
-    if (answers.schlafqualitaet === 'schlecht') {
-      if (is(supp, 'magnesium')) add(2, 'Magnesium am Abend kann zu ruhigerem Schlaf beitragen.');
-      if (is(supp, 'ashwagandha')) add(1);
-    } else if (answers.schlafqualitaet === 'mittel') {
+
+    if (answers.mahlzeiten_pro_tag === '1_2') {
+      if (is(supp, 'multivitamin')) add(1.5, 'Wenige Mahlzeiten erschweren eine ausreichende Mikronährstoffversorgung.');
       if (is(supp, 'magnesium')) add(1);
     }
 
-    // --- Training & Ziel ---
+    if (answers.auswaerts_essen === '3_4_woche' || answers.auswaerts_essen === 'taeglich') {
+      if (is(supp, 'omega')) add(1, 'Häufiges Essen außer Haus bedeutet wenig Kontrolle über Fettqualität.');
+      if (is(supp, 'multivitamin')) add(1);
+    }
+
+    if (answers.alkohol === 'regelmaessig' || answers.alkohol === 'taeglich') {
+      if (is(supp, 'b-komplex', 'b komplex', 'b12', 'cobalamin')) add(2, 'Alkohol erschöpft B-Vitamine (B1, B6, B12) – ein B-Komplex gleicht das aus.');
+      if (is(supp, 'magnesium')) add(1.5, 'Alkohol erhöht die renale Magnesiumausscheidung.');
+      if (is(supp, 'zink')) add(1.5, 'Regelmäßiger Alkoholkonsum senkt den Zinkspiegel.');
+      if (is(supp, 'omega')) add(1);
+    } else if (answers.alkohol === 'gelegentlich') {
+      if (is(supp, 'b-komplex', 'b komplex', 'b12', 'cobalamin')) add(0.5);
+    }
+
+    // ── Schlaf ───────────────────────────────────────────────────────────────
+    const schlechterSchlaf =
+      answers.aufwachgefuehl === 'unausgeschlafen' ||
+      answers.schlaf_durchschlafen === 'haeufig' ||
+      answers.schlaf_durchschlafen === 'einschlafen';
+
+    if (schlechterSchlaf) {
+      if (is(supp, 'magnesium')) add(2.5, 'Schlechter Schlaf ist oft mit Magnesiummangel assoziiert; Magnesiumglycinat kann die Schlafqualität verbessern.');
+      if (is(supp, 'ashwagandha')) add(2, 'Ashwagandha kann das Einschlafen erleichtern und die Schlafdauer verlängern.');
+    } else if (answers.aufwachgefuehl === 'neutral' || answers.schlaf_durchschlafen === 'gelegentlich') {
+      if (is(supp, 'magnesium')) add(1);
+    }
+
+    if (answers.schlafdauer < 6) {
+      if (is(supp, 'magnesium')) add(1.5, 'Zu wenig Schlaf erhöht den Magnesiumbedarf.');
+      if (is(supp, 'ashwagandha')) add(1);
+    }
+
+    // ── Stress & Regeneration ────────────────────────────────────────────────
+    if (answers.stresslevel === 'hoch') {
+      if (is(supp, 'magnesium')) add(2, 'Bei hohem Stress steigt der Magnesiumbedarf; es unterstützt Nerven- und Muskelfunktion.');
+      if (is(supp, 'ashwagandha')) add(2, 'Als Adaptogen kann Ashwagandha das Stressempfinden senken.');
+    } else if (answers.stresslevel === 'mittel') {
+      if (is(supp, 'magnesium')) add(1);
+    }
+
+    if (answers.entspannung === 'kaum' || answers.gedanken_abschalten === 'selten') {
+      if (is(supp, 'ashwagandha')) add(2, 'Ashwagandha reguliert als Adaptogen den Cortisolspiegel und beruhigt das Nervensystem.');
+      if (is(supp, 'magnesium')) add(1.5, 'Magnesium unterstützt die Entspannungsfähigkeit des Nervensystems.');
+      if (is(supp, 'b-komplex', 'b komplex')) add(1, 'B-Vitamine sind essenziell für einen ausgeglichenen Neurotransmitter-Haushalt.');
+    } else if (answers.entspannung === 'mit_aufwand' || answers.gedanken_abschalten === 'manchmal') {
+      if (is(supp, 'ashwagandha')) add(1);
+      if (is(supp, 'magnesium')) add(1);
+    }
+
+    // ── Verdauung ────────────────────────────────────────────────────────────
+    if (answers.verdauung_blaeungen === 'haeufig') {
+      if (is(supp, 'glutamin')) add(3, 'L-Glutamin ist der wichtigste Energielieferant für Darmzellen und kann die Darmbarriere stärken.');
+      if (is(supp, 'omega')) add(1, 'Omega-3 wirkt entzündungsmodulierend und unterstützt die Darmgesundheit.');
+    } else if (answers.verdauung_blaeungen === 'gelegentlich') {
+      if (is(supp, 'glutamin')) add(1.5);
+    }
+
+    // ── Heißhunger / Cravings ────────────────────────────────────────────────
+    if (answers.heisshunger === 'taeglich' || answers.heisshunger === 'gelegentlich_suess') {
+      if (is(supp, 'chrom')) add(2.5, 'Chrom verbessert die Insulinsensitivität und kann Heißhunger auf Süßes reduzieren.');
+      if (is(supp, 'zink')) add(1, 'Zink ist an der Insulinregulation beteiligt und kann Cravings mildern.');
+      if (is(supp, 'magnesium')) add(1, 'Magnesiummangel ist häufig mit Heißhunger auf Süßes assoziiert.');
+    } else if (answers.heisshunger === 'gelegentlich_salzig') {
+      if (is(supp, 'magnesium')) add(1, 'Heißhunger auf Salziges kann auf Mineralstoffmangel hindeuten.');
+      if (is(supp, 'zink')) add(1);
+    }
+
+    // ── Medikamente ──────────────────────────────────────────────────────────
+    const meds = answers.medikamente ?? ['keine'];
+
+    if (meds.includes('pille')) {
+      if (is(supp, 'b-komplex', 'b komplex', 'b12', 'cobalamin')) add(2, 'Hormonelle Verhütungsmittel senken B-Vitamine (B6, B12, Folsäure) – eine Ergänzung ist sinnvoll.');
+      if (is(supp, 'magnesium')) add(1.5, 'Die Pille erhöht den Magnesiumbedarf.');
+      if (is(supp, 'zink')) add(1.5, 'Zink kann durch hormonelle Verhütung vermindert werden.');
+    }
+    if (meds.includes('schilddruese')) {
+      if (is(supp, 'selen')) add(3, 'Selen ist essenziell für die Schilddrüsenhormonsynthese (T4→T3-Konversion).');
+      if (is(supp, 'zink')) add(1.5, 'Zink unterstützt die Schilddrüsenfunktion.');
+    }
+    if (meds.includes('blutzucker')) {
+      if (is(supp, 'chrom')) add(2, 'Chrom verbessert die Insulinsensitivität – sinnvolle Ergänzung bei Blutzuckerproblemen.');
+      if (is(supp, 'magnesium')) add(1.5, 'Magnesium verbessert die Insulinempfindlichkeit.');
+      if (is(supp, 'omega')) add(1);
+    }
+    if (meds.includes('blutdruck')) {
+      if (is(supp, 'magnesium')) add(2, 'Magnesium kann den Blutdruck leicht senken und ergänzt Blutdruckmedikamente unterstützend.');
+      if (is(supp, 'omega')) add(1.5, 'Omega-3 hat eine leicht blutdrucksenkende Wirkung.');
+    }
+    if (meds.includes('antidepressiva')) {
+      if (is(supp, 'omega')) add(2, 'Omega-3 (EPA) unterstützt die Gehirnfunktion und wird als Begleitung bei Depression diskutiert.');
+      if (is(supp, 'vitamin d')) add(1.5, 'Vitamin-D-Mangel ist mit depressiven Verstimmungen assoziiert.');
+      if (is(supp, 'magnesium')) add(1.5, 'Magnesium ist an der Serotoninsynthese beteiligt.');
+    }
+
+    // ── Training & Ziel ──────────────────────────────────────────────────────
     const intensiv = answers.trainingslevel === 'intensiv' || answers.trainingslevel === 'regelmaessig';
     if (intensiv && answers.trainingsziel === 'muskelaufbau') {
       if (is(supp, 'kreatin')) add(3, 'Kreatin ist bei intensivem Krafttraining eines der am besten belegten Mittel für Kraft und Muskelaufbau.');
-      if (is(supp, 'protein', 'whey', 'eiweiß')) add(3, 'Ein erhöhter Proteinbedarf beim Muskelaufbau lässt sich mit einer Eiweiß-Ergänzung leichter decken.');
       if (is(supp, 'omega')) add(1);
     }
     if (answers.trainingsziel === 'performance') {
@@ -154,15 +239,14 @@ export function match(answers: Answers, supplements: Supplement[]): MatchResult 
     }
     if (answers.trainingsziel === 'abnehmen') {
       if (is(supp, 'omega')) add(1);
-      if (is(supp, 'protein', 'whey')) add(1, 'Protein hilft, in der Diät Muskulatur zu erhalten und satt zu bleiben.');
     }
     if (answers.trainingsziel === 'gesundheit') {
-      if (is(supp, 'vitamin d')) add(2, 'Vitamin D unterstützt Immunsystem und Knochen und ist in unseren Breiten oft niedrig.');
+      if (is(supp, 'vitamin d')) add(2, 'Vitamin D unterstützt Immunsystem und Knochen – in unseren Breiten oft zu niedrig.');
       if (is(supp, 'omega')) add(2, 'Omega-3 unterstützt Herz-Kreislauf-System und wirkt entzündungsmodulierend.');
       if (is(supp, 'multivitamin')) add(1, 'Ein Multivitamin deckt eine breite Basis an Mikronährstoffen ab.');
     }
 
-    // --- Allgemein ---
+    // ── Allgemein ────────────────────────────────────────────────────────────
     if (is(supp, 'vitamin d')) add(1.5, 'Vitamin D ist besonders in den dunklen Monaten häufig unzureichend.');
     if (answers.geschlecht === 'weiblich' && is(supp, 'eisen')) add(1.5, 'Frauen haben einen erhöhten Eisenbedarf.');
     if (answers.trainingslevel === 'keine' && is(supp, 'kreatin', 'citrullin')) add(-1.5);
@@ -170,7 +254,6 @@ export function match(answers: Answers, supplements: Supplement[]): MatchResult 
     scored.push({ supp, acc });
   }
 
-  // Sortieren nach Score (desc), dann Evidenz als Tiebreak.
   scored.sort((a, b) => {
     if (b.acc.score !== a.acc.score) return b.acc.score - a.acc.score;
     return (b.supp.evidenzlevel ?? 0) - (a.supp.evidenzlevel ?? 0);
