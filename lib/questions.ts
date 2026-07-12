@@ -7,6 +7,7 @@ export type Kochverhalten = 'frisch' | 'gemischt' | 'fertiggerichte';
 export type MahlzeitenProTag = '1_2' | '3' | '4_5' | '6_plus';
 export type AuswaertsEssen = 'selten' | '1_2_woche' | '3_4_woche' | 'taeglich';
 export type Alkohol = 'kein' | 'gelegentlich' | 'regelmaessig' | 'taeglich';
+export type Raucher = 'nein' | 'ja' | 'ex_raucher';
 export type Aufwachgefuehl = 'ausgeruht' | 'energiereich' | 'neutral' | 'unausgeschlafen';
 export type SchlafDurchschlafen = 'problemlos' | 'gelegentlich' | 'haeufig' | 'einschlafen';
 export type Stresslevel = 'niedrig' | 'mittel' | 'hoch';
@@ -34,6 +35,7 @@ export interface Answers {
   mahlzeiten_pro_tag: MahlzeitenProTag;
   auswaerts_essen: AuswaertsEssen;
   alkohol: Alkohol;
+  raucher: Raucher;
   // Schlaf
   schlafdauer: number;
   aufwachgefuehl: Aufwachgefuehl;
@@ -203,6 +205,16 @@ export const FRAGEN: Frage[] = [
       { value: 'taeglich', label: 'Täglich' },
     ],
   },
+  {
+    id: 'raucher',
+    frage: 'Rauchst du?',
+    typ: 'single',
+    optionen: [
+      { value: 'nein', label: 'Nein' },
+      { value: 'ja', label: 'Ja' },
+      { value: 'ex_raucher', label: 'Ex-Raucher' },
+    ],
+  },
 
   // ── Schritt 4: Schlaf ─────────────────────────────────────────────────────
   {
@@ -318,7 +330,7 @@ export const FRAGEN: Frage[] = [
 export const GRUPPEN = [
   { id: 'profil',     titel: 'Persönliche Daten',       frageIds: ['geschlecht', 'alter', 'groesse', 'gewicht', 'koerperform'] },
   { id: 'training',   titel: 'Training & Ziele',         frageIds: ['trainingslevel', 'trainingsziel'] },
-  { id: 'ernaehrung', titel: 'Ernährung',                frageIds: ['ernaehrungsstil', 'restriktionen', 'kochverhalten', 'mahlzeiten_pro_tag', 'auswaerts_essen', 'alkohol'] },
+  { id: 'ernaehrung', titel: 'Ernährung',                frageIds: ['ernaehrungsstil', 'restriktionen', 'kochverhalten', 'mahlzeiten_pro_tag', 'auswaerts_essen', 'alkohol', 'raucher'] },
   { id: 'schlaf',     titel: 'Schlaf',                   frageIds: ['schlafdauer', 'aufwachgefuehl', 'schlaf_durchschlafen'] },
   { id: 'stress',     titel: 'Stress & Regeneration',    frageIds: ['stresslevel', 'entspannung', 'gedanken_abschalten'] },
   { id: 'verdauung',  titel: 'Verdauung & Befinden',     frageIds: ['verdauung_blaeungen', 'heisshunger'] },
@@ -343,6 +355,7 @@ export function validateAnswers(
   const mpt: MahlzeitenProTag[] = ['1_2', '3', '4_5', '6_plus'];
   const ae: AuswaertsEssen[] = ['selten', '1_2_woche', '3_4_woche', 'taeglich'];
   const alk: Alkohol[] = ['kein', 'gelegentlich', 'regelmaessig', 'taeglich'];
+  const raucherVals: Raucher[] = ['nein', 'ja', 'ex_raucher'];
   const awg: Aufwachgefuehl[] = ['ausgeruht', 'energiereich', 'neutral', 'unausgeschlafen'];
   const sds: SchlafDurchschlafen[] = ['problemlos', 'gelegentlich', 'haeufig', 'einschlafen'];
   const stress: Stresslevel[] = ['niedrig', 'mittel', 'hoch'];
@@ -363,6 +376,7 @@ export function validateAnswers(
   if (!inSet(input.mahlzeiten_pro_tag, mpt)) return { ok: false, error: 'Ungültige Mahlzeitenanzahl.' };
   if (!inSet(input.auswaerts_essen, ae)) return { ok: false, error: 'Ungültiger Wert für Auswärts-Essen.' };
   if (!inSet(input.alkohol, alk)) return { ok: false, error: 'Ungültiger Alkohol-Wert.' };
+  if (!inSet(input.raucher, raucherVals)) return { ok: false, error: 'Bitte Raucherstatus angeben.' };
   if (typeof input.schlafdauer !== 'number' || input.schlafdauer < 1 || input.schlafdauer > 16)
     return { ok: false, error: 'Ungültige Schlafdauer (1–16 Stunden).' };
   if (!inSet(input.aufwachgefuehl, awg)) return { ok: false, error: 'Ungültiges Aufwachgefühl.' };
@@ -412,6 +426,7 @@ export function validateAnswers(
       mahlzeiten_pro_tag: input.mahlzeiten_pro_tag,
       auswaerts_essen: input.auswaerts_essen,
       alkohol: input.alkohol,
+      raucher: input.raucher,
       schlafdauer: input.schlafdauer,
       aufwachgefuehl: input.aufwachgefuehl,
       schlaf_durchschlafen: input.schlaf_durchschlafen,
