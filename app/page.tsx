@@ -91,7 +91,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-30 border-b border-outline/40 bg-bg/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
           <Image
-            src="/supplemently_logo.png"
+            src="/supplemently-logo-final.png"
             alt="Supplemently"
             width={HEADER_LOGO}
             height={HEADER_LOGO}
@@ -282,7 +282,7 @@ export default function LandingPage() {
           <div className="flex flex-col items-start justify-between gap-8 sm:flex-row">
             <div className="max-w-sm">
               <Image
-                src="/supplemently_logo.png"
+                src="/supplemently-logo-final.png"
                 alt="Supplemently"
                 width={64}
                 height={64}
