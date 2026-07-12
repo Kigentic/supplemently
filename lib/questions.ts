@@ -15,11 +15,15 @@ export type GedankenAbschalten = 'ja' | 'manchmal' | 'selten';
 export type VerdauungBlaehungen = 'selten' | 'gelegentlich' | 'haeufig';
 export type Heisshunger = 'selten' | 'gelegentlich_suess' | 'gelegentlich_salzig' | 'taeglich';
 export type Medikament = 'blutdruck' | 'blutzucker' | 'schilddruese' | 'pille' | 'antidepressiva' | 'keine';
+export type Koerperform = 'schlank' | 'normal' | 'untersetzt' | 'fett';
 
 export interface Answers {
   // Persönliche Daten
   geschlecht: Geschlecht;
   alter: number;
+  groesse?: number;
+  gewicht?: number;
+  koerperform?: Koerperform;
   // Training
   trainingslevel: Trainingslevel;
   trainingsziel: Trainingsziel;
@@ -51,7 +55,7 @@ export interface Option {
   label: string;
 }
 
-export type FrageTyp = 'single' | 'multi' | 'number' | 'multi_freetext';
+export type FrageTyp = 'single' | 'multi' | 'number' | 'multi_freetext' | 'body_type';
 
 export interface Frage {
   id: string;
@@ -85,6 +89,32 @@ export const FRAGEN: Frage[] = [
     max: 120,
     einheit: 'Jahre',
     placeholder: 'z. B. 32',
+  },
+  {
+    id: 'groesse',
+    frage: 'Körpergröße',
+    typ: 'number',
+    min: 100,
+    max: 250,
+    einheit: 'cm',
+    placeholder: 'z. B. 175',
+    optional: true,
+  },
+  {
+    id: 'gewicht',
+    frage: 'Körpergewicht',
+    typ: 'number',
+    min: 30,
+    max: 300,
+    einheit: 'kg',
+    placeholder: 'z. B. 75',
+    optional: true,
+  },
+  {
+    id: 'koerperform',
+    frage: 'Deine Körperform?',
+    typ: 'body_type',
+    optional: true,
   },
 
   // ── Schritt 2: Training & Ziele ───────────────────────────────────────────
@@ -289,7 +319,7 @@ export const FRAGEN: Frage[] = [
 ];
 
 export const GRUPPEN = [
-  { id: 'profil',     titel: 'Persönliche Daten',       frageIds: ['geschlecht', 'alter'] },
+  { id: 'profil',     titel: 'Persönliche Daten',       frageIds: ['geschlecht', 'alter', 'groesse', 'gewicht', 'koerperform'] },
   { id: 'training',   titel: 'Training & Ziele',         frageIds: ['trainingslevel', 'trainingsziel'] },
   { id: 'ernaehrung', titel: 'Ernährung',                frageIds: ['ernaehrungsstil', 'restriktionen', 'kochverhalten', 'mahlzeiten_pro_tag', 'auswaerts_essen', 'alkohol'] },
   { id: 'schlaf',     titel: 'Schlaf',                   frageIds: ['schlafdauer', 'aufwachgefuehl', 'schlaf_durchschlafen'] },
@@ -324,6 +354,7 @@ export function validateAnswers(
   const verdau: VerdauungBlaehungen[] = ['selten', 'gelegentlich', 'haeufig'];
   const heiss: Heisshunger[] = ['selten', 'gelegentlich_suess', 'gelegentlich_salzig', 'taeglich'];
   const meds: Medikament[] = ['blutdruck', 'blutzucker', 'schilddruese', 'pille', 'antidepressiva', 'keine'];
+  const koerperformVals: Koerperform[] = ['schlank', 'normal', 'untersetzt', 'fett'];
 
   if (!inSet(input.geschlecht, g)) return { ok: false, error: 'Ungültiges Geschlecht.' };
   if (typeof input.alter !== 'number' || input.alter < 14 || input.alter > 120)
@@ -357,11 +388,23 @@ export function validateAnswers(
     ? input.aktuelle_supplements.map((s: any) => String(s)).filter(Boolean)
     : undefined;
 
+  const groesse: number | undefined =
+    typeof input.groesse === 'number' && input.groesse >= 100 && input.groesse <= 250
+      ? input.groesse : undefined;
+  const gewicht: number | undefined =
+    typeof input.gewicht === 'number' && input.gewicht >= 30 && input.gewicht <= 300
+      ? input.gewicht : undefined;
+  const koerperform: Koerperform | undefined = inSet(input.koerperform, koerperformVals)
+    ? (input.koerperform as Koerperform) : undefined;
+
   return {
     ok: true,
     answers: {
       geschlecht: input.geschlecht,
       alter: input.alter,
+      groesse,
+      gewicht,
+      koerperform,
       trainingslevel: input.trainingslevel,
       trainingsziel: input.trainingsziel,
       ernaehrungsstil: input.ernaehrungsstil,

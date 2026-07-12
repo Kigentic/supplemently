@@ -11,6 +11,9 @@ type FormState = Record<string, any>;
 const initial: FormState = {
   geschlecht: '',
   alter: '',
+  groesse: '',
+  gewicht: '',
+  koerperform: '',
   trainingslevel: '',
   trainingsziel: '',
   ernaehrungsstil: '',
@@ -58,6 +61,151 @@ function OptionPill({
     >
       {label}
     </button>
+  );
+}
+
+// ── Body-Type-Icons ──────────────────────────────────────────────────────────
+
+function BodyMaleSchlank() {
+  return (
+    <svg viewBox="0 0 40 80" fill="currentColor" className="h-14 w-auto">
+      <circle cx="20" cy="9" r="7" />
+      <path d="M14,17 Q20,15 26,17 L25,50 Q20,53 15,50 Z" />
+      <rect x="13" y="49" width="6" height="24" rx="3" />
+      <rect x="21" y="49" width="6" height="24" rx="3" />
+    </svg>
+  );
+}
+function BodyMaleNormal() {
+  return (
+    <svg viewBox="0 0 40 80" fill="currentColor" className="h-14 w-auto">
+      <circle cx="20" cy="9" r="7" />
+      <path d="M10,17 Q20,14 30,17 L28,50 Q20,54 12,50 Z" />
+      <rect x="11" y="49" width="7" height="24" rx="3" />
+      <rect x="22" y="49" width="7" height="24" rx="3" />
+    </svg>
+  );
+}
+function BodyMaleUntersetzt() {
+  return (
+    <svg viewBox="0 0 40 80" fill="currentColor" className="h-14 w-auto">
+      <circle cx="20" cy="9" r="7" />
+      <path d="M5,17 Q20,13 35,17 L33,48 Q20,53 7,48 Z" />
+      <rect x="7" y="47" width="9" height="24" rx="4" />
+      <rect x="24" y="47" width="9" height="24" rx="4" />
+    </svg>
+  );
+}
+function BodyMaleFett() {
+  return (
+    <svg viewBox="0 0 40 80" fill="currentColor" className="h-14 w-auto">
+      <circle cx="20" cy="9" r="7" />
+      <path d="M11,17 Q20,14 29,17 L33,36 Q34,52 20,55 Q6,52 7,36 Z" />
+      <rect x="9" y="51" width="8" height="22" rx="3" />
+      <rect x="23" y="51" width="8" height="22" rx="3" />
+    </svg>
+  );
+}
+
+function BodyFemaleSchlank() {
+  return (
+    <svg viewBox="0 0 40 80" fill="currentColor" className="h-14 w-auto">
+      <circle cx="20" cy="9" r="7" />
+      <path d="M15,17 Q20,15 25,17 L24,31 Q20,34 20,34 Q20,34 16,31 Z" />
+      <path d="M15,34 Q20,31 25,34 L26,50 Q20,55 14,50 Z" />
+      <rect x="13" y="49" width="6" height="24" rx="3" />
+      <rect x="21" y="49" width="6" height="24" rx="3" />
+    </svg>
+  );
+}
+function BodyFemaleNormal() {
+  return (
+    <svg viewBox="0 0 40 80" fill="currentColor" className="h-14 w-auto">
+      <circle cx="20" cy="9" r="7" />
+      <path d="M12,17 Q20,14 28,17 L26,31 Q20,35 20,35 Q20,35 14,31 Z" />
+      <path d="M13,35 Q20,32 27,35 L29,50 Q20,56 11,50 Z" />
+      <rect x="11" y="49" width="7" height="24" rx="3" />
+      <rect x="22" y="49" width="7" height="24" rx="3" />
+    </svg>
+  );
+}
+function BodyFemaleUntersetzt() {
+  return (
+    <svg viewBox="0 0 40 80" fill="currentColor" className="h-14 w-auto">
+      <circle cx="20" cy="9" r="7" />
+      <path d="M13,17 Q20,14 27,17 L25,31 Q20,34 20,34 Q20,34 15,31 Z" />
+      <path d="M9,34 Q20,30 31,34 L33,50 Q20,57 7,50 Z" />
+      <rect x="9" y="49" width="8" height="24" rx="4" />
+      <rect x="23" y="49" width="8" height="24" rx="4" />
+    </svg>
+  );
+}
+function BodyFemaleFett() {
+  return (
+    <svg viewBox="0 0 40 80" fill="currentColor" className="h-14 w-auto">
+      <circle cx="20" cy="9" r="7" />
+      <ellipse cx="20" cy="39" rx="16" ry="19" />
+      <rect x="10" y="54" width="7" height="20" rx="3" />
+      <rect x="23" y="54" width="7" height="20" rx="3" />
+    </svg>
+  );
+}
+
+const BODY_TYPES = [
+  { value: 'schlank',    label: 'Schlank' },
+  { value: 'normal',     label: 'Normal' },
+  { value: 'untersetzt', label: 'Untersetzt' },
+  { value: 'fett',       label: 'Mollig' },
+] as const;
+
+const BODY_ICONS: Record<string, Record<string, React.ReactNode>> = {
+  männlich: {
+    schlank:    <BodyMaleSchlank />,
+    normal:     <BodyMaleNormal />,
+    untersetzt: <BodyMaleUntersetzt />,
+    fett:       <BodyMaleFett />,
+  },
+  weiblich: {
+    schlank:    <BodyFemaleSchlank />,
+    normal:     <BodyFemaleNormal />,
+    untersetzt: <BodyFemaleUntersetzt />,
+    fett:       <BodyFemaleFett />,
+  },
+};
+
+function BodyTypeSelector({
+  selected,
+  geschlecht,
+  onChange,
+}: {
+  selected: string;
+  geschlecht: string;
+  onChange: (v: string) => void;
+}) {
+  const icons = BODY_ICONS[geschlecht] ?? BODY_ICONS['männlich'];
+  return (
+    <div className="flex gap-3">
+      {BODY_TYPES.map(({ value, label }) => {
+        const active = selected === value;
+        return (
+          <button
+            key={value}
+            type="button"
+            onClick={() => onChange(selected === value ? '' : value)}
+            aria-pressed={active}
+            className={
+              'flex flex-1 flex-col items-center gap-2 rounded-xl border px-2 py-3 transition ' +
+              (active
+                ? 'border-accent bg-accent/10 text-accent'
+                : 'border-outline bg-bg text-text-muted hover:border-text hover:text-text')
+            }
+          >
+            {icons[value]}
+            <span className="text-xs font-medium">{label}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -177,6 +325,9 @@ export default function FragebogenPage() {
     const antworten: Answers = {
       geschlecht: form.geschlecht,
       alter: Number(form.alter),
+      ...(form.groesse ? { groesse: Number(form.groesse) } : {}),
+      ...(form.gewicht ? { gewicht: Number(form.gewicht) } : {}),
+      ...(form.koerperform ? { koerperform: form.koerperform } : {}),
       trainingslevel: form.trainingslevel,
       trainingsziel: form.trainingsziel,
       ernaehrungsstil: form.ernaehrungsstil,
@@ -202,13 +353,25 @@ export default function FragebogenPage() {
 
     setSubmitting(true);
     setSubmitError(null);
+
+    let sessionId: string | null = null;
+
     try {
       const res = await fetch('/api/match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ antworten }),
       });
-      const data = await res.json();
+
+      let data: any;
+      try {
+        data = await res.json();
+      } catch {
+        setSubmitError('Server-Antwort konnte nicht gelesen werden.');
+        setSubmitting(false);
+        return;
+      }
+
       if (!res.ok) {
         setSubmitError(data?.error || 'Fehler beim Absenden.');
         setSubmitting(false);
@@ -219,11 +382,17 @@ export default function FragebogenPage() {
         setSubmitting(false);
         return;
       }
-      router.push(`/ergebnis/${data.session_id}`);
-    } catch {
-      setSubmitError('Netzwerkfehler beim Absenden.');
+
+      sessionId = data.session_id;
+    } catch (e) {
+      const msg = e instanceof TypeError ? 'Server nicht erreichbar.' : 'Unbekannter Fehler beim Absenden.';
+      setSubmitError(msg);
       setSubmitting(false);
+      return;
     }
+
+    // router.push() außerhalb des try-catch — Next.js-Navigation darf nicht abgefangen werden.
+    router.push(`/ergebnis/${sessionId}`);
   }
 
   return (
@@ -332,6 +501,14 @@ export default function FragebogenPage() {
                       value={form[id]}
                       onChange={(e) => setField(id, e.target.value)}
                       className={inputBase + ' w-full'}
+                    />
+                  )}
+
+                  {frage.typ === 'body_type' && (
+                    <BodyTypeSelector
+                      selected={form.koerperform}
+                      geschlecht={form.geschlecht}
+                      onChange={(v) => setField('koerperform', v)}
                     />
                   )}
                 </QuestionBlock>

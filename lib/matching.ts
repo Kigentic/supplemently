@@ -11,6 +11,7 @@ export interface Supplement {
   kategorie: string | null;
   zielgruppe: string[];
   wirkung: string | null;
+  bevorzugte_form: string | null;
   dosierung_empfehlung: string | null;
   kontraindikationen: string | null;
   evidenzlevel: number | null;
@@ -24,6 +25,7 @@ export interface Empfehlung {
   score: number;
   begruendung: string;
   dosierung: string | null;
+  bevorzugte_form: string | null;
 }
 
 export interface MatchResult {
@@ -267,6 +269,7 @@ export function match(answers: Answers, supplements: Supplement[]): MatchResult 
       ? s.acc.gruende.slice(0, 2).join(' ')
       : `${s.supp.name} passt allgemein zu deinem Profil.`,
     dosierung: s.supp.dosierung_empfehlung,
+    bevorzugte_form: s.supp.bevorzugte_form ?? null,
   });
 
   const essenziell = scored
