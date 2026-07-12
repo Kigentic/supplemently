@@ -11,6 +11,9 @@ const cases: Array<{ titel: string; answers: Answers }> = [
     answers: {
       geschlecht: 'männlich',
       alter: 28,
+      groesse: 180,
+      gewicht: 80,
+      koerperform: 'normal',
       trainingslevel: 'intensiv',
       trainingsziel: 'muskelaufbau',
       ernaehrungsstil: 'vegan',
@@ -35,6 +38,9 @@ const cases: Array<{ titel: string; answers: Answers }> = [
     answers: {
       geschlecht: 'weiblich',
       alter: 45,
+      groesse: 165,
+      gewicht: 62,
+      koerperform: 'normal',
       trainingslevel: 'gelegentlich',
       trainingsziel: 'gesundheit',
       ernaehrungsstil: 'omnivor',
@@ -60,6 +66,9 @@ const cases: Array<{ titel: string; answers: Answers }> = [
     answers: {
       geschlecht: 'divers',
       alter: 34,
+      groesse: 172,
+      gewicht: 70,
+      koerperform: 'schlank',
       trainingslevel: 'regelmaessig',
       trainingsziel: 'performance',
       ernaehrungsstil: 'vegetarisch',

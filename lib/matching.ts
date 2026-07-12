@@ -40,8 +40,8 @@ export interface MatchResult {
 
 const THRESHOLD_ESSENZIELL = 3.0;
 const THRESHOLD_OPTIONAL = 1.5;
-const MAX_ESSENZIELL = 4;
-const MAX_OPTIONAL = 2;
+const MAX_ESSENZIELL = 7;
+const MAX_OPTIONAL = 3;
 
 const norm = (s: string) => s.toLowerCase();
 

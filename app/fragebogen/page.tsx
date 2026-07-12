@@ -251,6 +251,8 @@ function validateStep(step: number, form: FormState): string | null {
         return `Wert darf höchstens ${frage.max} sein.`;
     } else if (frage.typ === 'single') {
       if (!form[id]) return `Bitte bei "${frage.frage}" eine Antwort wählen.`;
+    } else if (frage.typ === 'body_type') {
+      if (!form[id]) return 'Bitte deine Körperform auswählen.';
     }
   }
   return null;
@@ -265,6 +267,7 @@ export default function FragebogenPage() {
   const [stepError, setStepError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
 
   const totalSteps = GRUPPEN.length;
   const gruppe = GRUPPEN[step];
@@ -312,6 +315,10 @@ export default function FragebogenPage() {
   async function onSubmit() {
     const err = validateStep(step, form);
     if (err) { setStepError(err); return; }
+    if (!disclaimerChecked) {
+      setSubmitError('Bitte bestätige den Hinweis zur ärztlichen Beratung.');
+      return;
+    }
 
     const restriktionen =
       Array.isArray(form.restriktionen) && form.restriktionen.length
@@ -325,9 +332,9 @@ export default function FragebogenPage() {
     const antworten: Answers = {
       geschlecht: form.geschlecht,
       alter: Number(form.alter),
-      ...(form.groesse ? { groesse: Number(form.groesse) } : {}),
-      ...(form.gewicht ? { gewicht: Number(form.gewicht) } : {}),
-      ...(form.koerperform ? { koerperform: form.koerperform } : {}),
+      groesse: Number(form.groesse),
+      gewicht: Number(form.gewicht),
+      koerperform: form.koerperform,
       trainingslevel: form.trainingslevel,
       trainingsziel: form.trainingsziel,
       ernaehrungsstil: form.ernaehrungsstil,
@@ -515,6 +522,27 @@ export default function FragebogenPage() {
               );
             })}
           </div>
+
+          {/* Disclaimer-Checkbox (nur letzter Schritt) */}
+          {isLast && (
+            <label className="mt-6 flex cursor-pointer items-start gap-3 rounded-xl border border-outline/60 bg-bg p-4">
+              <input
+                type="checkbox"
+                checked={disclaimerChecked}
+                onChange={(e) => {
+                  setDisclaimerChecked(e.target.checked);
+                  if (submitError) setSubmitError(null);
+                }}
+                className="mt-0.5 h-4 w-4 flex-shrink-0 accent-accent"
+              />
+              <span className="text-sm leading-relaxed text-text-muted">
+                Ich verstehe, dass diese Empfehlungen{' '}
+                <strong className="text-text">keine ärztliche Beratung ersetzen</strong> und rein
+                informativ sind. Bei gesundheitlichen Beschwerden oder der Einnahme von Medikamenten
+                konsultiere ich vor der Einnahme von Nahrungsergänzungsmitteln einen Arzt.
+              </span>
+            </label>
+          )}
 
           {/* Fehlermeldungen */}
           {(stepError || submitError) && (

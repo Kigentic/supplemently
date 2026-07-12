@@ -21,9 +21,9 @@ export interface Answers {
   // Persönliche Daten
   geschlecht: Geschlecht;
   alter: number;
-  groesse?: number;
-  gewicht?: number;
-  koerperform?: Koerperform;
+  groesse: number;
+  gewicht: number;
+  koerperform: Koerperform;
   // Training
   trainingslevel: Trainingslevel;
   trainingsziel: Trainingsziel;
@@ -98,7 +98,6 @@ export const FRAGEN: Frage[] = [
     max: 250,
     einheit: 'cm',
     placeholder: 'z. B. 175',
-    optional: true,
   },
   {
     id: 'gewicht',
@@ -108,13 +107,11 @@ export const FRAGEN: Frage[] = [
     max: 300,
     einheit: 'kg',
     placeholder: 'z. B. 75',
-    optional: true,
   },
   {
     id: 'koerperform',
     frage: 'Deine Körperform?',
     typ: 'body_type',
-    optional: true,
   },
 
   // ── Schritt 2: Training & Ziele ───────────────────────────────────────────
@@ -388,14 +385,16 @@ export function validateAnswers(
     ? input.aktuelle_supplements.map((s: any) => String(s)).filter(Boolean)
     : undefined;
 
-  const groesse: number | undefined =
-    typeof input.groesse === 'number' && input.groesse >= 100 && input.groesse <= 250
-      ? input.groesse : undefined;
-  const gewicht: number | undefined =
-    typeof input.gewicht === 'number' && input.gewicht >= 30 && input.gewicht <= 300
-      ? input.gewicht : undefined;
-  const koerperform: Koerperform | undefined = inSet(input.koerperform, koerperformVals)
-    ? (input.koerperform as Koerperform) : undefined;
+  if (typeof input.groesse !== 'number' || input.groesse < 100 || input.groesse > 250)
+    return { ok: false, error: 'Bitte gib deine Körpergröße an (100–250 cm).' };
+  if (typeof input.gewicht !== 'number' || input.gewicht < 30 || input.gewicht > 300)
+    return { ok: false, error: 'Bitte gib dein Körpergewicht an (30–300 kg).' };
+  if (!inSet(input.koerperform, koerperformVals))
+    return { ok: false, error: 'Bitte wähle deine Körperform.' };
+
+  const groesse: number = input.groesse;
+  const gewicht: number = input.gewicht;
+  const koerperform: Koerperform = input.koerperform as Koerperform;
 
   return {
     ok: true,
