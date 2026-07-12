@@ -1,8 +1,9 @@
 // Supplemently — öffentliche B2B-Landingpage (helles Theme).
 // Zielgruppe: Fitnessstudio-Inhaber in DACH. Mobile-first, Single-Page.
-import Image from 'next/image';
 import type { ReactNode } from 'react';
 import RegistrierungForm from './_components/RegistrierungForm';
+import SiteHeader from './_components/SiteHeader';
+import SiteFooter from './_components/SiteFooter';
 
 // --- kleine Bausteine -------------------------------------------------------
 
@@ -74,8 +75,6 @@ const IconQr = (
   </svg>
 );
 
-const HEADER_LOGO = 88;
-
 function CheckIcon({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="shrink-0">
@@ -87,22 +86,7 @@ function CheckIcon({ size = 18 }: { size?: number }) {
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-bg">
-      {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-outline/40 bg-bg/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-          <Image
-            src="/supplemently-logo-final.png"
-            alt="Supplemently"
-            width={HEADER_LOGO}
-            height={HEADER_LOGO}
-            style={{ height: HEADER_LOGO, width: 'auto' }}
-            priority
-          />
-          <a href="#registrierung" className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition hover:bg-accent-hover">
-            Partnerstudio werden
-          </a>
-        </div>
-      </header>
+      <SiteHeader ctaHref="#registrierung" />
 
       <main>
         {/* 1 — Hero */}
@@ -278,35 +262,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      {/* 7 — Footer */}
-      <footer className="border-t border-outline/50 bg-bg">
-        <div className="mx-auto max-w-6xl px-5 py-12">
-          <div className="flex flex-col items-start justify-between gap-8 sm:flex-row">
-            <div className="max-w-sm">
-              <Image
-                src="/supplemently-logo-final.png"
-                alt="Supplemently"
-                width={128}
-                height={128}
-                style={{ height: 128, width: 'auto' }}
-              />
-              <p className="mt-4 text-sm leading-relaxed text-text-muted">
-                Der ehrliche Nährstoff-Ratgeber für Fitnessstudios und ihre Mitglieder.
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 text-sm">
-              <a href="#" className="text-text-muted transition hover:text-text">Impressum</a>
-              <a href="#" className="text-text-muted transition hover:text-text">Datenschutz</a>
-              <a href="mailto:hallo@supplemently.de" className="text-text-muted transition hover:text-text">
-                hallo@supplemently.de
-              </a>
-            </div>
-          </div>
-          <div className="mt-10 border-t border-outline/50 pt-6 text-xs text-text-muted">
-            © {new Date().getFullYear()} Supplemently. Alle Rechte vorbehalten.
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
