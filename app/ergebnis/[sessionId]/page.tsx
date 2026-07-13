@@ -62,55 +62,72 @@ function buildInsights(a: Answers): string[] {
 
 // ── Supplement-Karte ─────────────────────────────────────────────────────────
 
-function SuppCard({
-  rank,
-  e,
-  priority,
-}: {
-  rank: number;
-  e: Empfehlung;
-  priority: 'hoch' | 'ergaenzend';
-}) {
+type TierStyle = { dot: string; badge: string; badgeText: string; rankBg: string; rankText: string };
+
+const TIER_STYLES: Record<'basis' | 'advanced' | 'addon', TierStyle> = {
+  basis:    { dot: 'bg-accent',         badge: 'bg-accent/10 text-accent',          badgeText: 'Basis',    rankBg: 'bg-accent text-on-accent',      rankText: '' },
+  advanced: { dot: 'bg-blue-500',       badge: 'bg-blue-500/10 text-blue-500',      badgeText: 'Advanced', rankBg: 'bg-blue-500 text-white',         rankText: '' },
+  addon:    { dot: 'bg-outline',        badge: 'bg-outline/30 text-text-muted',     badgeText: 'Add-on',   rankBg: 'bg-outline/40 text-text-muted',  rankText: '' },
+};
+
+function SuppCard({ rank, e, tier }: { rank: number; e: Empfehlung; tier: 'basis' | 'advanced' | 'addon' }) {
+  const s = TIER_STYLES[tier];
   return (
     <div className="flex gap-5 rounded-2xl bg-surface p-6 sm:p-7">
-      {/* Rang-Zahl */}
       <div className="flex-shrink-0 pt-0.5">
-        <span
-          className={
-            'flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold ' +
-            (priority === 'hoch'
-              ? 'bg-accent text-on-accent'
-              : 'bg-outline/40 text-text-muted')
-          }
-        >
+        <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold ${s.rankBg}`}>
           {String(rank).padStart(2, '0')}
         </span>
       </div>
-
-      {/* Inhalt */}
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex flex-wrap items-center gap-2">
           <h2 className="text-base font-semibold text-text">{e.name}</h2>
-          <span
-            className={
-              'rounded-full px-2.5 py-0.5 text-xs font-medium ' +
-              (priority === 'hoch'
-                ? 'bg-accent/10 text-accent'
-                : 'bg-outline/30 text-text-muted')
-            }
-          >
-            {priority === 'hoch' ? 'Priorität: Hoch' : 'Ergänzend'}
-          </span>
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${s.badge}`}>{s.badgeText}</span>
         </div>
-
         <p className="mt-1 text-sm leading-relaxed text-text-muted">{e.begruendung}</p>
-
         {e.bevorzugte_form && (
           <p className="mt-3 text-xs text-text-muted">
             <span className="font-medium text-text">Empfohlene Form:</span>{' '}
             {e.bevorzugte_form.split(';')[0].trim()}
           </p>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── Tier-Sektion ──────────────────────────────────────────────────────────────
+
+const TIER_META: Record<'basis' | 'advanced' | 'addon', { title: string; desc: string; dotColor: string }> = {
+  basis:    { title: 'Basis',    desc: 'Essenzielle Grundversorgung — für jeden sinnvoll.',             dotColor: 'bg-accent' },
+  advanced: { title: 'Advanced', desc: 'Gezielte Unterstützung für dein spezifisches Profil.',          dotColor: 'bg-blue-500' },
+  addon:    { title: 'Add-on',   desc: 'Optionale Ergänzungen für zusätzlichen Nutzen.',               dotColor: 'bg-outline' },
+};
+
+function TierSection({
+  tier,
+  items,
+  startRank,
+}: {
+  tier: 'basis' | 'advanced' | 'addon';
+  items: Empfehlung[];
+  startRank: number;
+}) {
+  if (items.length === 0) return null;
+  const meta = TIER_META[tier];
+  return (
+    <div>
+      <div className="mb-4 flex items-center gap-3">
+        <span className={`h-2.5 w-2.5 rounded-full ${meta.dotColor}`} />
+        <div>
+          <span className="text-sm font-semibold text-text">{meta.title}</span>
+          <span className="ml-2 text-xs text-text-muted">{meta.desc}</span>
+        </div>
+      </div>
+      <div className="space-y-3">
+        {items.map((e, i) => (
+          <SuppCard key={e.id} rank={startRank + i} e={e} tier={tier} />
+        ))}
       </div>
     </div>
   );
@@ -177,15 +194,12 @@ export default function ErgebnisPage() {
   }
 
   const { ergebnis, antworten } = data;
-  const essenziell = ergebnis.essenziell ?? [];
-  const optional = ergebnis.optional ?? [];
-  const alle: Array<{ e: Empfehlung; priority: 'hoch' | 'ergaenzend' }> = [
-    ...essenziell.map((e) => ({ e, priority: 'hoch' as const })),
-    ...optional.map((e) => ({ e, priority: 'ergaenzend' as const })),
-  ];
+  const basis = ergebnis.basis ?? [];
+  const advanced = ergebnis.advanced ?? [];
+  const addon = ergebnis.addon ?? [];
+  const total = basis.length + advanced.length + addon.length;
 
   const insights = buildInsights(antworten);
-  const total = alle.length;
 
   return (
     <div className="min-h-screen bg-bg">
@@ -203,11 +217,10 @@ export default function ErgebnisPage() {
           </h1>
           <p className="mt-4 text-base leading-relaxed text-text-muted">
             {total > 0
-              ? `Für dein Profil machen ${total} Supplement${total === 1 ? '' : 's'} Sinn — gerankt nach Relevanz.`
+              ? `Für dein Profil machen ${total} Supplement${total === 1 ? '' : 's'} Sinn — aufgeteilt in drei Stufen.`
               : 'Für dein aktuelles Profil gibt es keine konkreten Empfehlungen.'}
           </p>
 
-          {/* Insights */}
           {insights.length > 0 && (
             <ul className="mt-5 space-y-2">
               {insights.map((ins, i) => (
@@ -220,12 +233,12 @@ export default function ErgebnisPage() {
           )}
         </div>
 
-        {/* Empfehlungsliste */}
-        {alle.length > 0 ? (
-          <div className="space-y-4">
-            {alle.map(({ e, priority }, i) => (
-              <SuppCard key={e.id} rank={i + 1} e={e} priority={priority} />
-            ))}
+        {/* Empfehlungsliste — 3 Sektionen */}
+        {total > 0 ? (
+          <div className="space-y-10">
+            <TierSection tier="basis"    items={basis}    startRank={1} />
+            <TierSection tier="advanced" items={advanced} startRank={basis.length + 1} />
+            <TierSection tier="addon"    items={addon}    startRank={basis.length + advanced.length + 1} />
           </div>
         ) : (
           <div className="rounded-2xl bg-surface p-8 text-center text-text-muted">

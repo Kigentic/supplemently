@@ -9,6 +9,7 @@ export interface Supplement {
   id: string;
   name: string;
   kategorie: string | null;
+  tier: 'basis' | 'advanced' | 'addon';
   zielgruppe: string[];
   wirkung: string | null;
   bevorzugte_form: string | null;
@@ -29,19 +30,20 @@ export interface Empfehlung {
 }
 
 export interface MatchResult {
-  essenziell: Empfehlung[];
-  optional: Empfehlung[];
+  basis: Empfehlung[];
+  advanced: Empfehlung[];
+  addon: Empfehlung[];
   disclaimer: string;
   meta: {
     ausgeschlossen: Array<{ name: string; grund: string }>;
-    schwellen: { essenziell: number; optional: number };
+    schwelle: number;
   };
 }
 
-const THRESHOLD_ESSENZIELL = 3.0;
-const THRESHOLD_OPTIONAL = 1.5;
-const MAX_ESSENZIELL = 7;
-const MAX_OPTIONAL = 3;
+const THRESHOLD = 1.5;
+const MAX_BASIS = 4;
+const MAX_ADVANCED = 4;
+const MAX_ADDON = 2;
 
 const norm = (s: string) => s.toLowerCase();
 
@@ -272,24 +274,20 @@ export function match(answers: Answers, supplements: Supplement[]): MatchResult 
     bevorzugte_form: s.supp.bevorzugte_form ?? null,
   });
 
-  const essenziell = scored
-    .filter((s) => s.acc.score >= THRESHOLD_ESSENZIELL)
-    .slice(0, MAX_ESSENZIELL)
-    .map(toEmpfehlung);
+  const qualified = scored.filter((s) => s.acc.score >= THRESHOLD);
 
-  const essIds = new Set(essenziell.map((e) => e.id));
-  const optional = scored
-    .filter((s) => !essIds.has(s.supp.id) && s.acc.score >= THRESHOLD_OPTIONAL && s.acc.score < THRESHOLD_ESSENZIELL)
-    .slice(0, MAX_OPTIONAL)
-    .map(toEmpfehlung);
+  const basis = qualified.filter((s) => s.supp.tier === 'basis').slice(0, MAX_BASIS).map(toEmpfehlung);
+  const advanced = qualified.filter((s) => s.supp.tier === 'advanced').slice(0, MAX_ADVANCED).map(toEmpfehlung);
+  const addon = qualified.filter((s) => s.supp.tier === 'addon').slice(0, MAX_ADDON).map(toEmpfehlung);
 
   return {
-    essenziell,
-    optional,
+    basis,
+    advanced,
+    addon,
     disclaimer: DISCLAIMER,
     meta: {
       ausgeschlossen,
-      schwellen: { essenziell: THRESHOLD_ESSENZIELL, optional: THRESHOLD_OPTIONAL },
+      schwelle: THRESHOLD,
     },
   };
 }

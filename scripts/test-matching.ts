@@ -103,19 +103,15 @@ for (const c of cases) {
   console.log('FALL: ' + c.titel);
   console.log(line(70));
 
-  console.log('\n  ESSENZIELL:');
-  if (!res.essenziell.length) console.log('    (keine über Schwellenwert)');
-  for (const e of res.essenziell) {
-    console.log(`    • ${e.name}  [score ${e.score}]`);
-    console.log(`        Dosierung: ${e.dosierung}`);
-    console.log(`        Begründung: ${e.begruendung}`);
-  }
-
-  console.log('\n  OPTIONAL:');
-  if (!res.optional.length) console.log('    (keine)');
-  for (const e of res.optional) {
-    console.log(`    • ${e.name}  [score ${e.score}]`);
-    console.log(`        Begründung: ${e.begruendung}`);
+  for (const tier of ['basis', 'advanced', 'addon'] as const) {
+    const items = res[tier];
+    console.log(`\n  ${tier.toUpperCase()}:`);
+    if (!items.length) console.log('    (keine über Schwellenwert)');
+    for (const e of items) {
+      console.log(`    • ${e.name}  [score ${e.score}]`);
+      console.log(`        Dosierung: ${e.dosierung}`);
+      console.log(`        Begründung: ${e.begruendung}`);
+    }
   }
 
   if (res.meta.ausgeschlossen.length) {

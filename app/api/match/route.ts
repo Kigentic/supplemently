@@ -32,7 +32,7 @@ export async function POST(req: Request) {
   const { data: supplements, error: loadErr } = await supabase
     .from('supplements')
     .select(
-      'id, name, kategorie, zielgruppe, wirkung, bevorzugte_form, dosierung_empfehlung, kontraindikationen, evidenzlevel, ist_kombipraeparat, inhaltsstoffe'
+      'id, name, kategorie, tier, zielgruppe, wirkung, bevorzugte_form, dosierung_empfehlung, kontraindikationen, evidenzlevel, ist_kombipraeparat, inhaltsstoffe'
     );
 
   if (loadErr) {
