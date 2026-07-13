@@ -262,6 +262,19 @@ export function match(answers: Answers, supplements: Supplement[]): MatchResult 
       if (is(supp, 'magnesium')) add(1.5, 'Magnesium ist an der Serotoninsynthese beteiligt.');
     }
 
+    // ── Bor ──────────────────────────────────────────────────────────────────
+    if (is(supp, 'bor')) {
+      if (answers.geschlecht === 'männlich') {
+        if (answers.trainingsziel === 'muskelaufbau' && (answers.trainingslevel === 'intensiv' || answers.trainingslevel === 'regelmaessig')) {
+          add(2.5, 'Bor senkt SHBG (Sex-Hormone-Binding-Globulin) — dadurch steigt das freie Testosteron. Bei intensivem Krafttraining mit Muskelaufbauziel ein unterschätzter Hebel.');
+        } else if (answers.trainingsziel === 'performance') {
+          add(2, 'Bor erhöht das freie Testosteron durch SHBG-Senkung und kann die Regeneration nach intensiven Einheiten verbessern.');
+        } else if (answers.alter >= 40) {
+          add(1.5, 'Mit zunehmendem Alter steigt SHBG — Bor kann das freie Testosteron auch ohne Training anheben.');
+        }
+      }
+    }
+
     // ── Training & Ziel ──────────────────────────────────────────────────────
     const intensiv = answers.trainingslevel === 'intensiv' || answers.trainingslevel === 'regelmaessig';
     if (intensiv && answers.trainingsziel === 'muskelaufbau') {
