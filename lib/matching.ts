@@ -41,6 +41,7 @@ export interface MatchResult {
 }
 
 const THRESHOLD = 1.5;
+const THRESHOLD_ADDON = 0.5;
 const MAX_BASIS = 4;
 const MAX_ADVANCED = 4;
 const MAX_ADDON = 2;
@@ -278,7 +279,7 @@ export function match(answers: Answers, supplements: Supplement[]): MatchResult 
 
   const basis = qualified.filter((s) => s.supp.tier === 'basis').slice(0, MAX_BASIS).map(toEmpfehlung);
   const advanced = qualified.filter((s) => s.supp.tier === 'advanced').slice(0, MAX_ADVANCED).map(toEmpfehlung);
-  const addon = qualified.filter((s) => s.supp.tier === 'addon').slice(0, MAX_ADDON).map(toEmpfehlung);
+  const addon = scored.filter((s) => s.supp.tier === 'addon' && s.acc.score >= THRESHOLD_ADDON).slice(0, MAX_ADDON).map(toEmpfehlung);
 
   return {
     basis,
