@@ -41,7 +41,7 @@ export interface MatchResult {
 }
 
 const THRESHOLD = 1.5;
-const THRESHOLD_ADDON = 0.5;
+const THRESHOLD_ADDON = 1.1;
 const MAX_BASIS = 4;
 const MAX_ADVANCED = 4;
 const MAX_ADDON = 2;
@@ -120,6 +120,15 @@ export function match(answers: Answers, supplements: Supplement[]): MatchResult 
       if (is(supp, 'b12', 'cobalamin')) add(3, 'Bei pflanzenbasierter Ernährung ist Vitamin B12 kritisch, da es fast nur in tierischen Lebensmitteln vorkommt.');
       if (is(supp, 'eisen')) add(2, 'Pflanzliches Eisen wird schlechter aufgenommen – eine Ergänzung kann den Bedarf decken.');
       if (is(supp, 'omega')) add(2, 'Ohne Fisch fehlen oft EPA/DHA – Omega-3 (ideal algenbasiert) schließt diese Lücke.');
+    }
+
+    // ── Folat / B9 ───────────────────────────────────────────────────────────
+    if (is(supp, 'folat', 'folsäure', 'b9')) {
+      if (answers.medikamente?.includes('pille')) add(2.5, 'Hormonelle Verhütungsmittel erschöpfen Folat (B9) — ein kritischer Nährstoff für Zellteilung und DNA-Synthese.');
+      if (answers.alkohol === 'regelmaessig' || answers.alkohol === 'taeglich') add(2, 'Alkohol blockiert die Folataufnahme im Darm und erhöht die renale Ausscheidung.');
+      if (answers.medikamente?.includes('antidepressiva')) add(1.5, 'Niedriger Folatspiegel ist mit schlechterer Antidepressiva-Wirksamkeit assoziiert — Methylfolat kann die Therapie unterstützen.');
+      if (answers.kochverhalten === 'fertiggerichte') add(1.5, 'Folat steckt vor allem in frischem Blattgemüse — bei überwiegenden Fertiggerichten ist Mangel wahrscheinlich.');
+      if (answers.ernaehrungsstil === 'vegan' && answers.kochverhalten !== 'frisch') add(1, 'Vegane Ernährung mit wenig frischem Gemüse kann die Folatversorgung gefährden.');
     }
 
     // ── Kochverhalten & Essgewohnheiten ──────────────────────────────────────
