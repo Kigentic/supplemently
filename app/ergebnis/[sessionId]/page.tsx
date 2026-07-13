@@ -41,6 +41,11 @@ function buildInsights(a: Answers): string[] {
   if (a.verdauung_blaeungen === 'haeufig')
     out.push('Häufige Verdauungsprobleme: Darmbarriere und Mikro­biom können Unterstützung brauchen.');
 
+  if (a.gelenk_probleme === 'chronisch_arthrose')
+    out.push('Arthrose diagnostiziert: Kollagen, Glucosamin und Boswellia zeigen hier die stärkste Evidenz.');
+  else if (a.gelenk_probleme === 'haeufig')
+    out.push('Häufige Gelenkbeschwerden: Kollagen, MSM und Curcumin können entzündlich und strukturell ansetzen.');
+
   if (a.heisshunger === 'taeglich' || a.heisshunger === 'gelegentlich_suess')
     out.push('Regelmäßiger Heißhunger auf Süßes — Chrom und Magnesium setzen hier an.');
 

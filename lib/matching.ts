@@ -204,6 +204,28 @@ export function match(answers: Answers, supplements: Supplement[]): MatchResult 
       if (is(supp, 'zink')) add(1);
     }
 
+    // ── Gelenke ──────────────────────────────────────────────────────────────
+    if (answers.gelenk_probleme === 'chronisch_arthrose') {
+      if (is(supp, 'kollagen')) add(3, 'Kollagen liefert Bausteine für Knorpel und Bindegewebe — besonders relevant bei Arthrose.');
+      if (is(supp, 'glucosamin')) add(3, 'Glucosamin ist Bestandteil des Knorpelgewebes und kann Gelenkschmerzen bei Arthrose lindern.');
+      if (is(supp, 'chondroitin')) add(2.5, 'Chondroitin hemmt knorpelabbauende Enzyme und wirkt entzündungshemmend.');
+      if (is(supp, 'msm', 'methylsulfonyl')) add(2.5, 'MSM liefert organischen Schwefel für die Bindegewebssynthese und wirkt entzündungsmodulierend.');
+      if (is(supp, 'boswellia', 'weihrauch')) add(2.5, 'Boswellia-Extrakt hemmt Entzündungswege und kann Gelenkschmerzen bei Arthrose reduzieren.');
+      if (is(supp, 'omega')) add(1.5, 'Omega-3 wirkt systemisch entzündungshemmend — unterstützend bei Gelenkproblemen.');
+      if (is(supp, 'curcumin', 'kurkuma')) add(2, 'Curcumin hemmt entzündungsfördernde Zytokine und kann Gelenkschmerzen lindern.');
+      if (is(supp, 'hyaluron')) add(2, 'Hyaluronsäure ist Bestandteil der Gelenkschmiere und kann die Beweglichkeit verbessern.');
+      if (is(supp, 'vitamin d')) add(1, 'Vitamin D ist für Knochenmineralisation und Muskelkraft wichtig.');
+    } else if (answers.gelenk_probleme === 'haeufig') {
+      if (is(supp, 'kollagen')) add(2, 'Kollagen unterstützt Knorpel- und Bindegewebsgesundheit bei häufigen Gelenkbeschwerden.');
+      if (is(supp, 'msm', 'methylsulfonyl')) add(1.5, 'MSM kann Gelenkentzündungen mildern.');
+      if (is(supp, 'boswellia', 'weihrauch')) add(1.5, 'Boswellia wirkt entzündungshemmend bei Gelenkschmerzen.');
+      if (is(supp, 'omega')) add(1, 'Omega-3 wirkt entzündungsmodulierend.');
+      if (is(supp, 'curcumin', 'kurkuma')) add(1.5, 'Curcumin reduziert Entzündungsmarker bei Gelenkbeschwerden.');
+    } else if (answers.gelenk_probleme === 'gelegentlich') {
+      if (is(supp, 'kollagen')) add(1, 'Kollagen kann gelegentliche Gelenkbeschwerden präventiv unterstützen.');
+      if (is(supp, 'omega')) add(0.5);
+    }
+
     // ── Medikamente ──────────────────────────────────────────────────────────
     const meds = answers.medikamente ?? ['keine'];
 

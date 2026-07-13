@@ -15,6 +15,7 @@ export type Entspannung = 'leicht' | 'mit_aufwand' | 'kaum';
 export type GedankenAbschalten = 'ja' | 'manchmal' | 'selten';
 export type VerdauungBlaehungen = 'selten' | 'gelegentlich' | 'haeufig';
 export type Heisshunger = 'selten' | 'gelegentlich_suess' | 'gelegentlich_salzig' | 'taeglich';
+export type GelenkProbleme = 'keine' | 'gelegentlich' | 'haeufig' | 'chronisch_arthrose';
 export type Medikament = 'blutdruck' | 'blutzucker' | 'schilddruese' | 'pille' | 'antidepressiva' | 'keine';
 export type Koerperform = 'schlank' | 'normal' | 'untersetzt' | 'fett';
 
@@ -47,6 +48,7 @@ export interface Answers {
   // Verdauung & Befinden
   verdauung_blaeungen: VerdauungBlaehungen;
   heisshunger: Heisshunger;
+  gelenk_probleme: GelenkProbleme;
   // Medikamente & Supplemente
   medikamente: Medikament[];
   aktuelle_supplements?: string[];
@@ -304,6 +306,18 @@ export const FRAGEN: Frage[] = [
     ],
   },
 
+  {
+    id: 'gelenk_probleme',
+    frage: 'Hast du Gelenk- oder Knochenbeschwerden?',
+    typ: 'single',
+    optionen: [
+      { value: 'keine', label: 'Keine' },
+      { value: 'gelegentlich', label: 'Gelegentlich (nach Sport oder Witterung)' },
+      { value: 'haeufig', label: 'Häufig — Schmerzen oder Steifheit' },
+      { value: 'chronisch_arthrose', label: 'Chronisch / Arthrose diagnostiziert' },
+    ],
+  },
+
   // ── Schritt 7: Medikamente & Ergänzungen ─────────────────────────────────
   {
     id: 'medikamente',
@@ -333,7 +347,7 @@ export const GRUPPEN = [
   { id: 'ernaehrung', titel: 'Ernährung',                frageIds: ['ernaehrungsstil', 'restriktionen', 'kochverhalten', 'mahlzeiten_pro_tag', 'auswaerts_essen', 'alkohol', 'raucher'] },
   { id: 'schlaf',     titel: 'Schlaf',                   frageIds: ['schlafdauer', 'aufwachgefuehl', 'schlaf_durchschlafen'] },
   { id: 'stress',     titel: 'Stress & Regeneration',    frageIds: ['stresslevel', 'entspannung', 'gedanken_abschalten'] },
-  { id: 'verdauung',  titel: 'Verdauung & Befinden',     frageIds: ['verdauung_blaeungen', 'heisshunger'] },
+  { id: 'verdauung',  titel: 'Verdauung & Befinden',     frageIds: ['verdauung_blaeungen', 'heisshunger', 'gelenk_probleme'] },
   { id: 'abschluss',  titel: 'Medikamente & Ergänzungen', frageIds: ['medikamente', 'aktuelle_supplements'] },
 ];
 
@@ -363,6 +377,7 @@ export function validateAnswers(
   const gas: GedankenAbschalten[] = ['ja', 'manchmal', 'selten'];
   const verdau: VerdauungBlaehungen[] = ['selten', 'gelegentlich', 'haeufig'];
   const heiss: Heisshunger[] = ['selten', 'gelegentlich_suess', 'gelegentlich_salzig', 'taeglich'];
+  const gelenk: GelenkProbleme[] = ['keine', 'gelegentlich', 'haeufig', 'chronisch_arthrose'];
   const meds: Medikament[] = ['blutdruck', 'blutzucker', 'schilddruese', 'pille', 'antidepressiva', 'keine'];
   const koerperformVals: Koerperform[] = ['schlank', 'normal', 'untersetzt', 'fett'];
 
@@ -386,6 +401,7 @@ export function validateAnswers(
   if (!inSet(input.gedanken_abschalten, gas)) return { ok: false, error: 'Ungültiger Wert.' };
   if (!inSet(input.verdauung_blaeungen, verdau)) return { ok: false, error: 'Ungültiger Verdauungs-Wert.' };
   if (!inSet(input.heisshunger, heiss)) return { ok: false, error: 'Ungültiger Heißhunger-Wert.' };
+  if (!inSet(input.gelenk_probleme, gelenk)) return { ok: false, error: 'Bitte Gelenkbeschwerden angeben.' };
 
   const restriktionen: Restriktion[] = Array.isArray(input.restriktionen)
     ? input.restriktionen.filter((r: any) => inSet(r, restr))
@@ -435,6 +451,7 @@ export function validateAnswers(
       gedanken_abschalten: input.gedanken_abschalten,
       verdauung_blaeungen: input.verdauung_blaeungen,
       heisshunger: input.heisshunger,
+      gelenk_probleme: input.gelenk_probleme,
       medikamente: medikamente.length ? medikamente : ['keine'],
       aktuelle_supplements,
     },

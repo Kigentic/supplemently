@@ -353,6 +353,7 @@ export default function FragebogenPage() {
       gedanken_abschalten: form.gedanken_abschalten,
       verdauung_blaeungen: form.verdauung_blaeungen,
       heisshunger: form.heisshunger,
+      gelenk_probleme: form.gelenk_probleme,
       medikamente,
       aktuelle_supplements: String(form.aktuelle_supplements || '')
         .split(',')
