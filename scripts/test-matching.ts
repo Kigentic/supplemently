@@ -106,7 +106,7 @@ for (const c of cases) {
   console.log('FALL: ' + c.titel);
   console.log(line(70));
 
-  for (const tier of ['basis', 'advanced', 'addon'] as const) {
+  for (const tier of ['immer', 'basis', 'specials', 'addon'] as const) {
     const items = res[tier];
     console.log(`\n  ${tier.toUpperCase()}:`);
     if (!items.length) console.log('    (keine über Schwellenwert)');

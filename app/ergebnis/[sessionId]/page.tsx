@@ -67,15 +67,17 @@ function buildInsights(a: Answers): string[] {
 
 // ── Supplement-Karte ─────────────────────────────────────────────────────────
 
-type TierStyle = { dot: string; badge: string; badgeText: string; rankBg: string; rankText: string };
+type TierKey = 'immer' | 'basis' | 'specials' | 'addon';
+type TierStyle = { dot: string; badge: string; badgeText: string; rankBg: string };
 
-const TIER_STYLES: Record<'basis' | 'advanced' | 'addon', TierStyle> = {
-  basis:    { dot: 'bg-accent',         badge: 'bg-accent/10 text-accent',          badgeText: 'Basis',    rankBg: 'bg-accent text-on-accent',      rankText: '' },
-  advanced: { dot: 'bg-blue-500',       badge: 'bg-blue-500/10 text-blue-500',      badgeText: 'Advanced', rankBg: 'bg-blue-500 text-white',         rankText: '' },
-  addon:    { dot: 'bg-outline',        badge: 'bg-outline/30 text-text-muted',     badgeText: 'Add-on',   rankBg: 'bg-outline/40 text-text-muted',  rankText: '' },
+const TIER_STYLES: Record<TierKey, TierStyle> = {
+  immer:   { dot: 'bg-amber-500',   badge: 'bg-amber-500/10 text-amber-600',    badgeText: 'Must-have', rankBg: 'bg-amber-500 text-white' },
+  basis:   { dot: 'bg-accent',      badge: 'bg-accent/10 text-accent',          badgeText: 'Basis',     rankBg: 'bg-accent text-on-accent' },
+  specials:{ dot: 'bg-blue-500',    badge: 'bg-blue-500/10 text-blue-500',      badgeText: 'Special',   rankBg: 'bg-blue-500 text-white' },
+  addon:   { dot: 'bg-outline',     badge: 'bg-outline/30 text-text-muted',     badgeText: 'Add-on',    rankBg: 'bg-outline/40 text-text-muted' },
 };
 
-function SuppCard({ rank, e, tier }: { rank: number; e: Empfehlung; tier: 'basis' | 'advanced' | 'addon' }) {
+function SuppCard({ rank, e, tier }: { rank: number; e: Empfehlung; tier: TierKey }) {
   const s = TIER_STYLES[tier];
   return (
     <div className="flex gap-5 rounded-2xl bg-surface p-6 sm:p-7">
@@ -103,10 +105,11 @@ function SuppCard({ rank, e, tier }: { rank: number; e: Empfehlung; tier: 'basis
 
 // ── Tier-Sektion ──────────────────────────────────────────────────────────────
 
-const TIER_META: Record<'basis' | 'advanced' | 'addon', { title: string; desc: string; dotColor: string }> = {
-  basis:    { title: 'Basis',    desc: 'Essenzielle Grundversorgung — für jeden sinnvoll.',             dotColor: 'bg-accent' },
-  advanced: { title: 'Advanced', desc: 'Gezielte Unterstützung für dein spezifisches Profil.',          dotColor: 'bg-blue-500' },
-  addon:    { title: 'Add-on',   desc: 'Optionale Ergänzungen für zusätzlichen Nutzen.',               dotColor: 'bg-outline' },
+const TIER_META: Record<TierKey, { title: string; desc: string; dotColor: string }> = {
+  immer:   { title: 'Die 5 Basics',        desc: 'Für jeden empfohlen — unabhängig von deinem Profil.',     dotColor: 'bg-amber-500' },
+  basis:   { title: 'Deine Basics',        desc: 'Personalisierte Grundversorgung basierend auf deinen Angaben.', dotColor: 'bg-accent' },
+  specials:{ title: 'Specials',            desc: 'Gezielte Unterstützung für dein spezifisches Profil.',    dotColor: 'bg-blue-500' },
+  addon:   { title: 'Add-ons',             desc: 'Optionale Ergänzungen mit zusätzlichem Nutzen.',          dotColor: 'bg-outline' },
 };
 
 function TierSection({
@@ -114,7 +117,7 @@ function TierSection({
   items,
   startRank,
 }: {
-  tier: 'basis' | 'advanced' | 'addon';
+  tier: TierKey;
   items: Empfehlung[];
   startRank: number;
 }) {
@@ -199,10 +202,11 @@ export default function ErgebnisPage() {
   }
 
   const { ergebnis, antworten } = data;
+  const immer = ergebnis.immer ?? [];
   const basis = ergebnis.basis ?? [];
-  const advanced = ergebnis.advanced ?? [];
+  const specials = ergebnis.specials ?? [];
   const addon = ergebnis.addon ?? [];
-  const total = basis.length + advanced.length + addon.length;
+  const total = immer.length + basis.length + specials.length + addon.length;
 
   const insights = buildInsights(antworten);
 
@@ -222,7 +226,7 @@ export default function ErgebnisPage() {
           </h1>
           <p className="mt-4 text-base leading-relaxed text-text-muted">
             {total > 0
-              ? `Für dein Profil machen ${total} Supplement${total === 1 ? '' : 's'} Sinn — aufgeteilt in drei Stufen.`
+              ? `${total} Empfehlungen für dein Profil — von universellen Basics bis zu gezielten Specials.`
               : 'Für dein aktuelles Profil gibt es keine konkreten Empfehlungen.'}
           </p>
 
@@ -241,9 +245,10 @@ export default function ErgebnisPage() {
         {/* Empfehlungsliste — 3 Sektionen */}
         {total > 0 ? (
           <div className="space-y-10">
-            <TierSection tier="basis"    items={basis}    startRank={1} />
-            <TierSection tier="advanced" items={advanced} startRank={basis.length + 1} />
-            <TierSection tier="addon"    items={addon}    startRank={basis.length + advanced.length + 1} />
+            <TierSection tier="immer"    items={immer}    startRank={1} />
+            <TierSection tier="basis"    items={basis}    startRank={immer.length + 1} />
+            <TierSection tier="specials" items={specials} startRank={immer.length + basis.length + 1} />
+            <TierSection tier="addon"    items={addon}    startRank={immer.length + basis.length + specials.length + 1} />
           </div>
         ) : (
           <div className="rounded-2xl bg-surface p-8 text-center text-text-muted">

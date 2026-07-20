@@ -30,8 +30,9 @@ export interface Empfehlung {
 }
 
 export interface MatchResult {
+  immer: Empfehlung[];
   basis: Empfehlung[];
-  advanced: Empfehlung[];
+  specials: Empfehlung[];
   addon: Empfehlung[];
   disclaimer: string;
   meta: {
@@ -42,9 +43,36 @@ export interface MatchResult {
 
 const THRESHOLD = 1.5;
 const THRESHOLD_ADDON = 1.1;
-const MAX_BASIS = 4;
-const MAX_ADVANCED = 4;
-const MAX_ADDON = 2;
+const MAX_BASIS = 5;
+const MAX_SPECIALS = 5;
+const MAX_ADDON = 3;
+
+const IMMER_DEFS: Array<{ keywords: string[]; begruendung: string }> = [
+  {
+    keywords: ['omega'],
+    begruendung: 'EPA und DHA sind essenziell für Herz, Gehirn und Entzündungsregulation — kaum jemand deckt den Bedarf allein über die Ernährung. Veganer: algenbasiertes Omega-3 wählen.',
+  },
+  {
+    keywords: ['magnesium'],
+    begruendung: 'An über 300 Enzymreaktionen beteiligt — Basis für Schlaf, Nerven und Muskulatur. Schätzungsweise jeder Zweite ist mangelhaft versorgt.',
+  },
+  {
+    keywords: ['vitamin d'],
+    begruendung: 'Von Oktober bis April in unseren Breiten kaum über Sonnenlicht zu bilden. Mangel betrifft 60–70 % der Bevölkerung und beeinträchtigt Immunsystem, Knochen und Stimmung.',
+  },
+  {
+    keywords: ['vitamin k'],
+    begruendung: 'Unverzichtbarer Begleiter zu Vitamin D3: K2 lenkt Calcium in die Knochen statt in die Gefäßwände — immer zusammen mit D3 einnehmen.',
+  },
+  {
+    keywords: ['zink'],
+    begruendung: 'An Immunfunktion, Hormonsynthese und über 200 Enzymreaktionen beteiligt — häufig unterversorgt, besonders bei Training und pflanzenbetonter Ernährung.',
+  },
+  {
+    keywords: ['multivitamin'],
+    begruendung: 'Schließt Mikronährstofflücken, die selbst bei ausgewogener Kost entstehen können — tägliche Absicherung der Basisversorgung.',
+  },
+];
 
 const norm = (s: string) => s.toLowerCase();
 
@@ -78,7 +106,32 @@ export function match(answers: Answers, supplements: Supplement[]): MatchResult 
   const restr = answers.restriktionen ?? ['keine'];
   const alreadyTaking = (answers.aktuelle_supplements ?? []).map(norm);
 
+  // ── Immer-Basics ────────────────────────────────────────────────────────────
+  const immerIds = new Set<string>();
+  const immer: Empfehlung[] = [];
+
+  for (const def of IMMER_DEFS) {
+    const candidates = supplements.filter(s => {
+      const zg = s.zielgruppe ?? [];
+      if (zg.length && !zg.includes('alle') && !zg.includes(answers.geschlecht)) return false;
+      if (alreadyTaking.some(t => t.length >= 3 && norm(s.name).includes(t))) return false;
+      return def.keywords.some(k => norm(s.name).includes(k));
+    });
+    if (candidates.length === 0) continue;
+    const best = [...candidates].sort((a, b) => (b.evidenzlevel ?? 0) - (a.evidenzlevel ?? 0))[0];
+    immerIds.add(best.id);
+    immer.push({
+      id: best.id,
+      name: best.name,
+      score: 99,
+      begruendung: def.begruendung,
+      dosierung: best.dosierung_empfehlung,
+      bevorzugte_form: best.bevorzugte_form ?? null,
+    });
+  }
+
   for (const supp of supplements) {
+    if (immerIds.has(supp.id)) continue;
     // Zielgruppe-Filter
     const zg = supp.zielgruppe ?? [];
     if (zg.length && !zg.includes('alle') && !zg.includes(answers.geschlecht)) {
@@ -571,12 +624,13 @@ export function match(answers: Answers, supplements: Supplement[]): MatchResult 
   const qualified = scored.filter((s) => s.acc.score >= THRESHOLD);
 
   const basis = qualified.filter((s) => s.supp.tier === 'basis').slice(0, MAX_BASIS).map(toEmpfehlung);
-  const advanced = qualified.filter((s) => s.supp.tier === 'advanced').slice(0, MAX_ADVANCED).map(toEmpfehlung);
+  const specials = qualified.filter((s) => s.supp.tier === 'advanced').slice(0, MAX_SPECIALS).map(toEmpfehlung);
   const addon = scored.filter((s) => s.supp.tier === 'addon' && s.acc.score >= THRESHOLD_ADDON).slice(0, MAX_ADDON).map(toEmpfehlung);
 
   return {
+    immer,
     basis,
-    advanced,
+    specials,
     addon,
     disclaimer: DISCLAIMER,
     meta: {
