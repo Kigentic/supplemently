@@ -3,7 +3,7 @@ import Link from 'next/link';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 
-export const metadata = { title: 'Anmeldung eingegangen — Supplemently Challenge' };
+export const metadata = { title: 'Anmeldung eingegangen — Longevity Lifestyle Challenge' };
 
 export default function BestaetigungPage() {
   return (

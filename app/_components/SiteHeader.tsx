@@ -1,12 +1,12 @@
-// Supplemently — gemeinsamer Header (Landingpage + Fragebogen).
+// Gemeinsamer Header (Landingpage + Fragebogen).
 import Image from 'next/image';
 import Link from 'next/link';
 
-const HEADER_LOGO = 88;
+const HEADER_LOGO = 56;
 
 export default function SiteHeader({
-  ctaHref = '/#registrierung',
-  ctaLabel = 'Partnerstudio werden',
+  ctaHref = '/challenge/registrierung',
+  ctaLabel = 'Jetzt anmelden',
 }: {
   ctaHref?: string;
   ctaLabel?: string;
@@ -14,10 +14,10 @@ export default function SiteHeader({
   return (
     <header className="sticky top-0 z-30 border-b border-outline/40 bg-bg/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-        <Link href="/" aria-label="Supplemently — Startseite">
+        <Link href="/" aria-label="Startseite">
           <Image
-            src="/supplemently-logo-final.png"
-            alt="Supplemently"
+            src="/Logo-turnkiste-weisser-hintergrun.webp"
+            alt="Logo"
             width={HEADER_LOGO}
             height={HEADER_LOGO}
             style={{ height: HEADER_LOGO, width: 'auto' }}

@@ -1,4 +1,4 @@
-// Supplemently — Root-Layout: Inter (nur Sans) + globales Design-System.
+// Root-Layout: Inter (nur Sans) + globales Design-System.
 import type { ReactNode } from 'react';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -11,9 +11,9 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: 'Supplemently — Ehrliche Supplement-Empfehlungen für dein Studio',
+  title: 'Longevity Lifestyle Challenge — 8 Wochen zu deinem besseren Ich',
   description:
-    'Der Whitelabel-Nährstoff-Ratgeber für Fitnessstudios: individuelle, evidenzbasierte Empfehlungen für deine Mitglieder — nur was wirklich nötig ist, in Formen mit guter Bioverfügbarkeit.',
+    'Die Longevity Lifestyle Challenge: Training, Ernährung und Supplements individuell auf dich abgestimmt. 8 Wochen, echte Community, messbare Ergebnisse.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

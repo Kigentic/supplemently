@@ -1,4 +1,4 @@
-// Supplemently — Longevity Lifestyle Challenge Landingpage (B2C Startseite)
+// Longevity Lifestyle Challenge Landingpage (B2C Startseite)
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import SiteHeader from './_components/SiteHeader';
@@ -70,13 +70,13 @@ export default function LandingPage() {
         <section className="relative overflow-hidden">
           <div
             className="pointer-events-none absolute inset-0"
-            style={{ background: 'radial-gradient(65% 55% at 15% 0%, rgba(246,139,53,0.14) 0%, transparent 65%)' }}
+            style={{ background: 'radial-gradient(65% 55% at 15% 0%, rgba(79,144,193,0.16) 0%, transparent 65%)' }}
           />
           <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pb-16 pt-16 sm:pt-24 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
             <div>
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
-                <span className="text-sm font-medium text-accent">Gründungs-Kohorte startet bald</span>
+                <span className="text-sm font-medium text-accent">Community startet bald</span>
               </div>
 
               <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-text sm:text-5xl lg:text-6xl">
@@ -102,7 +102,7 @@ export default function LandingPage() {
               <div className="mt-7 flex flex-wrap items-center gap-2">
                 <TrustPill>Kostenloser Einstieg</TrustPill>
                 <TrustPill>In 2 Minuten personalisiert</TrustPill>
-                <TrustPill>Von Krankenkassen anerkannt</TrustPill>
+                <TrustPill>Mit §20-zertifizierter Ernährungs-App</TrustPill>
               </div>
             </div>
 
@@ -129,17 +129,17 @@ export default function LandingPage() {
             <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <QuoteCard
                 initial="J"
-                color="#f68b35"
+                color="#225990"
                 text="„Ich nehme seit Jahren irgendwelche Vitamine — keine Ahnung ob die überhaupt was bringen.“"
               />
               <QuoteCard
                 initial="M"
-                color="#5b8def"
+                color="#4f90c1"
                 text="„Motivation ist nach 2 Wochen immer weg. Mir fehlt einfach ein klarer Plan und jemand der mitzieht.“"
               />
               <QuoteCard
                 initial="L"
-                color="#3fbf8f"
+                color="#225990"
                 text="„Ich trainiere regelmäßig, schlafe aber schlecht und weiß nicht mal warum.“"
               />
             </div>
@@ -287,7 +287,7 @@ export default function LandingPage() {
               {[
                 { tier: 'Must-have', color: 'bg-amber-500', items: ['Omega-3', 'Magnesium', 'Vitamin D3+K2'] },
                 { tier: 'Deine Basics', color: 'bg-accent', items: ['Kreatin', 'Vitamin B12'] },
-                { tier: 'Specials', color: 'bg-blue-500', items: ['Ashwagandha', 'L-Theanin'] },
+                { tier: 'Specials', color: 'bg-indigo-500', items: ['Ashwagandha', 'L-Theanin'] },
                 { tier: 'Add-ons', color: 'bg-outline', items: ['Curcumin', 'Coenzym Q10'] },
               ].map((t) => (
                 <div key={t.tier} className="mb-4 last:mb-0">
@@ -318,7 +318,7 @@ export default function LandingPage() {
             <div className="mx-auto mb-14 max-w-2xl text-center">
               <Kicker>Zwei Bonus-Hebel</Kicker>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
-                Nicht allein. Nicht auf eigene Kosten.
+                Nicht allein. Mit echten Vorteilen.
               </h2>
             </div>
 
@@ -346,15 +346,17 @@ export default function LandingPage() {
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10">
                   <ShieldHeartIcon />
                 </div>
-                <h3 className="text-xl font-semibold text-text">150 € die dir eigentlich zustehen</h3>
+                <h3 className="text-xl font-semibold text-text">Bis zu 150 € für deine Ernährungs-App</h3>
                 <p className="mt-3 leading-relaxed text-text-muted">
-                  Viele gesetzliche Krankenkassen erstatten anerkannte Präventionsprogramme —
-                  bis zu 150 € pro Jahr. Eine strukturierte 8-Wochen-Challenge mit Ernährung,
-                  Bewegung, Schlaf und Stressmanagement erfüllt genau diese Voraussetzung.
+                  In der Challenge enthalten ist eine §20-zertifizierte Ernährungs-App. Deren
+                  Kosten erstatten viele gesetzliche Krankenkassen bis zu 150 € pro Jahr —
+                  ganz offiziell, weil die App als Präventionsangebot anerkannt ist.
                 </p>
                 <p className="mt-3 text-sm text-text-muted">
-                  Du reichst die Teilnahmebestätigung einfach bei deiner Kasse ein — wir stellen
-                  dir alle nötigen Unterlagen automatisch bereit.
+                  Wichtig zu wissen: zertifiziert ist die Ernährungs-App, nicht die Challenge
+                  selbst. Die Challenge ist unser eigenes Programm, in das die App eingebunden
+                  ist. Für die App-Kosten reichst du die Teilnahmebestätigung einfach bei
+                  deiner Kasse ein — die Unterlagen dafür stellen wir dir bereit.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2">
                   {['TK', 'AOK', 'Barmer', 'DAK', 'IKK'].map((k) => (
@@ -451,7 +453,7 @@ export default function LandingPage() {
               Jetzt kostenlos anmelden →
             </Link>
             <p className="text-sm text-text-muted">
-              Krankenkasse erstattet bis zu 150 € · Jederzeit kündbar
+              Ernährungs-App §20-zertifiziert · Kosten bis zu 150 € erstattungsfähig
             </p>
           </div>
 
@@ -459,8 +461,8 @@ export default function LandingPage() {
             {[
               ['Muss ich sportlich sein?', 'Nein. Das Programm passt sich deinem aktuellen Fitnesslevel an. Anfänger sind ausdrücklich willkommen.'],
               ['Wie viel Zeit brauche ich?', '30–60 Minuten pro Woche für Check-in und Planung. Die Aufgaben integrierst du in deinen Alltag.'],
-              ['Was kostet die Challenge?', 'Der Einstieg ist kostenlos. Optional: 9,90 € Einmalbeitrag — oft durch die Krankenkasse erstattet.'],
-              ['Was passiert nach 8 Wochen?', 'Du bekommst deine komplette Auswertung, deinen langfristigen Stack und kannst in die nächste Kohorte.'],
+              ['Was kostet die Challenge?', 'Der Einstieg ist kostenlos. Optional: 9,90 € Einmalbeitrag für die Challenge. Die enthaltene §20-zertifizierte Ernährungs-App kann separat über deine Krankenkasse erstattet werden.'],
+              ['Was passiert nach 8 Wochen?', 'Du bekommst deine komplette Auswertung, deinen langfristigen Stack und kannst in die nächste Runde der Community starten.'],
             ].map(([q, a]) => (
               <div key={q} className="rounded-xl border border-outline/40 bg-surface p-5">
                 <p className="font-semibold text-text">{q}</p>

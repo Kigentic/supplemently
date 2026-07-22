@@ -1,13 +1,14 @@
 @import "tailwindcss";
 
-/* Supplemently — Design-System (verbindliche Tokens, helles Theme). */
+/* Design-System (verbindliche Tokens, helles Theme). */
 @theme {
   --color-bg: #ffffff;
-  --color-surface: #dfd8ce;
-  --color-accent: #f68b35;
-  --color-accent-hover: #e07a24;
-  --color-outline: #b6b6aa;
-  --color-text: #262626;
+  --color-surface: #f4f7fa;
+  --color-accent: #4f90c1;
+  --color-accent-hover: #225990;
+  --color-accent-dark: #225990;
+  --color-outline: #cdd8e2;
+  --color-text: #707070;
   --color-text-muted: #959595;
   --color-on-accent: #ffffff;
 

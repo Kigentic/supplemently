@@ -1,4 +1,4 @@
-// Supplemently — Eigene SVG-Illustrationen für die Challenge-Landingpage.
+// Eigene SVG-Illustrationen für die Challenge-Landingpage.
 // Kein Stock-Bildmaterial: geometrische, markenfarbige Grafiken.
 
 // ── Orbit-Grafik (Hero) — 5 Lifestyle-Bereiche kreisen um "Dich" ────────────
@@ -32,7 +32,7 @@ export function OrbitGraphic() {
         style={{
           left: 160 - 56,
           top: 160 - 56,
-          background: 'linear-gradient(135deg, var(--color-accent) 0%, #ffb877 100%)',
+          background: 'linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)',
         }}
       >
         <span className="text-2xl">✨</span>
@@ -76,7 +76,7 @@ export function StatBar({ label, from, to, unit = '/10' }: { label: string; from
           className="absolute inset-y-0 left-0 rounded-full"
           style={{
             width: `${(to / max) * 100}%`,
-            background: 'linear-gradient(90deg, var(--color-accent), #ffb877)',
+            background: 'linear-gradient(90deg, var(--color-accent-dark), var(--color-accent))',
           }}
         />
       </div>
@@ -123,7 +123,7 @@ export function PillarHub() {
           <div className="flex h-full flex-col items-center rounded-2xl border border-outline/50 bg-bg p-6 text-center">
             <div
               className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl text-2xl"
-              style={{ background: 'linear-gradient(135deg, rgba(246,139,53,0.15), rgba(246,139,53,0.05))' }}
+              style={{ background: 'linear-gradient(135deg, rgba(79,144,193,0.15), rgba(79,144,193,0.05))' }}
             >
               {p.icon}
             </div>
