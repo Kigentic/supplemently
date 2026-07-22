@@ -22,7 +22,6 @@ interface FormState {
   passwort: string;
   passwort_wdh: string;
   handynummer: string;
-  buddy_gewuenscht: boolean;
   dsgvo_marketing: boolean;
   dsgvo_affiliate: boolean;
 }
@@ -57,7 +56,6 @@ export default function RegistrierungPage() {
     passwort: '',
     passwort_wdh: '',
     handynummer: '',
-    buddy_gewuenscht: false,
     dsgvo_marketing: false,
     dsgvo_affiliate: false,
   });
@@ -93,7 +91,6 @@ export default function RegistrierungPage() {
           email: form.email.trim(),
           passwort: form.passwort,
           handynummer: form.handynummer.trim() || undefined,
-          buddy_gewuenscht: form.buddy_gewuenscht,
           dsgvo_marketing: form.dsgvo_marketing,
           dsgvo_affiliate: form.dsgvo_affiliate,
         }),
@@ -231,31 +228,27 @@ export default function RegistrierungPage() {
           {/* Buddy-System */}
           <section>
             <h2 className="mb-5 text-sm font-semibold uppercase tracking-widest text-text-muted">
-              Buddy-System
+              Freunde einladen
             </h2>
-            <label className="flex cursor-pointer items-start gap-4 rounded-xl border border-outline bg-surface p-4 transition hover:border-accent/50">
-              <div className="relative mt-0.5 flex-shrink-0">
-                <input
-                  type="checkbox"
-                  className="peer sr-only"
-                  checked={form.buddy_gewuenscht}
-                  onChange={(e) => set('buddy_gewuenscht', e.target.checked)}
-                />
-                <div className="flex h-5 w-5 items-center justify-center rounded border border-outline bg-bg transition peer-checked:border-accent peer-checked:bg-accent">
-                  {form.buddy_gewuenscht && (
-                    <svg className="h-3 w-3 text-on-accent" viewBox="0 0 12 12" fill="none">
-                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                </div>
-              </div>
-              <div>
-                <p className="font-medium text-text">Ich möchte einen Challenge-Buddy</p>
-                <p className="mt-0.5 text-sm text-text-muted">
-                  Wir matchen dich mit einem anderen Teilnehmer. Ihr motiviert euch gegenseitig — und bekommt Bonuspunkte wenn ihr beide euren Check-in einreicht.
-                </p>
-              </div>
-            </label>
+            <div className="rounded-xl border border-outline bg-surface p-5">
+              <p className="font-medium text-text">Hier kannst du Freunde zur Challenge einladen</p>
+              <p className="mt-1.5 text-sm text-text-muted">
+                Motiviert euch gegenseitig — ladet euch gemeinsam ein und bekommt Bonuspunkte,
+                wenn ihr beide eure Wochen-Check-ins einreicht.
+              </p>
+              <a
+                href="https://wa.me/?text=Hey%21%20M%C3%B6chtest%20Du%20mit%20mir%20zusammen%20die%20Longevity%20Challenge%20machen%3F%20Schau%20mal%20hier%3A%20https%3A%2F%2Fsupplemently.vercel.app%2F"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-2.5 rounded-full bg-[#25D366] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1ebe57]"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                  <path d="M12.014 2C6.484 2 2 6.463 2 11.966c0 1.99.583 3.845 1.588 5.408L2 22l4.75-1.554a10.02 10.02 0 0 0 5.264 1.485c5.53 0 10.014-4.463 10.014-9.965C22.028 6.463 17.544 2 12.014 2zm0 18.13a8.15 8.15 0 0 1-4.16-1.135l-.298-.177-3.098 1.014.99-3.058-.194-.313a8.086 8.086 0 0 1-1.246-4.327c0-4.482 3.65-8.126 8.146-8.126 4.495 0 8.146 3.644 8.146 8.126 0 4.482-3.651 8.126-8.286 8.126z" />
+                </svg>
+                Buddies direkt per WhatsApp einladen
+              </a>
+            </div>
           </section>
 
           {/* DSGVO */}

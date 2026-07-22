@@ -8,7 +8,6 @@ interface Body {
   email: string;
   passwort: string;
   handynummer?: string;
-  buddy_gewuenscht: boolean;
   dsgvo_marketing: boolean;
   dsgvo_affiliate: boolean;
 }
@@ -21,7 +20,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Ungültiger Request.' }, { status: 400 });
   }
 
-  const { vorname, nachname, email, passwort, handynummer, buddy_gewuenscht, dsgvo_marketing, dsgvo_affiliate } = body;
+  const { vorname, nachname, email, passwort, handynummer, dsgvo_marketing, dsgvo_affiliate } = body;
 
   // Validierung
   if (!vorname?.trim() || !nachname?.trim() || !email?.trim() || !passwort) {
@@ -64,7 +63,6 @@ export async function POST(req: NextRequest) {
     nachname: nachname.trim(),
     email: email.trim().toLowerCase(),
     handynummer: handynummer?.trim() || null,
-    buddy_gewuenscht,
     dsgvo_marketing,
     dsgvo_affiliate,
     dsgvo_at: new Date().toISOString(),
