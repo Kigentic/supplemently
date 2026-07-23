@@ -395,7 +395,7 @@ export default function FragebogenPage() {
         setSubmitting(false);
         return;
       }
-      router.push('/challenge/dashboard');
+      router.push('/challenge/ernaehrungsapp');
       return;
     }
 
