@@ -1,6 +1,16 @@
 // API: Challenge-Registrierung — erstellt Auth-User + Profil + Teilnahme
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { getServiceClient } from '@/lib/supabaseServer';
+
+// Eigener Anon-Client für signUp — nur signUp (nicht admin.createUser) löst
+// den Versand der Supabase-Bestätigungsmail aus.
+function getAnonClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) throw new Error('Supabase ENV-Variablen fehlen.');
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+}
 
 interface Body {
   vorname: string;
@@ -37,27 +47,36 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = getServiceClient();
+  const anon = getAnonClient();
 
-  // 1. Auth-User anlegen (sendet Bestätigungsmail)
-  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+  // 1. Auth-User per signUp anlegen — nur signUp verschickt die Bestätigungsmail.
+  const origin = req.nextUrl.origin;
+  const { data: authData, error: authError } = await anon.auth.signUp({
     email: email.trim().toLowerCase(),
     password: passwort,
-    email_confirm: false, // User muss E-Mail bestätigen
-    user_metadata: { vorname: vorname.trim(), nachname: nachname.trim() },
+    options: {
+      data: { vorname: vorname.trim(), nachname: nachname.trim() },
+      emailRedirectTo: `${origin}/challenge/registrierung`,
+    },
   });
 
   if (authError) {
-    if (authError.message.toLowerCase().includes('already')) {
-      return NextResponse.json({ error: 'Diese E-Mail-Adresse ist bereits registriert.' }, { status: 409 });
-    }
     console.error('Auth error:', authError);
     return NextResponse.json({ error: 'Registrierung fehlgeschlagen. Bitte erneut versuchen.' }, { status: 500 });
+  }
+  if (!authData.user) {
+    return NextResponse.json({ error: 'Registrierung fehlgeschlagen. Bitte erneut versuchen.' }, { status: 500 });
+  }
+  // Supabase gibt bei bereits registrierter, bestätigter E-Mail aus
+  // Sicherheitsgründen keinen Fehler zurück, sondern ein User-Objekt ohne Identities.
+  if (authData.user.identities && authData.user.identities.length === 0) {
+    return NextResponse.json({ error: 'Diese E-Mail-Adresse ist bereits registriert.' }, { status: 409 });
   }
 
   const userId = authData.user.id;
 
-  // 2. Profil anlegen
-  const { error: profileError } = await supabase.from('profiles').insert({
+  // 2. Profil anlegen (upsert: erneuter Versuch nach nicht angekommener Mail darf nicht scheitern)
+  const { error: profileError } = await supabase.from('profiles').upsert({
     id: userId,
     vorname: vorname.trim(),
     nachname: nachname.trim(),
@@ -69,8 +88,6 @@ export async function POST(req: NextRequest) {
   });
 
   if (profileError) {
-    // Rollback Auth-User
-    await supabase.auth.admin.deleteUser(userId);
     console.error('Profile error:', profileError);
     return NextResponse.json({ error: 'Profil konnte nicht gespeichert werden.' }, { status: 500 });
   }
@@ -89,11 +106,10 @@ export async function POST(req: NextRequest) {
   if (challenge) {
     const { data: teilnahme } = await supabase
       .from('challenge_teilnahmen')
-      .insert({
-        user_id: userId,
-        challenge_id: challenge.id,
-        status: 'pre_registered',
-      })
+      .upsert(
+        { user_id: userId, challenge_id: challenge.id, status: 'pre_registered' },
+        { onConflict: 'user_id,challenge_id', ignoreDuplicates: false }
+      )
       .select('referral_code')
       .single();
 
