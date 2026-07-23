@@ -56,7 +56,7 @@ export async function POST(req: Request) {
   const ergebnis = match(answers, (supplements ?? []) as Supplement[]);
 
   // 2. Teilnahme des Users finden (aus der Registrierung bereits angelegt).
-  const { data: teilnahme, error: teilnahmeError } = await supabase
+  let { data: teilnahme, error: teilnahmeError } = await supabase
     .from('challenge_teilnahmen')
     .select('id')
     .eq('user_id', user.id)
@@ -68,8 +68,34 @@ export async function POST(req: Request) {
     console.error('Teilnahme lookup error:', teilnahmeError);
     return NextResponse.json({ error: 'Teilnahme konnte nicht geladen werden.' }, { status: 500 });
   }
+
+  // Selbstheilung: falls bei der Registrierung noch keine offene Challenge
+  // existierte (oder aus anderem Grund keine Teilnahme angelegt wurde),
+  // jetzt eine anlegen statt mit 404 abzubrechen.
   if (!teilnahme) {
-    return NextResponse.json({ error: 'Keine Challenge-Teilnahme gefunden.' }, { status: 404 });
+    const { data: challenge } = await supabase
+      .from('challenges')
+      .select('id')
+      .eq('ist_offen', true)
+      .order('start_datum', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (!challenge) {
+      return NextResponse.json({ error: 'Aktuell ist keine Challenge offen. Bitte später erneut versuchen.' }, { status: 404 });
+    }
+
+    const { data: neueTeilnahme, error: createError } = await supabase
+      .from('challenge_teilnahmen')
+      .insert({ user_id: user.id, challenge_id: challenge.id, status: 'pre_registered' })
+      .select('id')
+      .single();
+
+    if (createError || !neueTeilnahme) {
+      console.error('Teilnahme create error:', createError);
+      return NextResponse.json({ error: 'Teilnahme konnte nicht angelegt werden.' }, { status: 500 });
+    }
+    teilnahme = neueTeilnahme;
   }
 
   // 3. Onboarding-Antworten speichern, Status auf aktiv setzen.
