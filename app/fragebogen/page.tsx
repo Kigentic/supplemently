@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import SiteHeader from '../_components/SiteHeader';
 import SiteFooter from '../_components/SiteFooter';
 import { FRAGEN_MAP, GRUPPEN, type Answers } from '@/lib/questions';
+import { getBrowserClient } from '@/lib/supabaseBrowser';
 
 type FormState = Record<string, any>;
 
@@ -364,6 +365,34 @@ export default function FragebogenPage() {
     setSubmitting(true);
     setSubmitError(null);
 
+    // Eingeloggter Challenge-Teilnehmer: Onboarding speichert das Matching
+    // beim User statt es sofort anzuzeigen — sichtbar wird es im Dashboard.
+    const { data: sessionData } = await getBrowserClient().auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+
+    if (accessToken) {
+      try {
+        const res = await fetch('/api/challenge/onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+          body: JSON.stringify({ antworten }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setSubmitError(data?.error || 'Fehler beim Absenden.');
+          setSubmitting(false);
+          return;
+        }
+      } catch {
+        setSubmitError('Server nicht erreichbar.');
+        setSubmitting(false);
+        return;
+      }
+      router.push('/challenge/dashboard');
+      return;
+    }
+
+    // Anonymer Flow (z.B. Studio-Mitglied ohne Challenge-Account): sofortiges Ergebnis wie bisher.
     let sessionId: string | null = null;
 
     try {
