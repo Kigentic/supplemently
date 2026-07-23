@@ -220,63 +220,45 @@ export default function ErnaehrungsAppPage() {
           </div>
         </section>
 
-        {/* ═══ 5. PREISE ═══════════════════════════════════════════════════════ */}
-        <section className="mx-auto max-w-4xl px-5 py-16 sm:py-20">
-          <div className="mx-auto max-w-2xl text-center">
-            <Kicker>Deine Optionen</Kicker>
+        {/* ═══ 5. PREIS ════════════════════════════════════════════════════════ */}
+        <section className="mx-auto max-w-2xl px-5 py-16 sm:py-20">
+          <div className="mx-auto max-w-xl text-center">
+            <Kicker>Dein Paket</Kicker>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
-              Zwei Laufzeiten, beide erstattungsfähig.
+              12 Monate Ernährung + Training. Erstattungsfähig.
             </h2>
             <p className="mt-3 text-sm text-text-muted">
               Zzgl. 5% Rabatt mit Code <span className="font-mono font-semibold text-accent">{DISCOUNT_CODE}</span> beim Bezahlvorgang.
             </p>
           </div>
 
-          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <div className="rounded-3xl border border-outline/60 bg-surface p-7">
-              <p className="text-sm font-medium text-text-muted">3 Monate</p>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-3xl font-semibold tracking-tight text-text">89,99&nbsp;€</span>
-                <span className="text-sm text-text-muted line-through">119,99&nbsp;€</span>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
-                  Erstattungsfähig
-                </span>
-                <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
-                  + 5% mit {DISCOUNT_CODE}
-                </span>
-              </div>
-              <ul className="mt-5 space-y-2.5">
-                <Check>16.000+ Rezepte, individueller Plan</Check>
-                <Check>Automatische Einkaufslisten</Check>
-                <Check>Live-Chat mit Ernährungsberatung</Check>
-              </ul>
+          <div className="mt-10 rounded-3xl border-2 border-accent bg-surface p-8">
+            <div className="mb-1 flex items-center justify-between">
+              <p className="text-sm font-medium text-text-muted">12 Monate + Training</p>
+              <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-on-accent">Empfehlung</span>
             </div>
-
-            <div className="rounded-3xl border-2 border-accent bg-surface p-7">
-              <div className="mb-1 flex items-center justify-between">
-                <p className="text-sm font-medium text-text-muted">12 Monate + Training</p>
-                <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-on-accent">Empfehlung</span>
-              </div>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-3xl font-semibold tracking-tight text-text">119,99&nbsp;€</span>
-                <span className="text-sm text-text-muted line-through">159,99&nbsp;€</span>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
-                  Erstattungsfähig
-                </span>
-                <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
-                  + 5% mit {DISCOUNT_CODE}
-                </span>
-              </div>
-              <ul className="mt-5 space-y-2.5">
-                <Check>Alles aus dem 3-Monats-Plan</Check>
-                <Check>Trainingsplan inklusive</Check>
-                <Check>Deckt die komplette 8-Wochen-Challenge und danach ab</Check>
-              </ul>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-4xl font-semibold tracking-tight text-text">119,99&nbsp;€</span>
+              <span className="text-sm text-text-muted line-through">159,99&nbsp;€</span>
             </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+                Erstattungsfähig
+              </span>
+              <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+                + 5% mit {DISCOUNT_CODE}
+              </span>
+            </div>
+            <ul className="mt-6 space-y-2.5">
+              <Check>16.000+ Rezepte mit 50+ Alternativen pro Mahlzeit</Check>
+              <Check>Individueller Ernährungsplan, kein Kalorienzählen</Check>
+              <Check>Automatische Einkaufslisten</Check>
+              <Check>100+ Personalisierungs-Einstellungen, jederzeit anpassbar</Check>
+              <Check>Live-Chat mit Ernährungsberatung</Check>
+              <Check>Web-, Tablet- und App-Zugang</Check>
+              <Check>Trainingsplan inklusive</Check>
+              <Check>Deckt die komplette 8-Wochen-Challenge und danach ab</Check>
+            </ul>
           </div>
         </section>
 
