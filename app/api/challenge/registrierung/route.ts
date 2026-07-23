@@ -1,16 +1,11 @@
 // API: Challenge-Registrierung — erstellt Auth-User + Profil + Teilnahme
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabaseServer';
+import { sendConfirmationEmail } from '@/lib/email';
 
-// Eigener Anon-Client für signUp — nur signUp (nicht admin.createUser) löst
-// den Versand der Supabase-Bestätigungsmail aus.
-function getAnonClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) throw new Error('Supabase ENV-Variablen fehlen.');
-  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
-}
+// Feste Produktions-URL statt req.nextUrl.origin — sonst landen
+// Bestätigungslinks bei lokalem Testen auf localhost.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://supplemently.vercel.app';
 
 interface Body {
   vorname: string;
@@ -22,7 +17,7 @@ interface Body {
   dsgvo_affiliate: boolean;
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   let body: Body;
   try {
     body = await req.json();
@@ -47,35 +42,42 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = getServiceClient();
-  const anon = getAnonClient();
 
-  // 1. Auth-User per signUp anlegen — nur signUp verschickt die Bestätigungsmail.
-  const origin = req.nextUrl.origin;
-  const { data: authData, error: authError } = await anon.auth.signUp({
+  // 1. Auth-User anlegen + Bestätigungslink generieren (KEIN automatischer
+  // Mailversand durch Supabase — wir verschicken die Mail selbst über Resend).
+  const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+    type: 'signup',
     email: email.trim().toLowerCase(),
     password: passwort,
     options: {
       data: { vorname: vorname.trim(), nachname: nachname.trim() },
-      emailRedirectTo: `${origin}/challenge/registrierung`,
+      redirectTo: `${SITE_URL}/challenge/registrierung`,
     },
   });
 
-  if (authError) {
-    console.error('Auth error:', authError);
+  if (linkError) {
+    if (linkError.message.toLowerCase().includes('already been registered')) {
+      return NextResponse.json({ error: 'Diese E-Mail-Adresse ist bereits registriert.' }, { status: 409 });
+    }
+    console.error('Auth error:', linkError);
     return NextResponse.json({ error: 'Registrierung fehlgeschlagen. Bitte erneut versuchen.' }, { status: 500 });
   }
-  if (!authData.user) {
-    return NextResponse.json({ error: 'Registrierung fehlgeschlagen. Bitte erneut versuchen.' }, { status: 500 });
-  }
-  // Supabase gibt bei bereits registrierter, bestätigter E-Mail aus
-  // Sicherheitsgründen keinen Fehler zurück, sondern ein User-Objekt ohne Identities.
-  if (authData.user.identities && authData.user.identities.length === 0) {
-    return NextResponse.json({ error: 'Diese E-Mail-Adresse ist bereits registriert.' }, { status: 409 });
+
+  const userId = linkData.user.id;
+  const confirmLink = linkData.properties.action_link;
+
+  // 2. Bestätigungsmail über Resend verschicken (eigenes Branding statt "Supabase Auth")
+  try {
+    await sendConfirmationEmail({ to: email.trim().toLowerCase(), vorname: vorname.trim(), confirmLink });
+  } catch (err) {
+    console.error('Resend error:', err);
+    return NextResponse.json(
+      { error: 'Bestätigungsmail konnte nicht versendet werden. Bitte erneut versuchen.' },
+      { status: 500 }
+    );
   }
 
-  const userId = authData.user.id;
-
-  // 2. Profil anlegen (upsert: erneuter Versuch nach nicht angekommener Mail darf nicht scheitern)
+  // 3. Profil anlegen (upsert: erneuter Versuch nach nicht angekommener Mail darf nicht scheitern)
   const { error: profileError } = await supabase.from('profiles').upsert({
     id: userId,
     vorname: vorname.trim(),
@@ -92,7 +94,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Profil konnte nicht gespeichert werden.' }, { status: 500 });
   }
 
-  // 3. Aktive/offene Challenge suchen
+  // 4. Aktive/offene Challenge suchen
   const { data: challenge } = await supabase
     .from('challenges')
     .select('id')
@@ -101,7 +103,7 @@ export async function POST(req: NextRequest) {
     .limit(1)
     .maybeSingle();
 
-  // 4. Teilnahme anlegen (falls Challenge vorhanden)
+  // 5. Teilnahme anlegen (falls Challenge vorhanden)
   let referral_code: string | null = null;
   if (challenge) {
     const { data: teilnahme } = await supabase
