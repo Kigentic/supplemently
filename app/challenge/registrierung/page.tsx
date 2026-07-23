@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
+import { getBrowserClient } from '@/lib/supabaseBrowser';
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
@@ -45,8 +46,72 @@ function PasswordStrength({ pw }: { pw: string }) {
   );
 }
 
+type ConfirmState = { checked: boolean; confirmed: boolean; vorname: string | null; error: string | null };
+
+function useEmailConfirmation(): ConfirmState {
+  const [state, setState] = useState<ConfirmState>({ checked: false, confirmed: false, vorname: null, error: null });
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash || hash.length < 2) {
+      setState((s) => ({ ...s, checked: true }));
+      return;
+    }
+    const params = new URLSearchParams(hash.slice(1));
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    const errorDescription = params.get('error_description');
+
+    // Hash aus der URL entfernen — Tokens sollen nicht in der Adressleiste stehenbleiben.
+    window.history.replaceState(null, '', window.location.pathname);
+
+    if (errorDescription) {
+      setState({ checked: true, confirmed: false, vorname: null, error: decodeURIComponent(errorDescription.replace(/\+/g, ' ')) });
+      return;
+    }
+    if (!accessToken || !refreshToken) {
+      setState((s) => ({ ...s, checked: true }));
+      return;
+    }
+
+    getBrowserClient()
+      .auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+      .then(({ data, error }) => {
+        if (error || !data.user) {
+          setState({ checked: true, confirmed: false, vorname: null, error: 'Bestätigung fehlgeschlagen. Bitte erneut versuchen.' });
+          return;
+        }
+        const vorname = (data.user.user_metadata?.vorname as string | undefined) ?? null;
+        setState({ checked: true, confirmed: true, vorname, error: null });
+      });
+  }, []);
+
+  return state;
+}
+
+function ConfirmedScreen({ vorname }: { vorname: string | null }) {
+  return (
+    <main className="mx-auto max-w-xl px-5 py-20 text-center sm:py-28">
+      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 text-3xl">
+        ✓
+      </div>
+      <h1 className="text-3xl font-semibold tracking-tight text-text sm:text-4xl">
+        E-Mail bestätigt{vorname ? `, ${vorname}` : ''}!
+      </h1>
+      <p className="mt-4 text-base leading-relaxed text-text-muted">
+        Dein Account ist aktiv. Als Nächstes füllst du den Fragebogen aus — danach bekommst du
+        sofort deinen personalisierten Supplement-Stack.
+      </p>
+      <Link href="/fragebogen" className="mt-8 inline-block rounded-full bg-accent px-8 py-4 text-base font-semibold text-on-accent transition hover:bg-accent-hover">
+        Jetzt Fragebogen ausfüllen
+      </Link>
+    </main>
+  );
+}
+
 export default function RegistrierungPage() {
   const router = useRouter();
+  const confirmState = useEmailConfirmation();
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>({
@@ -108,6 +173,16 @@ export default function RegistrierungPage() {
     }
   }
 
+  if (confirmState.confirmed) {
+    return (
+      <div className="min-h-screen bg-bg">
+        <SiteHeader />
+        <ConfirmedScreen vorname={confirmState.vorname} />
+        <SiteFooter />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-bg">
       <SiteHeader />
@@ -125,6 +200,11 @@ export default function RegistrierungPage() {
           <p className="mt-3 text-base leading-relaxed text-text-muted">
             8 Wochen. Messbare Veränderung. Personalisierte Empfehlungen. Fang heute an.
           </p>
+          {confirmState.error && (
+            <div role="alert" className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {confirmState.error} Falls dein Bestätigungslink abgelaufen ist, registriere dich einfach erneut mit derselben E-Mail-Adresse.
+            </div>
+          )}
         </div>
 
         <form onSubmit={onSubmit} noValidate className="space-y-8">
