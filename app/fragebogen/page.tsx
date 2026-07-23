@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '../_components/SiteHeader';
 import SiteFooter from '../_components/SiteFooter';
@@ -270,6 +270,13 @@ export default function FragebogenPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [disclaimerChecked, setDisclaimerChecked] = useState(false);
+  const [isAuthed, setIsAuthed] = useState(false);
+
+  useEffect(() => {
+    getBrowserClient()
+      .auth.getSession()
+      .then(({ data }) => setIsAuthed(!!data.session));
+  }, []);
 
   const totalSteps = GRUPPEN.length;
   const gruppe = GRUPPEN[step];
@@ -436,7 +443,7 @@ export default function FragebogenPage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      <SiteHeader />
+      <SiteHeader loggedIn={isAuthed} />
 
       <main className="mx-auto max-w-2xl px-5 py-16 sm:py-20">
         {/* Headline */}

@@ -141,7 +141,7 @@ export default function DashboardPage() {
   if (loading || !data) {
     return (
       <div className="min-h-screen bg-bg">
-        <SiteHeader />
+        <SiteHeader loggedIn />
         <main className="mx-auto max-w-2xl px-5 py-24 text-center">
           <p className="text-text-muted">Dashboard wird geladen …</p>
         </main>
@@ -152,7 +152,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      <SiteHeader />
+      <SiteHeader loggedIn />
 
       <main className="mx-auto max-w-2xl px-5 py-16 sm:py-20">
         {/* Begrüßung */}

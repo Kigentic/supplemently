@@ -176,7 +176,7 @@ export default function RegistrierungPage() {
   if (confirmState.confirmed) {
     return (
       <div className="min-h-screen bg-bg">
-        <SiteHeader />
+        <SiteHeader loggedIn />
         <ConfirmedScreen vorname={confirmState.vorname} />
         <SiteFooter />
       </div>
