@@ -3,6 +3,7 @@
 // 8-Wochen Challenge Übersicht — wiederverwendbare Komponente.
 // Wochenfarben sind bewusst hartkodierte Hex-Werte (kein Dark-Mode-Invert).
 import { useState } from 'react';
+import Link from 'next/link';
 import { CHALLENGE_WEEKS, carryForwardText, type ChallengeWeek } from '@/lib/challengeWeeks';
 
 function ChevronIcon({ open, color }: { open: boolean; color: string }) {
@@ -35,7 +36,7 @@ function WeekTile({
 
   return (
     <div
-      className={`flex h-[360px] flex-col overflow-hidden rounded-xl border-[0.5px] border-outline bg-bg ${
+      className={`flex h-[390px] flex-col overflow-hidden rounded-xl border-[0.5px] border-outline bg-bg ${
         isCurrent ? 'ring-2 ring-accent ring-offset-2 ring-offset-bg' : ''
       }`}
     >
@@ -66,13 +67,13 @@ function WeekTile({
 
         <ul className="mt-2.5 space-y-1.5">
           {week.habits.map((habit) => (
-            <li key={habit} className="flex items-start gap-2 text-[13px] leading-snug text-text-muted">
+            <li key={habit.text} className="flex items-start gap-2 text-[13px] leading-snug text-text-muted">
               <span
                 className="mt-1.5 h-[5px] w-[5px] flex-shrink-0 rounded-full"
                 style={{ backgroundColor: week.color }}
                 aria-hidden="true"
               />
-              {habit}
+              {habit.text}
             </li>
           ))}
         </ul>
@@ -93,6 +94,13 @@ function WeekTile({
             {carry}
           </p>
         )}
+
+        <Link
+          href={`/challenge/woche/${week.num}`}
+          className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:underline"
+        >
+          Warum diese Aufgaben? →
+        </Link>
       </div>
     </div>
   );
