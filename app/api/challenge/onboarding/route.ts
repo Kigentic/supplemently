@@ -1,27 +1,12 @@
 // API: Challenge-Onboarding — berechnet das Matching, speichert es aber nur
 // beim User statt es sofort auszugeben. Sichtbar wird es erst im Dashboard.
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { validateAnswers } from '@/lib/questions';
 import { match, type Supplement } from '@/lib/matching';
 import { getServiceClient } from '@/lib/supabaseServer';
+import { getUserFromAuthHeader } from '@/lib/apiAuth';
 
 export const runtime = 'nodejs';
-
-async function getUserFromAuthHeader(req: Request) {
-  const authHeader = req.headers.get('authorization') ?? '';
-  const token = authHeader.replace(/^Bearer\s+/i, '');
-  if (!token) return null;
-
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) return null;
-
-  const anon = createClient(url, anonKey, { auth: { persistSession: false } });
-  const { data, error } = await anon.auth.getUser(token);
-  if (error || !data.user) return null;
-  return data.user;
-}
 
 export async function POST(req: Request) {
   const user = await getUserFromAuthHeader(req);

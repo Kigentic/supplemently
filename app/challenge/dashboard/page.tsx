@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
@@ -14,6 +15,7 @@ interface DashboardData {
   challengeName: string | null;
   currentWeek: number;
   wochenAnzahl: number;
+  checkinDone: boolean;
 }
 
 export default function DashboardPage() {
@@ -37,7 +39,7 @@ export default function DashboardPage() {
         supabase.from('profiles').select('vorname').eq('id', user.id).maybeSingle(),
         supabase
           .from('challenge_teilnahmen')
-          .select('joined_at, challenges ( name, start_datum, wochen_anzahl )')
+          .select('id, joined_at, challenges ( name, start_datum, wochen_anzahl )')
           .eq('user_id', user.id)
           .order('joined_at', { ascending: false })
           .limit(1)
@@ -55,11 +57,25 @@ export default function DashboardPage() {
         currentWeek = Math.min(wochenAnzahl, Math.max(1, Math.floor(days / 7) + 1));
       }
 
+      let checkinDone = false;
+      if (teilnahme?.id) {
+        const { data: checkin } = await supabase
+          .from('wochencheckins')
+          .select('id')
+          .eq('teilnahme_id', teilnahme.id)
+          .eq('woche', currentWeek)
+          .maybeSingle();
+        checkinDone = !!checkin;
+      }
+
+      if (cancelled) return;
+
       setData({
         vorname: profile?.vorname ?? 'Du',
         challengeName: challenge?.name ?? null,
         currentWeek,
         wochenAnzahl,
+        checkinDone,
       });
       setLoading(false);
     }
@@ -98,6 +114,32 @@ export default function DashboardPage() {
           <p className="mt-3 text-base leading-relaxed text-text-muted">
             Hier ist deine Challenge-Übersicht — Woche {data.currentWeek} von {data.wochenAnzahl}.
           </p>
+        </div>
+
+        {/* Check-in-CTA */}
+        <div
+          className={`mb-8 flex flex-col items-start justify-between gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center ${
+            data.checkinDone ? 'border-outline/60 bg-surface' : 'border-accent/30 bg-accent/10'
+          }`}
+        >
+          <div>
+            <p className="font-semibold text-text">
+              {data.checkinDone ? `Check-in für Woche ${data.currentWeek} erledigt ✓` : `Wochen-Check-in für Woche ${data.currentWeek} steht an`}
+            </p>
+            <p className="mt-0.5 text-sm text-text-muted">
+              {data.checkinDone
+                ? 'Am Wochenende geht\'s mit der nächsten Woche weiter.'
+                : 'Ampel setzen für deine Gewohnheiten und kurz Feedback geben — dauert 2 Minuten.'}
+            </p>
+          </div>
+          {!data.checkinDone && (
+            <Link
+              href="/challenge/checkin"
+              className="shrink-0 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
+            >
+              Jetzt Check-in machen
+            </Link>
+          )}
         </div>
 
         {/* 8-Wochen Challenge Übersicht */}
