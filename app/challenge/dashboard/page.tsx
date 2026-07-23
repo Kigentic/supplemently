@@ -7,6 +7,7 @@ import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 import ChallengeWeeksOverview from '@/app/_components/ChallengeWeeksOverview';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
+import { getChallengeSchedule, formatUnlockDate } from '@/lib/challengeSchedule';
 
 // ── Hauptseite ────────────────────────────────────────────────────────────────
 
@@ -16,6 +17,9 @@ interface DashboardData {
   currentWeek: number;
   wochenAnzahl: number;
   checkinDone: boolean;
+  checkinUnlocked: boolean;
+  checkinUnlockDate: Date;
+  isAdmin: boolean;
 }
 
 export default function DashboardPage() {
@@ -36,7 +40,7 @@ export default function DashboardPage() {
       }
 
       const [{ data: profile }, { data: teilnahme }] = await Promise.all([
-        supabase.from('profiles').select('vorname').eq('id', user.id).maybeSingle(),
+        supabase.from('profiles').select('vorname, ist_admin').eq('id', user.id).maybeSingle(),
         supabase
           .from('challenge_teilnahmen')
           .select('id, joined_at, challenges ( name, start_datum, wochen_anzahl )')
@@ -44,18 +48,18 @@ export default function DashboardPage() {
           .order('joined_at', { ascending: false })
           .limit(1)
           .maybeSingle(),
-      ]) as [{ data: { vorname: string } | null }, { data: any }];
+      ]) as [{ data: { vorname: string; ist_admin: boolean } | null }, { data: any }];
 
       if (cancelled) return;
 
+      const isAdmin = !!profile?.ist_admin;
       const challenge = Array.isArray(teilnahme?.challenges) ? teilnahme?.challenges[0] : teilnahme?.challenges;
       const wochenAnzahl = challenge?.wochen_anzahl ?? 8;
-      let currentWeek = 1;
-      if (challenge?.start_datum) {
-        const start = new Date(challenge.start_datum);
-        const days = Math.floor((Date.now() - start.getTime()) / (1000 * 60 * 60 * 24));
-        currentWeek = Math.min(wochenAnzahl, Math.max(1, Math.floor(days / 7) + 1));
-      }
+
+      const schedule = challenge?.start_datum
+        ? getChallengeSchedule(challenge.start_datum, wochenAnzahl)
+        : { currentWeek: 1, checkinUnlocked: false, checkinUnlockDate: new Date() };
+      const currentWeek = schedule.currentWeek;
 
       let checkinDone = false;
       if (teilnahme?.id) {
@@ -76,6 +80,9 @@ export default function DashboardPage() {
         currentWeek,
         wochenAnzahl,
         checkinDone,
+        checkinUnlocked: isAdmin || schedule.checkinUnlocked,
+        checkinUnlockDate: schedule.checkinUnlockDate,
+        isAdmin,
       });
       setLoading(false);
     }
@@ -107,6 +114,7 @@ export default function DashboardPage() {
         <div className="mb-10">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
             {data.challengeName ?? 'Longevity Lifestyle Challenge'}
+            {data.isAdmin && <span className="ml-2 rounded-full bg-text/10 px-2 py-0.5 text-[10px] font-semibold normal-case tracking-normal text-text-muted">Masteradmin</span>}
           </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
             Hallo, {data.vorname}!
@@ -119,20 +127,30 @@ export default function DashboardPage() {
         {/* Check-in-CTA */}
         <div
           className={`mb-8 flex flex-col items-start justify-between gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center ${
-            data.checkinDone ? 'border-outline/60 bg-surface' : 'border-accent/30 bg-accent/10'
+            data.checkinDone
+              ? 'border-outline/60 bg-surface'
+              : data.checkinUnlocked
+                ? 'border-accent/30 bg-accent/10'
+                : 'border-outline/60 bg-surface'
           }`}
         >
           <div>
             <p className="font-semibold text-text">
-              {data.checkinDone ? `Check-in für Woche ${data.currentWeek} erledigt ✓` : `Wochen-Check-in für Woche ${data.currentWeek} steht an`}
+              {data.checkinDone
+                ? `Check-in für Woche ${data.currentWeek} erledigt ✓`
+                : data.checkinUnlocked
+                  ? `Wochen-Check-in für Woche ${data.currentWeek} steht an`
+                  : `Check-in für Woche ${data.currentWeek} noch nicht offen`}
             </p>
             <p className="mt-0.5 text-sm text-text-muted">
               {data.checkinDone
-                ? 'Am Wochenende geht\'s mit der nächsten Woche weiter.'
-                : 'Ampel setzen für deine Gewohnheiten und kurz Feedback geben — dauert 2 Minuten.'}
+                ? "Am Wochenende geht's mit der nächsten Woche weiter."
+                : data.checkinUnlocked
+                  ? 'Ampel setzen für deine Gewohnheiten und kurz Feedback geben — dauert 2 Minuten.'
+                  : `Verfügbar ab ${formatUnlockDate(data.checkinUnlockDate)}.`}
             </p>
           </div>
-          {!data.checkinDone && (
+          {!data.checkinDone && data.checkinUnlocked && (
             <Link
               href="/challenge/checkin"
               className="shrink-0 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"

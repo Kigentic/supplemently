@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabaseServer';
 import { getUserFromAuthHeader } from '@/lib/apiAuth';
 import { habitsUpTo } from '@/lib/challengeWeeks';
+import { getChallengeSchedule } from '@/lib/challengeSchedule';
 
 export const runtime = 'nodejs';
 
@@ -45,6 +46,46 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Schwierigkeit muss zwischen 1 und 10 liegen.' }, { status: 400 });
   }
 
+  const supabase = getServiceClient();
+
+  // Teilnahme + Challenge-Termine + Admin-Status laden.
+  const [{ data: teilnahme, error: teilnahmeError }, { data: profile }] = await Promise.all([
+    supabase
+      .from('challenge_teilnahmen')
+      .select('id, challenges ( start_datum, wochen_anzahl )')
+      .eq('user_id', user.id)
+      .order('joined_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase.from('profiles').select('ist_admin').eq('id', user.id).maybeSingle(),
+  ]);
+
+  if (teilnahmeError) {
+    console.error('Teilnahme lookup error:', teilnahmeError);
+    return NextResponse.json({ error: 'Teilnahme konnte nicht geladen werden.' }, { status: 500 });
+  }
+  if (!teilnahme) {
+    return NextResponse.json({ error: 'Keine Challenge-Teilnahme gefunden.' }, { status: 404 });
+  }
+
+  const isAdmin = !!profile?.ist_admin;
+  const challenge = Array.isArray(teilnahme.challenges) ? teilnahme.challenges[0] : teilnahme.challenges;
+
+  // Datums-Gate serverseitig durchsetzen — Client-Checks sind nur UI-Komfort.
+  // Masteradmin darf jede Woche jederzeit einchecken.
+  if (!isAdmin) {
+    if (!challenge?.start_datum) {
+      return NextResponse.json({ error: 'Keine aktive Challenge gefunden.' }, { status: 404 });
+    }
+    const schedule = getChallengeSchedule(challenge.start_datum, challenge.wochen_anzahl ?? 8);
+    if (woche !== schedule.currentWeek) {
+      return NextResponse.json({ error: 'Diese Woche ist gerade nicht dran.' }, { status: 403 });
+    }
+    if (!schedule.checkinUnlocked) {
+      return NextResponse.json({ error: 'Der Check-in für diese Woche ist noch nicht freigeschaltet.' }, { status: 403 });
+    }
+  }
+
   // Erwartete Habit-Keys für diese Woche (Carry-forward 1..woche) — verhindert
   // dass der Client beliebige Keys/Ampeln unterschiebt.
   const expectedKeys = habitsUpTo(woche).flatMap((g) => g.items.map((i) => i.key));
@@ -63,25 +104,6 @@ export async function POST(req: Request) {
 
   const scoreWoche =
     CHECKIN_BASISPUNKTE + expectedKeys.reduce((sum, key) => sum + PUNKTE[cleanHabitStatus[key]], 0);
-
-  const supabase = getServiceClient();
-
-  // Teilnahme des Users finden.
-  const { data: teilnahme, error: teilnahmeError } = await supabase
-    .from('challenge_teilnahmen')
-    .select('id')
-    .eq('user_id', user.id)
-    .order('joined_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (teilnahmeError) {
-    console.error('Teilnahme lookup error:', teilnahmeError);
-    return NextResponse.json({ error: 'Teilnahme konnte nicht geladen werden.' }, { status: 500 });
-  }
-  if (!teilnahme) {
-    return NextResponse.json({ error: 'Keine Challenge-Teilnahme gefunden.' }, { status: 404 });
-  }
 
   const { error: checkinError } = await supabase.from('wochencheckins').upsert(
     {

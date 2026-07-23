@@ -21,6 +21,7 @@ export default function SiteHeader({
 }) {
   const router = useRouter();
   const [loggedIn, setLoggedIn] = useState(loggedInProp ?? false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (loggedInProp !== undefined) return;
@@ -28,6 +29,23 @@ export default function SiteHeader({
       .auth.getSession()
       .then(({ data }) => setLoggedIn(!!data.session));
   }, [loggedInProp]);
+
+  useEffect(() => {
+    if (!loggedIn) {
+      setIsAdmin(false);
+      return;
+    }
+    const supabase = getBrowserClient();
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) return;
+      supabase
+        .from('profiles')
+        .select('ist_admin')
+        .eq('id', data.user.id)
+        .maybeSingle()
+        .then(({ data: profile }) => setIsAdmin(!!(profile as { ist_admin: boolean } | null)?.ist_admin));
+    });
+  }, [loggedIn]);
 
   async function onLogout() {
     await getBrowserClient().auth.signOut();
@@ -55,6 +73,14 @@ export default function SiteHeader({
             >
               Dashboard
             </Link>
+            {isAdmin && (
+              <Link
+                href="/challenge/admin"
+                className="text-sm font-medium text-text-muted transition hover:text-text"
+              >
+                Admin
+              </Link>
+            )}
             <button
               type="button"
               onClick={onLogout}

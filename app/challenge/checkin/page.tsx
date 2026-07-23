@@ -7,6 +7,7 @@ import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
 import { habitsUpTo } from '@/lib/challengeWeeks';
+import { getChallengeSchedule, formatUnlockDate } from '@/lib/challengeSchedule';
 
 type Ampel = 'gruen' | 'gelb' | 'rot';
 
@@ -61,6 +62,8 @@ interface CheckinData {
   teilnahmeId: string;
   currentWeek: number;
   alreadySubmitted: boolean;
+  unlocked: boolean;
+  unlockDate: Date;
 }
 
 export default function CheckinPage() {
@@ -88,13 +91,16 @@ export default function CheckinPage() {
         return;
       }
 
-      const { data: teilnahme } = (await supabase
-        .from('challenge_teilnahmen')
-        .select('id, status, challenges ( start_datum, wochen_anzahl )')
-        .eq('user_id', user.id)
-        .order('joined_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()) as { data: any };
+      const [{ data: teilnahme }, { data: profile }] = await Promise.all([
+        supabase
+          .from('challenge_teilnahmen')
+          .select('id, status, challenges ( start_datum, wochen_anzahl )')
+          .eq('user_id', user.id)
+          .order('joined_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase.from('profiles').select('ist_admin').eq('id', user.id).maybeSingle(),
+      ]) as [{ data: any }, { data: { ist_admin: boolean } | null }];
 
       if (cancelled) return;
 
@@ -107,14 +113,13 @@ export default function CheckinPage() {
         return;
       }
 
+      const isAdmin = !!profile?.ist_admin;
       const challenge = Array.isArray(teilnahme.challenges) ? teilnahme.challenges[0] : teilnahme.challenges;
       const wochenAnzahl = challenge?.wochen_anzahl ?? 8;
-      let currentWeek = 1;
-      if (challenge?.start_datum) {
-        const start = new Date(challenge.start_datum);
-        const days = Math.floor((Date.now() - start.getTime()) / (1000 * 60 * 60 * 24));
-        currentWeek = Math.min(wochenAnzahl, Math.max(1, Math.floor(days / 7) + 1));
-      }
+      const schedule = challenge?.start_datum
+        ? getChallengeSchedule(challenge.start_datum, wochenAnzahl)
+        : { currentWeek: 1, checkinUnlocked: false, checkinUnlockDate: new Date() };
+      const currentWeek = schedule.currentWeek;
 
       const { data: existingCheckin } = await supabase
         .from('wochencheckins')
@@ -125,7 +130,13 @@ export default function CheckinPage() {
 
       if (cancelled) return;
 
-      setData({ teilnahmeId: teilnahme.id, currentWeek, alreadySubmitted: !!existingCheckin });
+      setData({
+        teilnahmeId: teilnahme.id,
+        currentWeek,
+        alreadySubmitted: !!existingCheckin,
+        unlocked: isAdmin || schedule.checkinUnlocked,
+        unlockDate: schedule.checkinUnlockDate,
+      });
       setLoading(false);
     }
 
@@ -196,6 +207,33 @@ export default function CheckinPage() {
         <SiteHeader loggedIn />
         <main className="mx-auto max-w-2xl px-5 py-24 text-center">
           <p className="text-text-muted">Check-in wird geladen …</p>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
+
+  if (!data.unlocked) {
+    return (
+      <div className="min-h-screen bg-bg">
+        <SiteHeader loggedIn />
+        <main className="mx-auto max-w-xl px-5 py-20 text-center sm:py-28">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-outline/20 text-3xl">
+            🔒
+          </div>
+          <h1 className="text-3xl font-semibold tracking-tight text-text sm:text-4xl">
+            Check-in noch nicht offen.
+          </h1>
+          <p className="mt-4 text-base leading-relaxed text-text-muted">
+            Der Check-in für Woche {data.currentWeek} ist ab {formatUnlockDate(data.unlockDate)} verfügbar.
+            Bis dahin: fleißig die Gewohnheiten dieser Woche umsetzen.
+          </p>
+          <Link
+            href="/challenge/dashboard"
+            className="mt-8 inline-block rounded-full bg-accent px-8 py-4 text-base font-semibold text-on-accent transition hover:bg-accent-hover"
+          >
+            Zurück zum Dashboard
+          </Link>
         </main>
         <SiteFooter />
       </div>
