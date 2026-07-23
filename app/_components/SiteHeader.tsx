@@ -1,6 +1,7 @@
 // Gemeinsamer Header (Landingpage + Fragebogen).
 'use client';
 
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -11,13 +12,22 @@ const HEADER_LOGO = 56;
 export default function SiteHeader({
   ctaHref = '/challenge/registrierung',
   ctaLabel = 'Jetzt anmelden',
-  loggedIn = false,
+  loggedIn: loggedInProp,
 }: {
   ctaHref?: string;
   ctaLabel?: string;
+  /** Optional: bekannter Login-Status (vermeidet Flackern). Ohne Angabe prüft der Header selbst. */
   loggedIn?: boolean;
 }) {
   const router = useRouter();
+  const [loggedIn, setLoggedIn] = useState(loggedInProp ?? false);
+
+  useEffect(() => {
+    if (loggedInProp !== undefined) return;
+    getBrowserClient()
+      .auth.getSession()
+      .then(({ data }) => setLoggedIn(!!data.session));
+  }, [loggedInProp]);
 
   async function onLogout() {
     await getBrowserClient().auth.signOut();
@@ -38,13 +48,21 @@ export default function SiteHeader({
           />
         </Link>
         {loggedIn ? (
-          <button
-            type="button"
-            onClick={onLogout}
-            className="rounded-full border border-outline px-4 py-2 text-sm font-medium text-text transition hover:border-text"
-          >
-            Ausloggen
-          </button>
+          <nav className="flex items-center gap-5">
+            <Link
+              href="/challenge/dashboard"
+              className="text-sm font-medium text-text-muted transition hover:text-text"
+            >
+              Dashboard
+            </Link>
+            <button
+              type="button"
+              onClick={onLogout}
+              className="rounded-full border border-outline px-4 py-2 text-sm font-medium text-text transition hover:border-text"
+            >
+              Ausloggen
+            </button>
+          </nav>
         ) : (
           <Link
             href={ctaHref}
