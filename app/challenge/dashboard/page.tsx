@@ -4,74 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
+import ChallengeWeeksOverview from '@/app/_components/ChallengeWeeksOverview';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
-
-// ── Wochen-Accordion ──────────────────────────────────────────────────────────
-
-function ChevronIcon({ open }: { open: boolean }) {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      className={`shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
-    >
-      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function WeekAccordionItem({
-  woche,
-  status,
-  open,
-  onToggle,
-}: {
-  woche: number;
-  status: 'vergangen' | 'aktuell' | 'kommend';
-  open: boolean;
-  onToggle: () => void;
-}) {
-  const statusLabel = { vergangen: 'Abgeschlossen', aktuell: 'Diese Woche', kommend: 'Bald' }[status];
-  const statusStyle = {
-    vergangen: 'bg-outline/30 text-text-muted',
-    aktuell: 'bg-accent/10 text-accent',
-    kommend: 'bg-outline/20 text-text-muted',
-  }[status];
-
-  return (
-    <div className="border-b border-outline/40 last:border-b-0">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex w-full items-center justify-between gap-4 py-5 text-left"
-      >
-        <div className="flex items-center gap-3.5">
-          <span
-            className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold ${
-              status === 'aktuell' ? 'bg-accent text-on-accent' : 'bg-outline/30 text-text-muted'
-            }`}
-          >
-            {woche}
-          </span>
-          <span className="font-semibold text-text">Woche {woche}</span>
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyle}`}>{statusLabel}</span>
-        </div>
-        <ChevronIcon open={open} />
-      </button>
-      {open && (
-        <div className="pb-6 pl-12 pr-4 text-sm leading-relaxed text-text-muted">
-          {status === 'kommend'
-            ? 'Deine Aufgaben für diese Woche werden montags freigeschaltet, sobald es soweit ist.'
-            : status === 'aktuell'
-              ? 'Deine Aufgaben für diese Woche folgen in Kürze.'
-              : 'Rückblick für diese Woche folgt in Kürze.'}
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── Hauptseite ────────────────────────────────────────────────────────────────
 
@@ -86,7 +20,6 @@ export default function DashboardPage() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [openWeek, setOpenWeek] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -128,7 +61,6 @@ export default function DashboardPage() {
         currentWeek,
         wochenAnzahl,
       });
-      setOpenWeek(currentWeek);
       setLoading(false);
     }
 
@@ -168,18 +100,8 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Wochen-Accordion */}
-        <div className="rounded-2xl bg-surface px-6">
-          {Array.from({ length: data.wochenAnzahl }, (_, i) => i + 1).map((woche) => (
-            <WeekAccordionItem
-              key={woche}
-              woche={woche}
-              status={woche < data.currentWeek ? 'vergangen' : woche === data.currentWeek ? 'aktuell' : 'kommend'}
-              open={openWeek === woche}
-              onToggle={() => setOpenWeek((w) => (w === woche ? null : woche))}
-            />
-          ))}
-        </div>
+        {/* 8-Wochen Challenge Übersicht */}
+        <ChallengeWeeksOverview currentWeek={data.currentWeek} />
       </main>
 
       <SiteFooter />
