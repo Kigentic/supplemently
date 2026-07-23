@@ -1,11 +1,12 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 
-const EXTERNAL_CHECKOUT_URL = 'https://dein-abnehmprogramm.com/preise/';
+const EXTERNAL_CHECKOUT_URL = 'https://dein-abnehmprogramm.com/ernaehrungsplan-erstellen/?init_section=g';
+const DISCOUNT_CODE = 'LIFE365TK';
 
 const btnPrimary =
   'inline-block rounded-full bg-accent px-8 py-4 text-base font-semibold text-on-accent transition hover:bg-accent-hover active:scale-[.98]';
@@ -40,6 +41,59 @@ function FeatureCard({ icon, title, text }: { icon: string; title: string; text:
   );
 }
 
+// ── Rabatt-Code — mehrfach auf der Seite platziert ───────────────────────────
+
+function DiscountChip() {
+  const [copied, setCopied] = useState(false);
+
+  function onCopy() {
+    navigator.clipboard?.writeText(DISCOUNT_CODE).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onCopy}
+      className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-sm font-medium text-accent transition hover:bg-accent/15"
+    >
+      <span>🎟️</span>
+      {copied ? 'Code kopiert!' : (
+        <>
+          5% sparen mit Code <span className="font-mono font-semibold">{DISCOUNT_CODE}</span>
+        </>
+      )}
+    </button>
+  );
+}
+
+function DiscountBanner() {
+  const [copied, setCopied] = useState(false);
+
+  function onCopy() {
+    navigator.clipboard?.writeText(DISCOUNT_CODE).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-accent/30 bg-accent/10 px-6 py-5 text-center sm:flex-row sm:text-left">
+      <div>
+        <p className="font-semibold text-text">Hol dir jetzt die App und spar zusätzlich 5%.</p>
+        <p className="mt-0.5 text-sm text-text-muted">Code an der Kasse eingeben — direkt kombinierbar mit der Krankenkassen-Erstattung.</p>
+      </div>
+      <button
+        type="button"
+        onClick={onCopy}
+        className="flex shrink-0 items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
+      >
+        {copied ? 'Kopiert!' : <>Code <span className="font-mono">{DISCOUNT_CODE}</span> kopieren</>}
+      </button>
+    </div>
+  );
+}
+
 export default function ErnaehrungsAppPage() {
   return (
     <div className="min-h-screen bg-bg">
@@ -63,6 +117,9 @@ export default function ErnaehrungsAppPage() {
               an dem die meisten Programme scheitern. Genau dafür ist eine zertifizierte Ernährungs-App
               Teil deiner Challenge.
             </p>
+            <div className="mt-6 flex justify-center">
+              <DiscountChip />
+            </div>
           </div>
         </section>
 
@@ -111,6 +168,10 @@ export default function ErnaehrungsAppPage() {
             <FeatureCard icon="📱" title="Web, Tablet, Smartphone" text="Überall verfügbar — Einkaufsliste unterwegs, Plan am Rechner, Rezept in der Küche." />
             <FeatureCard icon="🎯" title="100+ Personalisierungen" text="Allergien, Unverträglichkeiten, Ziel-Wechsel jederzeit — der Plan bleibt exakt auf dich zugeschnitten." />
           </div>
+
+          <div className="mt-10">
+            <DiscountBanner />
+          </div>
         </section>
 
         {/* ═══ 4. §20-ZERTIFIZIERUNG ═══════════════════════════════════════════ */}
@@ -146,6 +207,16 @@ export default function ErnaehrungsAppPage() {
               Höhe und Umfang der Erstattung hängen von deiner Krankenkasse ab — ein Blick in die
               Bonusregelung deiner Kasse lohnt sich vorab.
             </p>
+
+            <div className="mx-auto mt-8 max-w-xl text-center">
+              <p className="text-base font-medium text-text">
+                Sichere dir deinen digitalen Ernährungsberater inklusive Krankenkassenbezuschussung —
+                jetzt zusätzlich mit <span className="text-accent">5% Rabatt</span>.
+              </p>
+              <div className="mt-4 flex justify-center">
+                <DiscountChip />
+              </div>
+            </div>
           </div>
         </section>
 
@@ -156,6 +227,9 @@ export default function ErnaehrungsAppPage() {
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
               Zwei Laufzeiten, beide erstattungsfähig.
             </h2>
+            <p className="mt-3 text-sm text-text-muted">
+              Zzgl. 5% Rabatt mit Code <span className="font-mono font-semibold text-accent">{DISCOUNT_CODE}</span> beim Bezahlvorgang.
+            </p>
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -165,9 +239,14 @@ export default function ErnaehrungsAppPage() {
                 <span className="text-3xl font-semibold tracking-tight text-text">89,99&nbsp;€</span>
                 <span className="text-sm text-text-muted line-through">119,99&nbsp;€</span>
               </div>
-              <span className="mt-3 inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
-                Erstattungsfähig
-              </span>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+                  Erstattungsfähig
+                </span>
+                <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+                  + 5% mit {DISCOUNT_CODE}
+                </span>
+              </div>
               <ul className="mt-5 space-y-2.5">
                 <Check>16.000+ Rezepte, individueller Plan</Check>
                 <Check>Automatische Einkaufslisten</Check>
@@ -184,9 +263,14 @@ export default function ErnaehrungsAppPage() {
                 <span className="text-3xl font-semibold tracking-tight text-text">119,99&nbsp;€</span>
                 <span className="text-sm text-text-muted line-through">159,99&nbsp;€</span>
               </div>
-              <span className="mt-3 inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
-                Erstattungsfähig
-              </span>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+                  Erstattungsfähig
+                </span>
+                <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+                  + 5% mit {DISCOUNT_CODE}
+                </span>
+              </div>
               <ul className="mt-5 space-y-2.5">
                 <Check>Alles aus dem 3-Monats-Plan</Check>
                 <Check>Trainingsplan inklusive</Check>
@@ -206,10 +290,18 @@ export default function ErnaehrungsAppPage() {
               Der Kauf läuft über unseren Ernährungspartner — du landest auf dessen Seite in einem
               neuen Tab und kannst direkt deine Krankenkasse für die Erstattungsübersicht auswählen.
             </p>
+
+            <div className="mx-auto mt-7 max-w-md">
+              <DiscountBanner />
+            </div>
+
             <div className="mt-8 flex flex-col items-center gap-4">
               <a href={EXTERNAL_CHECKOUT_URL} target="_blank" rel="noopener noreferrer" className={btnPrimary}>
-                Ernährungsplan sichern →
+                Jetzt direkt deinen persönlichen Ernährungsassistenten einrichten →
               </a>
+              <p className="text-xs text-text-muted">
+                Jetzt mit der Konfiguration starten und {DISCOUNT_CODE} einlösen — inklusive Krankenkassenbezuschussung.
+              </p>
               <Link href="/challenge/dashboard" className="text-sm text-text-muted underline hover:text-text">
                 Ich entscheide mich später — weiter zum Dashboard
               </Link>
