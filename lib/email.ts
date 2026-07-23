@@ -2,7 +2,7 @@
 // (Absender "Supabase Auth", kein Branding, kein Custom-Template).
 import { Resend } from 'resend';
 
-const FROM = process.env.RESEND_FROM_EMAIL || 'Turnkiste <onboarding@resend.dev>';
+const FROM = process.env.RESEND_FROM_EMAIL || 'hallo@kigentic.de';
 
 function getResend() {
   const key = process.env.RESEND_API_KEY;
@@ -21,7 +21,7 @@ function layout(bodyHtml: string) {
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:20px;overflow:hidden;">
             <tr>
               <td style="background:linear-gradient(135deg,#4f90c1,#225990);padding:32px 40px;text-align:center;">
-                <span style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:0.02em;">TURNKISTE</span>
+                <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:0.02em;">Longevity Lifestyle Challenge</span>
               </td>
             </tr>
             <tr>
