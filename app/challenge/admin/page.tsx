@@ -1,14 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
+import { CHECKIN_BASISPUNKTE } from '@/lib/challengeScoring';
 
 interface AdminUser {
   id: string;
+  teilnahme_id: string | null;
   vorname: string;
   nachname: string;
   email: string;
@@ -17,6 +19,53 @@ interface AdminUser {
   challenge_name: string | null;
   status: string | null;
   gesamt_score: number;
+  max_score: number;
+  note_wert: 1 | 2 | 3 | 4 | null;
+  note_label: string | null;
+}
+
+interface HabitBreakdown {
+  text: string;
+  ampel: 'gruen' | 'gelb' | 'rot' | null;
+  punkte: number;
+}
+
+interface WeekBreakdown {
+  weekNum: number;
+  theme: string;
+  items: HabitBreakdown[];
+}
+
+interface CheckinBreakdown {
+  woche: number;
+  scoreWoche: number;
+  maxScoreWoche: number;
+  note: { wert: 1 | 2 | 3 | 4; label: string };
+  wohlbefinden: number;
+  schwierigkeit: number;
+  erfolgFreitext: string | null;
+  gruppen: WeekBreakdown[];
+}
+
+const NOTE_STYLE: Record<1 | 2 | 3 | 4, string> = {
+  1: 'bg-emerald-500/10 text-emerald-700',
+  2: 'bg-lime-500/10 text-lime-700',
+  3: 'bg-amber-400/10 text-amber-700',
+  4: 'bg-orange-400/10 text-orange-700',
+};
+
+const AMPEL_STYLE: Record<'gruen' | 'gelb' | 'rot', { dot: string; label: string }> = {
+  gruen: { dot: 'bg-emerald-500', label: 'Komplett' },
+  gelb: { dot: 'bg-amber-400', label: 'Teilweise' },
+  rot: { dot: 'bg-red-400', label: 'Gar nicht' },
+};
+
+function NoteBadge({ wert, label }: { wert: 1 | 2 | 3 | 4; label: string }) {
+  return (
+    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${NOTE_STYLE[wert]}`}>
+      {wert} · {label}
+    </span>
+  );
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -38,6 +87,12 @@ export default function AdminPage() {
   const [users, setUsers] = useState<AdminUser[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
+  const [breakdown, setBreakdown] = useState<CheckinBreakdown[] | null>(null);
+  const [breakdownLoading, setBreakdownLoading] = useState(false);
+  const [breakdownError, setBreakdownError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,14 +106,15 @@ export default function AdminPage() {
       }
 
       const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) {
+      const token = sessionData.session?.access_token;
+      if (!token) {
         router.push('/challenge/login');
         return;
       }
+      setAccessToken(token);
 
       const res = await fetch('/api/admin/users', {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (cancelled) return;
@@ -83,6 +139,38 @@ export default function AdminPage() {
       cancelled = true;
     };
   }, [router]);
+
+  async function toggleDetails(u: AdminUser) {
+    if (!u.teilnahme_id) return;
+
+    if (expandedUserId === u.id) {
+      setExpandedUserId(null);
+      setBreakdown(null);
+      return;
+    }
+
+    setExpandedUserId(u.id);
+    setBreakdown(null);
+    setBreakdownError(null);
+    setBreakdownLoading(true);
+
+    try {
+      const res = await fetch(`/api/admin/teilnahme/${u.teilnahme_id}/checkins`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setBreakdownError(json?.error || 'Check-ins konnten nicht geladen werden.');
+        setBreakdownLoading(false);
+        return;
+      }
+      setBreakdown(json.wochen);
+      setBreakdownLoading(false);
+    } catch {
+      setBreakdownError('Server nicht erreichbar.');
+      setBreakdownLoading(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -133,36 +221,127 @@ export default function AdminPage() {
                   <th className="px-4 py-3 font-medium">Challenge</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium text-right">Score</th>
+                  <th className="px-4 py-3 font-medium">Note</th>
                   <th className="px-4 py-3 font-medium">Registriert</th>
+                  <th className="px-4 py-3 font-medium"></th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u.id} className="border-b border-outline/30 last:border-b-0">
-                    <td className="px-4 py-3 font-medium text-text">
-                      {u.vorname} {u.nachname}
-                      {u.ist_admin && (
-                        <span className="ml-2 rounded-full bg-text/10 px-2 py-0.5 text-[10px] font-semibold text-text-muted">
-                          Admin
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-text-muted">{u.email}</td>
-                    <td className="px-4 py-3 text-text-muted">{u.challenge_name ?? '—'}</td>
-                    <td className="px-4 py-3">
-                      {u.status ? (
-                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLE[u.status] ?? 'bg-outline/20 text-text-muted'}`}>
-                          {STATUS_LABEL[u.status] ?? u.status}
-                        </span>
-                      ) : (
-                        <span className="text-text-muted">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right font-medium text-text">{u.gesamt_score}</td>
-                    <td className="px-4 py-3 text-text-muted">
-                      {new Date(u.created_at).toLocaleDateString('de-DE')}
-                    </td>
-                  </tr>
+                  <Fragment key={u.id}>
+                    <tr className="border-b border-outline/30 last:border-b-0">
+                      <td className="px-4 py-3 font-medium text-text">
+                        {u.vorname} {u.nachname}
+                        {u.ist_admin && (
+                          <span className="ml-2 rounded-full bg-text/10 px-2 py-0.5 text-[10px] font-semibold text-text-muted">
+                            Admin
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-text-muted">{u.email}</td>
+                      <td className="px-4 py-3 text-text-muted">{u.challenge_name ?? '—'}</td>
+                      <td className="px-4 py-3">
+                        {u.status ? (
+                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLE[u.status] ?? 'bg-outline/20 text-text-muted'}`}>
+                            {STATUS_LABEL[u.status] ?? u.status}
+                          </span>
+                        ) : (
+                          <span className="text-text-muted">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right font-medium text-text">
+                        {u.gesamt_score}
+                        {u.max_score > 0 && <span className="text-text-muted"> / {u.max_score}</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        {u.note_wert ? (
+                          <NoteBadge wert={u.note_wert} label={u.note_label ?? ''} />
+                        ) : (
+                          <span className="text-text-muted">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-text-muted">
+                        {new Date(u.created_at).toLocaleDateString('de-DE')}
+                      </td>
+                      <td className="px-4 py-3">
+                        {u.teilnahme_id && (
+                          <button
+                            type="button"
+                            onClick={() => toggleDetails(u)}
+                            className="whitespace-nowrap text-xs font-medium text-accent hover:underline"
+                          >
+                            {expandedUserId === u.id ? 'Schließen ▴' : 'Aufgaben ▾'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                    {expandedUserId === u.id && (
+                      <tr className="border-b border-outline/30 bg-surface/60">
+                        <td colSpan={8} className="px-4 py-4">
+                          {breakdownLoading && <p className="text-sm text-text-muted">Wird geladen …</p>}
+                          {breakdownError && (
+                            <p className="text-sm text-red-600">{breakdownError}</p>
+                          )}
+                          {breakdown && breakdown.length === 0 && (
+                            <p className="text-sm text-text-muted">Noch keine Check-ins abgegeben.</p>
+                          )}
+                          {breakdown && breakdown.length > 0 && (
+                            <div className="space-y-5">
+                              {breakdown.map((c) => (
+                                <div key={c.woche} className="rounded-xl border border-outline/40 bg-bg p-4">
+                                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                                    <p className="font-semibold text-text">Woche {c.woche}</p>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm font-medium text-text">
+                                        {c.scoreWoche} / {c.maxScoreWoche} Punkte
+                                      </span>
+                                      <NoteBadge wert={c.note.wert} label={c.note.label} />
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-3">
+                                    {c.gruppen.map((g) => (
+                                      <div key={g.weekNum}>
+                                        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-text-muted">
+                                          Woche {g.weekNum} · {g.theme}
+                                        </p>
+                                        <ul className="space-y-1">
+                                          {g.items.map((item, idx) => (
+                                            <li
+                                              key={idx}
+                                              className="flex items-center justify-between gap-3 text-sm"
+                                            >
+                                              <span className="flex items-center gap-2 text-text-muted">
+                                                {item.ampel && (
+                                                  <span
+                                                    className={`h-2 w-2 shrink-0 rounded-full ${AMPEL_STYLE[item.ampel].dot}`}
+                                                  />
+                                                )}
+                                                {item.text}
+                                              </span>
+                                              <span className="shrink-0 whitespace-nowrap font-medium text-text">
+                                                {item.ampel ? AMPEL_STYLE[item.ampel].label : '—'} · +{item.punkte}
+                                              </span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  <p className="mt-3 border-t border-outline/30 pt-2 text-xs text-text-muted">
+                                    Basispunkte fürs Einreichen: +{CHECKIN_BASISPUNKTE}. Wohlbefinden {c.wohlbefinden}/10 ·
+                                    Schwierigkeit {c.schwierigkeit}/10
+                                    {c.erfolgFreitext && <> · &quot;{c.erfolgFreitext}&quot;</>}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 ))}
               </tbody>
             </table>

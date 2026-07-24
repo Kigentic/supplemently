@@ -2,6 +2,8 @@
 import { NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabaseServer';
 import { getUserFromAuthHeader } from '@/lib/apiAuth';
+import { getChallengeSchedule } from '@/lib/challengeSchedule';
+import { maxGesamtScore, noteFuer } from '@/lib/challengeScoring';
 
 export const runtime = 'nodejs';
 
@@ -30,7 +32,7 @@ export async function GET(req: Request) {
 
   const { data: teilnahmen, error: teilnahmenError } = await supabase
     .from('challenge_teilnahmen')
-    .select('user_id, status, gesamt_score, joined_at, challenges ( name )');
+    .select('id, user_id, status, gesamt_score, joined_at, challenges ( name, start_datum, wochen_anzahl )');
 
   if (teilnahmenError) {
     console.error('Admin teilnahmen lookup error:', teilnahmenError);
@@ -49,8 +51,17 @@ export async function GET(req: Request) {
   const users = (profiles ?? []).map((p) => {
     const t = teilnahmeByUser.get(p.id);
     const challenge = Array.isArray(t?.challenges) ? t?.challenges[0] : t?.challenges;
+
+    const currentWeek = challenge?.start_datum
+      ? getChallengeSchedule(challenge.start_datum, challenge.wochen_anzahl ?? 8).currentWeek
+      : 1;
+    const gesamtScore = t?.gesamt_score ?? 0;
+    const maxScore = t ? maxGesamtScore(currentWeek) : 0;
+    const note = noteFuer(gesamtScore, maxScore);
+
     return {
       id: p.id,
+      teilnahme_id: t?.id ?? null,
       vorname: p.vorname,
       nachname: p.nachname,
       email: p.email,
@@ -58,7 +69,10 @@ export async function GET(req: Request) {
       created_at: p.created_at,
       challenge_name: challenge?.name ?? null,
       status: t?.status ?? null,
-      gesamt_score: t?.gesamt_score ?? 0,
+      gesamt_score: gesamtScore,
+      max_score: maxScore,
+      note_wert: t ? note.wert : null,
+      note_label: t ? note.label : null,
     };
   });
 

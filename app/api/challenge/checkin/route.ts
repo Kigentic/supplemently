@@ -6,12 +6,9 @@ import { getServiceClient } from '@/lib/supabaseServer';
 import { getUserFromAuthHeader } from '@/lib/apiAuth';
 import { habitsUpTo } from '@/lib/challengeWeeks';
 import { getChallengeSchedule } from '@/lib/challengeSchedule';
+import { AMPEL_PUNKTE, CHECKIN_BASISPUNKTE, type Ampel } from '@/lib/challengeScoring';
 
 export const runtime = 'nodejs';
-
-type Ampel = 'gruen' | 'gelb' | 'rot';
-const PUNKTE: Record<Ampel, number> = { gruen: 20, gelb: 10, rot: 0 };
-const CHECKIN_BASISPUNKTE = 10;
 
 interface Body {
   woche: number;
@@ -103,7 +100,7 @@ export async function POST(req: Request) {
   for (const key of expectedKeys) cleanHabitStatus[key] = habit_status[key];
 
   const scoreWoche =
-    CHECKIN_BASISPUNKTE + expectedKeys.reduce((sum, key) => sum + PUNKTE[cleanHabitStatus[key]], 0);
+    CHECKIN_BASISPUNKTE + expectedKeys.reduce((sum, key) => sum + AMPEL_PUNKTE[cleanHabitStatus[key]], 0);
 
   const { error: checkinError } = await supabase.from('wochencheckins').upsert(
     {
