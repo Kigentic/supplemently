@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
@@ -108,6 +109,12 @@ export default function AdminPage() {
           <p className="mt-3 text-base leading-relaxed text-text-muted">
             {users ? `${users.length} registrierte User.` : ''}
           </p>
+          <Link
+            href="/challenge/admin/checkin-test"
+            className="mt-4 inline-block rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text"
+          >
+            Check-in-Fragen testen →
+          </Link>
         </div>
 
         {error && (
