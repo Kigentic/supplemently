@@ -43,30 +43,42 @@ export async function GET(req: Request, { params }: { params: Promise<{ num: str
     return NextResponse.json({ empfehlungen: [] }, { status: 200 });
   }
 
-  const empfehlungen = matchForWeek(activeLinks as AffiliateLink[], woche);
-
-  if (empfehlungen.length > 0) {
-    const { data: existing } = await supabase
-      .from('empfehlungen_log')
-      .select('id')
-      .eq('teilnahme_id', teilnahme.id)
-      .eq('woche', woche)
-      .eq('kontext', 'wochenemail')
-      .limit(1)
-      .maybeSingle();
-
-    if (!existing) {
-      const { error: logError } = await supabase.from('empfehlungen_log').insert(
-        empfehlungen.map((l) => ({
-          teilnahme_id: teilnahme.id,
-          affiliate_link_id: l.id,
-          kontext: 'wochenemail',
-          woche,
-        }))
-      );
-      if (logError) console.error('Empfehlungen-Log error (woche):', logError);
-    }
+  const matched = matchForWeek(activeLinks as AffiliateLink[], woche);
+  if (matched.length === 0) {
+    return NextResponse.json({ empfehlungen: [] }, { status: 200 });
   }
+
+  // Wiederholter Aufruf derselben Woche soll dieselbe (bereits geloggte)
+  // Empfehlung inkl. Log-ID zurückgeben, statt jedes Mal neu zu loggen.
+  const { data: existing } = await supabase
+    .from('empfehlungen_log')
+    .select('id, affiliate_link_id, affiliate_links ( id, partner_name, produkt_name, kategorie, beschreibung, url, bild_url, trigger_tags, woche, rabattcode )')
+    .eq('teilnahme_id', teilnahme.id)
+    .eq('woche', woche)
+    .eq('kontext', 'wochenemail');
+
+  if (existing && existing.length > 0) {
+    const empfehlungen = existing.flatMap((e) => {
+      const link = Array.isArray(e.affiliate_links) ? e.affiliate_links[0] : e.affiliate_links;
+      return link ? [{ ...(link as AffiliateLink), empfehlungLogId: e.id }] : [];
+    });
+    return NextResponse.json({ empfehlungen }, { status: 200 });
+  }
+
+  const { data: insertedLogs, error: logError } = await supabase
+    .from('empfehlungen_log')
+    .insert(matched.map((l) => ({ teilnahme_id: teilnahme.id, affiliate_link_id: l.id, kontext: 'wochenemail', woche })))
+    .select('id, affiliate_link_id');
+
+  if (logError) {
+    console.error('Empfehlungen-Log error (woche):', logError);
+    return NextResponse.json({ empfehlungen: [] }, { status: 200 });
+  }
+
+  const empfehlungen = (insertedLogs ?? []).flatMap((log) => {
+    const link = matched.find((l) => l.id === log.affiliate_link_id);
+    return link ? [{ ...link, empfehlungLogId: log.id }] : [];
+  });
 
   return NextResponse.json({ empfehlungen }, { status: 200 });
 }

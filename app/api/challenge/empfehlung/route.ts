@@ -29,7 +29,7 @@ export async function GET(req: Request) {
 
   const { data: logEintraege, error } = await supabase
     .from('empfehlungen_log')
-    .select('gezeigt_at, affiliate_links ( id, partner_name, produkt_name, beschreibung, url, rabattcode )')
+    .select('id, gezeigt_at, affiliate_links ( id, partner_name, produkt_name, beschreibung, url, rabattcode )')
     .eq('teilnahme_id', teilnahme.id)
     .eq('kontext', 'onboarding')
     .order('gezeigt_at', { ascending: false });
@@ -39,9 +39,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Empfehlungen konnten nicht geladen werden.' }, { status: 500 });
   }
 
-  const empfehlungen = (logEintraege ?? [])
-    .map((e) => (Array.isArray(e.affiliate_links) ? e.affiliate_links[0] : e.affiliate_links))
-    .filter(Boolean);
+  const empfehlungen = (logEintraege ?? []).flatMap((e) => {
+    const link = Array.isArray(e.affiliate_links) ? e.affiliate_links[0] : e.affiliate_links;
+    return link ? [{ ...link, empfehlungLogId: e.id }] : [];
+  });
 
   return NextResponse.json({ empfehlungen }, { status: 200 });
 }

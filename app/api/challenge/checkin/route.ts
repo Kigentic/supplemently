@@ -130,25 +130,38 @@ export async function POST(req: Request) {
 
   // Touchpoint 3 (siehe GAMEPLAN Kap. 12.3): passendes Affiliate-Produkt
   // anhand der Check-in-Antworten auswählen, für die Auswertung zurückgeben
-  // und im Log festhalten. Nicht kritisch — Check-in bleibt auch ohne Treffer gültig.
-  let affiliateEmpfehlungen: AffiliateLink[] = [];
+  // und im Log festhalten (inkl. Log-ID fürs Klick-Tracking, siehe
+  // app/api/challenge/klick/[empfehlungLogId]). Nicht kritisch — Check-in
+  // bleibt auch ohne Treffer gültig.
+  let affiliateEmpfehlungen: (AffiliateLink & { empfehlungLogId: string })[] = [];
   const { data: activeLinks } = await supabase
     .from('affiliate_links')
     .select('id, partner_name, produkt_name, kategorie, beschreibung, url, bild_url, trigger_tags, woche, rabattcode')
     .eq('ist_aktiv', true);
 
   if (activeLinks && activeLinks.length > 0) {
-    affiliateEmpfehlungen = matchForCheckin(activeLinks as AffiliateLink[], { weekNum: woche, wohlbefinden, schwierigkeit });
-    if (affiliateEmpfehlungen.length > 0) {
-      const { error: logError } = await supabase.from('empfehlungen_log').insert(
-        affiliateEmpfehlungen.map((l) => ({
-          teilnahme_id: teilnahme.id,
-          affiliate_link_id: l.id,
-          kontext: 'checkin_auswertung',
-          woche,
-        }))
-      );
-      if (logError) console.error('Empfehlungen-Log error (checkin):', logError);
+    const matched = matchForCheckin(activeLinks as AffiliateLink[], { weekNum: woche, wohlbefinden, schwierigkeit });
+    if (matched.length > 0) {
+      const { data: insertedLogs, error: logError } = await supabase
+        .from('empfehlungen_log')
+        .insert(
+          matched.map((l) => ({
+            teilnahme_id: teilnahme.id,
+            affiliate_link_id: l.id,
+            kontext: 'checkin_auswertung',
+            woche,
+          }))
+        )
+        .select('id, affiliate_link_id');
+
+      if (logError) {
+        console.error('Empfehlungen-Log error (checkin):', logError);
+      } else {
+        affiliateEmpfehlungen = (insertedLogs ?? []).flatMap((log) => {
+          const link = matched.find((l) => l.id === log.affiliate_link_id);
+          return link ? [{ ...link, empfehlungLogId: log.id }] : [];
+        });
+      }
     }
   }
 

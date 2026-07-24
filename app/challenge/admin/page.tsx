@@ -197,12 +197,20 @@ export default function AdminPage() {
           <p className="mt-3 text-base leading-relaxed text-text-muted">
             {users ? `${users.length} registrierte User.` : ''}
           </p>
-          <Link
-            href="/challenge/admin/checkin-test"
-            className="mt-4 inline-block rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text"
-          >
-            Check-in-Fragen testen →
-          </Link>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/challenge/admin/checkin-test"
+              className="inline-block rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text"
+            >
+              Check-in-Fragen testen →
+            </Link>
+            <Link
+              href="/challenge/admin/affiliate-stats"
+              className="inline-block rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text"
+            >
+              Affiliate-Statistik →
+            </Link>
+          </div>
         </div>
 
         {error && (

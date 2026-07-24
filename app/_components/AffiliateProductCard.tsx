@@ -4,6 +4,8 @@ import { IconExternalLink } from '@tabler/icons-react';
 
 export interface AffiliateProduct {
   id: string;
+  /** ID des empfehlungen_log-Eintrags — Ziel des Klick-Tracking-Redirects, nicht die Partner-URL direkt. */
+  empfehlungLogId: string;
   partner_name: string;
   produkt_name: string;
   beschreibung: string | null;
@@ -21,7 +23,7 @@ export default function AffiliateProductCard({ product }: { product: AffiliatePr
       )}
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <a
-          href={product.url}
+          href={`/api/challenge/klick/${product.empfehlungLogId}`}
           target="_blank"
           rel="noopener noreferrer nofollow sponsored"
           className="inline-flex items-center gap-1.5 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"

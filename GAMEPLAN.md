@@ -415,8 +415,20 @@ Erfolgsansicht neben dem Score. Loggt in `empfehlungen_log` (Kontext `checkin_au
 `app/_components/AffiliateProductCard.tsx` — Partner, Produktname, Beschreibung, Link-Button,
 Rabattcode-Badge. Wird an allen 3 Touchpoints wiederverwendet.
 
+### 12.4 Klick-Tracking + Statistik (implementiert)
+
+`AffiliateProductCard` verlinkt nicht mehr direkt auf die Partner-URL, sondern auf
+`/api/challenge/klick/[empfehlungLogId]` — ein Redirect-Endpoint (öffentlich, keyed über die
+unratbare `empfehlungen_log`-UUID), der beim ersten Klick `geklickt_at` setzt, den Zähler
+`affiliate_links.klicks` per RPC `increment_affiliate_klicks()` (Migration
+`0015_affiliate_klick_tracking.sql`) atomar erhöht und dann zur echten Produkt-URL weiterleitet.
+Wiederholte Klicks auf denselben Log-Eintrag zählen nicht doppelt.
+
+Masteradmin-Statistikseite `/challenge/admin/affiliate-stats` (+ `GET /api/admin/affiliate-stats`):
+Gezeigt vs. geklickt pro Produkt (CTR) und pro Touchpoint (`onboarding`/`wochenemail`/
+`checkin_auswertung`), verlinkt von der Haupt-Admin-Seite.
+
 ### Noch offen
 
-- Klick-Tracking (`empfehlungen_log.geklickt_at`) wird noch nicht befüllt — aktuell nur Impressions
 - Integration mit der Supplement-Matching-Analyse (Touchpoint 1) — bewusst verschoben
 - Supplement-Partner-Produkte fehlen noch (Verhandlung läuft), kommen als weitere `affiliate_links`-Zeilen
