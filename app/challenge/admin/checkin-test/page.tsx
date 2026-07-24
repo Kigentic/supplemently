@@ -11,6 +11,7 @@ import SiteFooter from '@/app/_components/SiteFooter';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
 import { CHALLENGE_WEEKS, habitsUpTo } from '@/lib/challengeWeeks';
 import { TrafficLight, ScalePicker, type Ampel } from '@/app/_components/CheckinControls';
+import AnleitungLink from '@/app/_components/AnleitungModal';
 
 type Status = 'idle' | 'submitting' | 'success';
 
@@ -196,7 +197,14 @@ export default function CheckinTestPage() {
                       key={item.key}
                       className="flex flex-col gap-2 border-b border-outline/40 pb-3 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
                     >
-                      <p className="text-sm text-text">{item.text}</p>
+                      <div>
+                        <p className="text-sm text-text">{item.text}</p>
+                        {item.anleitungVarianten && (
+                          <div className="mt-1">
+                            <AnleitungLink varianten={item.anleitungVarianten} contextWeek={selectedWeek ?? week.num} />
+                          </div>
+                        )}
+                      </div>
                       <TrafficLight
                         value={habitStatus[item.key] ?? null}
                         onChange={(v) => setHabitStatus((s) => ({ ...s, [item.key]: v }))}

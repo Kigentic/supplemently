@@ -7,6 +7,7 @@ import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
 import { CHALLENGE_WEEKS } from '@/lib/challengeWeeks';
+import AnleitungLink from '@/app/_components/AnleitungModal';
 
 export default function WochenDetailPage() {
   const params = useParams<{ num: string }>();
@@ -105,6 +106,11 @@ export default function WochenDetailPage() {
                 <div className="min-w-0">
                   <p className="font-semibold text-text">{habit.text}</p>
                   <p className="mt-2 text-sm leading-relaxed text-text-muted">{habit.why}</p>
+                  {habit.anleitungVarianten && (
+                    <div className="mt-3">
+                      <AnleitungLink varianten={habit.anleitungVarianten} contextWeek={week.num} />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -9,6 +9,7 @@ import { getBrowserClient } from '@/lib/supabaseBrowser';
 import { habitsUpTo } from '@/lib/challengeWeeks';
 import { getChallengeSchedule, formatUnlockDate } from '@/lib/challengeSchedule';
 import { TrafficLight, ScalePicker, type Ampel } from '@/app/_components/CheckinControls';
+import AnleitungLink from '@/app/_components/AnleitungModal';
 
 interface CheckinData {
   teilnahmeId: string;
@@ -252,7 +253,14 @@ export default function CheckinPage() {
               <div className="space-y-3 rounded-2xl bg-surface p-5">
                 {items.map((item) => (
                   <div key={item.key} className="flex flex-col gap-2 border-b border-outline/40 pb-3 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm text-text">{item.text}</p>
+                    <div>
+                      <p className="text-sm text-text">{item.text}</p>
+                      {item.anleitungVarianten && (
+                        <div className="mt-1">
+                          <AnleitungLink varianten={item.anleitungVarianten} contextWeek={data.currentWeek} />
+                        </div>
+                      )}
+                    </div>
                     <TrafficLight
                       value={habitStatus[item.key] ?? null}
                       onChange={(v) => setHabitStatus((s) => ({ ...s, [item.key]: v }))}

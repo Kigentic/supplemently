@@ -13,10 +13,23 @@ import {
   type Icon as TablerIcon,
 } from '@tabler/icons-react';
 
+export interface HabitExercise {
+  name: string;
+  dauer: string;
+  hinweis?: string;
+}
+
+export interface AnleitungsVariante {
+  titel: string;
+  uebungen: HabitExercise[];
+}
+
 export interface ChallengeHabit {
   text: string;
   /** Warum diese Gewohnheit wichtig ist — gesundheitlicher Nutzen + Motivation. */
   why: string;
+  /** Konkrete Ausführungsanleitung fürs "So geht's"-Popup, mehrere Varianten zur Rotation. */
+  anleitungVarianten?: AnleitungsVariante[];
 }
 
 export interface ChallengeWeek {
@@ -112,6 +125,36 @@ export const CHALLENGE_WEEKS: ChallengeWeek[] = [
       {
         text: '10 Min. Mobility/Stretching täglich – morgens oder abends',
         why: 'Bewegliche Gelenke reduzieren Verletzungsrisiko, verbessern Trainingsqualität und wirken aktiv gegen Verspannungen aus Sitzen und einseitiger Belastung. Zehn Minuten am Tag wirken nur, wenn sie regelmäßig passieren — nicht einmal pro Woche für eine Stunde.',
+        anleitungVarianten: [
+          {
+            titel: 'Variante A: Oberkörper-Fokus',
+            uebungen: [
+              { name: 'Katze-Kuh', dauer: '10 Wiederholungen', hinweis: 'Auf allen Vieren Wirbelsäule abwechselnd runden und durchdrücken, langsam atmen.' },
+              { name: 'Schulterkreisen', dauer: '45 Sek. je Richtung', hinweis: 'Große, langsame Kreise, Arme locker hängen lassen.' },
+              { name: 'Brustöffner an der Wand', dauer: '45 Sek. je Seite', hinweis: 'Unterarm an die Wand, Oberkörper langsam wegdrehen bis Zug in der Brust.' },
+              { name: 'Nacken seitlich dehnen', dauer: '30 Sek. je Seite', hinweis: 'Ohr Richtung Schulter ziehen, Gegenschulter aktiv nach unten drücken.' },
+              { name: 'Handgelenke kreisen & dehnen', dauer: '30 Sek.', hinweis: 'Besonders wichtig bei viel Bildschirmarbeit.' },
+            ],
+          },
+          {
+            titel: 'Variante B: Unterkörper-Fokus',
+            uebungen: [
+              { name: 'Hüftbeuger-Ausfallschritt', dauer: '45 Sek. je Seite', hinweis: 'Becken aktiv nach vorne kippen, Rücken gerade halten.' },
+              { name: 'Waden-Dehnung an der Stufe', dauer: '45 Sek. je Seite', hinweis: 'Ferse tief hängen lassen, Knie durchgestreckt.' },
+              { name: 'Tiefe Kniebeuge halten', dauer: '60 Sek.', hinweis: 'Fersen am Boden, Ellbogen drücken die Knie sanft nach außen.' },
+              { name: 'Schmetterlingssitz', dauer: '60 Sek.', hinweis: 'Fußsohlen aneinander, Knie locker sinken lassen, Rücken gerade.' },
+            ],
+          },
+          {
+            titel: 'Variante C: Ganzkörper-Flow',
+            uebungen: [
+              { name: 'Welt-Umsegler (World\'s Greatest Stretch)', dauer: '5 Wiederholungen je Seite', hinweis: 'Ausfallschritt → Hand zum Boden → Rotation zur Decke, fließend ohne Pause.' },
+              { name: 'Inchworm', dauer: '5 Wiederholungen', hinweis: 'Aus dem Stand mit den Händen zum Boden laufen, in den Liegestütz, zurück.' },
+              { name: 'Hüftkreisen im Stand', dauer: '30 Sek. je Richtung', hinweis: 'Große Kreise, Oberkörper möglichst ruhig halten.' },
+              { name: 'Ausfallschritt mit Rotation', dauer: '45 Sek. je Seite', hinweis: 'Im Ausfallschritt Oberkörper zur vorderen Seite drehen.' },
+            ],
+          },
+        ],
       },
     ],
     pillars: ['Training', 'Mobility'],
@@ -135,6 +178,17 @@ export const CHALLENGE_WEEKS: ChallengeWeek[] = [
       {
         text: 'Abendroutine: 3 Dinge notieren oder 5 Min. Atemübung',
         why: 'Grübeln im Bett ist einer der häufigsten Gründe fürs Nicht-Einschlafen-Können. Das bewusste "Auslagern" von Gedanken aufs Papier oder eine kurze Atemübung senken nachweislich die Einschlafzeit.',
+        anleitungVarianten: [
+          {
+            titel: '4-7-8-Atmung (beruhigend, für abends)',
+            uebungen: [
+              { name: 'Einatmen durch die Nase', dauer: '4 Sek.' },
+              { name: 'Atem anhalten', dauer: '7 Sek.' },
+              { name: 'Ausatmen durch den Mund', dauer: '8 Sek.', hinweis: 'Hörbar und langsam ausatmen, als würdest du eine Kerze auspusten.' },
+              { name: 'Wiederholen', dauer: '4 Runden', hinweis: 'Danach fühlt sich der Körper spürbar ruhiger an — ideal direkt vor dem Einschlafen.' },
+            ],
+          },
+        ],
       },
       {
         text: 'Schlafqualität als Notiz im Handy festhalten (kurze Bewertung 1–5)',
@@ -158,6 +212,18 @@ export const CHALLENGE_WEEKS: ChallengeWeek[] = [
       {
         text: '5 Min. Atemübung täglich (morgens, vor dem Kaffee)',
         why: 'Bewusste, langsame Atmung aktiviert den "Ruhe-Nerv" (Parasympathikus) und senkt Stresshormone messbar innerhalb weniger Minuten. Fünf Minuten morgens setzen den Ton für den ganzen Tag — bevor sich Stress überhaupt aufbaut.',
+        anleitungVarianten: [
+          {
+            titel: 'Box-Breathing (4-4-4-4, aktivierend für morgens)',
+            uebungen: [
+              { name: 'Einatmen durch die Nase', dauer: '4 Sek.' },
+              { name: 'Atem anhalten', dauer: '4 Sek.' },
+              { name: 'Ausatmen durch die Nase', dauer: '4 Sek.' },
+              { name: 'Atem anhalten (leer)', dauer: '4 Sek.' },
+              { name: 'Wiederholen', dauer: '5–6 Runden', hinweis: 'Wird auch von Elite-Einheiten zur Fokussierung vor stressigen Situationen genutzt.' },
+            ],
+          },
+        ],
       },
       {
         text: '30 handyfreie Minuten jeden Morgen',
@@ -264,10 +330,29 @@ export function habitKey(weekNum: number, habitIndex: number): string {
   return `w${weekNum}_h${habitIndex}`;
 }
 
+/**
+ * Wählt die anzuzeigende Anleitungs-Variante für einen Habit mit mehreren Varianten.
+ * Rotiert nach der aktuell betrachteten Woche, damit dieselbe Gewohnheit (per Carry-Forward)
+ * nicht wochenlang exakt dieselbe Anleitung zeigt. Bei nur einer Variante (z.B. Atemübungen,
+ * bewusst fix zugeordnet) gibt es immer dieselbe zurück.
+ */
+export function pickAnleitungsVariante(
+  varianten: AnleitungsVariante[],
+  contextWeek: number
+): AnleitungsVariante {
+  return varianten[contextWeek % varianten.length];
+}
+
 /** Alle Habits von Woche 1 bis einschließlich currentWeek, gruppiert nach Woche. */
-export function habitsUpTo(currentWeek: number): { week: ChallengeWeek; items: { key: string; text: string }[] }[] {
+export function habitsUpTo(
+  currentWeek: number
+): { week: ChallengeWeek; items: { key: string; text: string; anleitungVarianten?: AnleitungsVariante[] }[] }[] {
   return CHALLENGE_WEEKS.filter((w) => w.num <= currentWeek).map((week) => ({
     week,
-    items: week.habits.map((h, i) => ({ key: habitKey(week.num, i), text: h.text })),
+    items: week.habits.map((h, i) => ({
+      key: habitKey(week.num, i),
+      text: h.text,
+      anleitungVarianten: h.anleitungVarianten,
+    })),
   }));
 }

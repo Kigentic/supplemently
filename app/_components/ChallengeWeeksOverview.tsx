@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { CHALLENGE_WEEKS, carryForwardText, type ChallengeWeek } from '@/lib/challengeWeeks';
+import AnleitungLink from '@/app/_components/AnleitungModal';
 
 function ChevronIcon({ open, color }: { open: boolean; color: string }) {
   return (
@@ -73,7 +74,15 @@ function WeekTile({
                 style={{ backgroundColor: week.color }}
                 aria-hidden="true"
               />
-              {habit.text}
+              <span>
+                {habit.text}
+                {habit.anleitungVarianten && (
+                  <>
+                    {' '}
+                    <AnleitungLink varianten={habit.anleitungVarianten} contextWeek={week.num} />
+                  </>
+                )}
+              </span>
             </li>
           ))}
         </ul>
