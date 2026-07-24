@@ -44,8 +44,12 @@ export const CHALLENGE_WEEKS: ChallengeWeek[] = [
         why: 'Dein Supplement-Bedarf hängt von Ernährung, Training, Schlaf und persönlichen Faktoren ab — nicht von Trends. Der Fragebogen berechnet, was bei dir wirklich fehlt, statt dir ein Standardpaket zu verkaufen. Wer das überspringt, nimmt am Ende Präparate, die er nicht braucht, und lässt die aus, die wirklich etwas bringen würden.',
       },
       {
-        text: 'Ernährungs-App einrichten & erste 3 Tage tracken',
-        why: 'Die meisten unterschätzen ihre tägliche Kalorien- und Proteinzufuhr deutlich, ohne es zu merken. Die ersten drei Tage zeigen dir schwarz auf weiß, wo du wirklich stehst — die Basis für jede spätere Anpassung. Ohne diese Baseline optimierst du im Blindflug.',
+        text: 'Ernährungs-App einrichten & persönliche Vorlieben hinterlegen (Ziel, Ernährungsstil, Mahlzeiten/Kochfrequenz)',
+        why: 'Die App plant dir passende Rezepte nur dann vor, wenn sie dein Ziel, deine Vorlieben und deinen Kochrhythmus kennt. Ein sauberes Setup jetzt spart dir in den nächsten Wochen jedes Mal manuelles Nachjustieren.',
+      },
+      {
+        text: 'Body-Check: Fotos, Maße & Gewicht dokumentieren – deine Ausgangswerte',
+        why: 'Ohne Ausgangswerte gibt es später nichts zum Vergleichen. Fotos, Maße und Gewicht am Start sind der einzige Weg, Fortschritt in Woche 7 wirklich sichtbar zu machen — die Waage allein erzählt sonst nur die halbe Geschichte.',
       },
       {
         text: '2,5 L Wasser täglich trinken (Erinnerungen stellen)',
@@ -67,8 +71,16 @@ export const CHALLENGE_WEEKS: ChallengeWeek[] = [
     motto: 'Was du isst, macht den Unterschied',
     habits: [
       {
-        text: 'Alle Mahlzeiten täglich in der App loggen',
-        why: 'Tracking ist keine Diät-Pflicht, sondern ein Bewusstseinsmacher: Allein das Aufschreiben von Mahlzeiten verbessert nachweislich das Essverhalten, unabhängig vom Ziel. Du siehst Muster, die dir sonst nie auffallen würden — z.B. wie viel du nebenbei snackst.',
+        text: 'Neues Rezept aus der App ausprobieren (ab jetzt jede Woche)',
+        why: 'Abwechslung ist der beste Schutz gegen Ernährungs-Langeweile — die Hauptursache dafür, dass Menschen nach ein paar Wochen wieder in alte Muster zurückfallen. Ein neues Rezept pro Woche hält Motivation und Speiseplan frisch.',
+      },
+      {
+        text: 'Optional: separate Kalorien-/Makro-Tracking-App parallel nutzen',
+        why: 'Die Ernährungs-App plant Mahlzeiten, trackt aber keine Kalorien oder Makros. Wer genauer wissen will, wo er steht, kann optional eine zweite App parallel nutzen — Pflicht ist das nicht, ein hilfreicher Zusatz für alle, die es genauer wollen.',
+      },
+      {
+        text: '1x Krafttraining pro Woche einbauen (Ganzkörper, Home oder Studio)',
+        why: 'Der Einstieg ins Training funktioniert am besten klein und konsistent statt sofort mit Vollgas. Eine Einheit pro Woche baut die Gewohnheit auf, bevor in den kommenden Wochen Umfang und Intensität schrittweise steigen.',
       },
       {
         text: 'Jede Mahlzeit mit 20–30 g Protein starten',
@@ -93,10 +105,6 @@ export const CHALLENGE_WEEKS: ChallengeWeek[] = [
     theme: 'Bewegung & Mobility',
     motto: 'Bewegung ist die günstigste Medizin der Welt',
     habits: [
-      {
-        text: '3× Training pro Woche (Home oder Studio, 30–45 Min.)',
-        why: 'Krafttraining ist der stärkste Hebel gegen altersbedingten Muskelabbau und verbessert Insulinsensitivität, Knochendichte und Stoffwechsel. Drei Einheiten pro Woche reichen für spürbare Fortschritte, ohne dass die Regeneration zu kurz kommt.',
-      },
       {
         text: 'Täglich 8.000 Schritte',
         why: 'Studien verknüpfen rund 8.000 Schritte täglich mit einer deutlich reduzierten Gesamtsterblichkeit — unabhängig vom Trainingsprogramm. Gehen ist die Bewegungsform mit dem besten Aufwand-Nutzen-Verhältnis, die dein Körper nie "zu viel" wird.',
@@ -129,8 +137,12 @@ export const CHALLENGE_WEEKS: ChallengeWeek[] = [
         why: 'Grübeln im Bett ist einer der häufigsten Gründe fürs Nicht-Einschlafen-Können. Das bewusste "Auslagern" von Gedanken aufs Papier oder eine kurze Atemübung senken nachweislich die Einschlafzeit.',
       },
       {
-        text: 'Schlafqualität in der App tracken',
-        why: 'Wie beim Essen gilt: was du misst, kannst du verbessern. Schlaftracking zeigt dir, welche deiner neuen Gewohnheiten wirklich wirken — und motiviert, wenn du siehst, dass sich etwas verbessert.',
+        text: 'Schlafqualität als Notiz im Handy festhalten (kurze Bewertung 1–5)',
+        why: 'Was du festhältst, kannst du verbessern. Eine kurze tägliche Notiz reicht, um zu sehen, welche deiner neuen Gewohnheiten wirklich wirken — ganz ohne App, die das für dich übernehmen könnte.',
+      },
+      {
+        text: 'Zusätzlich 1x Cardio pro Woche einbauen (Laufen, Rad, Schwimmen – 20–30 Min.)',
+        why: 'Nach zwei Wochen mit Krafttraining ist der Körper bereit für den nächsten Reiz. Cardio verbessert Ausdauer und Herz-Kreislauf-Gesundheit — ein Bereich, den reines Krafttraining allein nicht abdeckt.',
       },
     ],
     pillars: ['§20 App', 'Schlaf'],
@@ -179,12 +191,16 @@ export const CHALLENGE_WEEKS: ChallengeWeek[] = [
         why: 'Dein Sättigungssignal braucht rund 20 Minuten, um beim Gehirn anzukommen. Wer schneller isst, isst automatisch mehr, bevor das Sättigungsgefühl überhaupt einsetzt — und belastet zusätzlich die Verdauung.',
       },
       {
-        text: 'Ballaststoffziel in der App tracken: 30 g täglich',
+        text: 'Ballaststoffreiche Lebensmittel bewusst einbauen: Ziel ca. 30 g täglich',
         why: 'Ballaststoffe füttern die guten Darmbakterien, regulieren den Blutzucker und sorgen für Sättigung. Die meisten Menschen erreichen nur die Hälfte des empfohlenen Werts — mit spürbaren Folgen für Verdauung und Energielevel.',
       },
       {
         text: 'Morgenritual: 1 Glas warmes Wasser + Zitrone vor dem Frühstück',
         why: 'Warmes Wasser regt die Verdauungstätigkeit direkt nach dem Aufwachen an, die Zitrone liefert zusätzlich Vitamin C. Kein Wundermittel, aber ein einfacher, konsistenter Start, der den restlichen Tag positiv beeinflusst.',
+      },
+      {
+        text: 'Krafttraining auf 2x pro Woche steigern (weiter plus 1x Cardio)',
+        why: 'Nach vier Wochen mit stabilem Rhythmus verträgt der Körper mehr Trainingsreiz. Zwei Krafteinheiten pro Woche beschleunigen Muskelaufbau und Stoffwechsel-Effekte spürbar, ohne die Regeneration zu sprengen.',
       },
     ],
     pillars: ['§20 App', 'Verdauung'],
@@ -198,20 +214,12 @@ export const CHALLENGE_WEEKS: ChallengeWeek[] = [
     motto: 'Jetzt zeigt sich, wer du geworden bist',
     habits: [
       {
-        text: 'Training auf 4× pro Woche steigern',
-        why: 'Nach sechs Wochen Gewöhnung ist dein Körper bereit für mehr Trainingsreiz — genau der richtige Zeitpunkt, um die Intensität zu steigern, bevor sich ein Plateau einstellt.',
-      },
-      {
         text: 'KI-Supplement-Fragebogen erneut ausfüllen → Empfehlung anpassen',
         why: 'Dein Profil hat sich in sechs Wochen verändert — anderes Trainingslevel, andere Ernährung, vielleicht anderer Schlaf. Eine erneute Auswertung stellt sicher, dass deine Supplementierung mit deinem Fortschritt mitwächst statt stehen zu bleiben.',
       },
       {
-        text: 'Body-Check: Fotos, Maße & Gewicht dokumentieren',
-        why: 'Die Waage zeigt nur einen Bruchteil der Wahrheit. Fotos und Maße machen Veränderungen sichtbar, die sich in den ersten Wochen oft nicht in Kilogramm ausdrücken — Muskelaufbau bei gleichzeitigem Fettabbau zum Beispiel.',
-      },
-      {
-        text: 'Neues Rezept aus der App ausprobieren',
-        why: 'Abwechslung ist der beste Schutz gegen Ernährungs-Langeweile — die Hauptursache dafür, dass Menschen nach ein paar Wochen wieder in alte Muster zurückfallen.',
+        text: 'Body-Check wiederholen: Fotos, Maße & Gewicht – Vergleich zur Baseline aus Woche 1',
+        why: 'Die Waage zeigt nur einen Bruchteil der Wahrheit. Fotos und Maße machen Veränderungen sichtbar, die sich oft nicht in Kilogramm ausdrücken — Muskelaufbau bei gleichzeitigem Fettabbau zum Beispiel. Der direkte Vergleich zu Woche 1 macht Fortschritt greifbar.',
       },
     ],
     pillars: ['Training', 'Supplements', '§20 App'],
