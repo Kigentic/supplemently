@@ -1,6 +1,8 @@
 # Longevity Lifestyle Challenge — Gameplan
 
-**Stand:** Juli 2026 · **Status:** Konzeptphase
+**Stand:** Juli 2026 · **Status:** Konzeptphase (Kapitel 1–10) + **implementierter Kern** (Kapitel 11)
+
+> Kapitel 1–10 sind der ursprüngliche Plan. Kapitel 11 dokumentiert, was davon inzwischen tatsächlich gebaut ist — teils abweichend vom Plan (z.B. Check-in-Modell, Habit-Katalog statt generischem Aufgaben-Katalog). Bei Widerspruch gilt Kapitel 11 als aktueller Stand.
 
 ---
 
@@ -252,3 +254,165 @@ referrals                — Wer hat wen eingeladen
 8. [ ] Scoring-Engine + fiktive Top-10-Meldung
 9. [ ] CopeCart-Integration (vorbereiten, deaktiviert lassen)
 10. [ ] Abschluss-Flow: Testimonial-Seite + finale Auswertungsmail
+
+---
+
+## 11. Implementierter Stand (tatsächliches Schema)
+
+Migrationen `0008`–`0012` in `supabase/migrations/`. Weicht in 2 Punkten vom ursprünglichen Plan (Kap. 3–4) ab: **8 Wochen fix** (kein 9–10-Wochen-Fall), und das Check-in-Modell ist ein **Habit-Ampelsystem** statt Einzel-Befindlichkeitsfragen + generischem Aufgaben-Katalog.
+
+### 11.1 DB-Tabellen (Migration `0008_challenge_platform.sql`)
+
+```
+profiles                — erweitert auth.users: Vorname/Nachname/E-Mail, DSGVO-Opt-ins,
+                           Buddy-System (buddy_gewuenscht, buddy_partner_id), ist_admin (0012)
+challenges               — Kohorten: slug, start_datum, end_datum, wochen_anzahl (fix 8),
+                           ist_aktiv/ist_offen, paywall_aktiv, preis_cent
+challenge_teilnahmen     — User↔Challenge, status (pre_registered/aktiv/abgeschlossen/abgebrochen),
+                           gesamt_score, onboarding_antworten (JSONB), baseline_*/end_*-Felder,
+                           referral_code, eingeladen_von
+referrals                — Einladungs-Tracking: geklickt_at/registriert_at/bezahlt_at, punkte_gutgeschrieben
+wochen_aufgaben          — generischer Aufgaben-Katalog (Kategorie-Enum, Punkte) — angelegt,
+                           aber NICHT genutzt; die tatsächlichen Wochenaufgaben leben in lib/challengeWeeks.ts
+wochencheckins           — 1 Zeile pro Teilnahme+Woche (UNIQUE teilnahme_id+woche):
+                           wohlbefinden (1-10), schwierigkeit (1-10), habit_status (JSONB),
+                           erfolg_freitext, score_woche
+checkin_aufgaben         — generische Compliance-Tabelle — angelegt, aber NICHT genutzt
+                           (habit_status-JSONB in wochencheckins übernimmt diese Rolle)
+supplement_empfehlungen  — Snapshot der Matching-Engine-Ausgabe pro Teilnahme
+affiliate_links          — Partner/Produkt/Kategorie, trigger_tags[], woche-Targeting, Klick-Zähler
+empfehlungen_log         — welcher Affiliate-Link wem wann gezeigt/geklickt wurde
+badge_definitionen        — 6 geseedete Badges (erster_checkin, streak_4, streak_8, drei_einladungen,
+                           buddy_beide, woche1_komplett)
+user_badges               — vergebene Badges pro Teilnahme
+testimonials              — Sterne, Statement, Veröffentlichungs-Opt-in, verifiziert-Flag
+email_log                 — Resend-Versand-Tracking pro Typ/Woche
+```
+
+Alle Tabellen RLS-geschützt: User sieht nur eigene Zeilen (`auth.uid() = user_id` bzw. per Join über `teilnahme_id`), Service-Role umgeht RLS für Cron/Admin-Schreibzugriffe.
+
+### 11.2 Check-in-Modell (Migration `0010_checkin_ampelsystem.sql`, ersetzt Plan aus Kap. 3)
+
+Statt der ursprünglich geplanten Einzelfragen (Energie/Schlaf/Verdauung/Training/Heißhunger/Stimmung je 1-10 oder besser/gleich/schlechter) nutzt der gebaute Check-in ein **Ampelsystem pro Habit**:
+
+- `wochencheckins.habit_status` (JSONB): Key `w{woche}_h{index}` (z.B. `w3_h1`) → `gruen` (komplett) / `gelb` (teilweise) / `rot` (gar nicht)
+- Zusätzlich zwei generische 1–10-Skalen: `wohlbefinden`, `schwierigkeit`
+- `erfolg_freitext` (optional)
+- **Carry-forward:** jeder Check-in ab Woche 2 zeigt und bewertet alle Habits von Woche 1 bis zur aktuellen Woche (`habitsUpTo()` in `lib/challengeWeeks.ts`) — alte Gewohnheiten bleiben dauerhaft im Check-in aktiv, nicht nur die der laufenden Woche
+- Serverseitig validiert (`app/api/challenge/checkin/route.ts`): erwartete Keys werden aus `habitsUpTo(woche)` berechnet, fremde/unerwartete Keys werden verworfen, jede erwartete Ampel ist Pflicht
+
+### 11.3 Wochenaufgaben-Katalog (tatsächliche Quelle: `lib/challengeWeeks.ts`, nicht `wochen_aufgaben`-Tabelle)
+
+8 Wochen, je 2–6 Habits mit Titel + `why`-Begründungstext (angezeigt auf `/challenge/woche/[num]`):
+
+| Woche | Theme | Kern-Habits |
+|---|---|---|
+| 1 | Fundament | KI-Fragebogen ausfüllen, Ernährungs-App-Setup (kein Tracking-Anspruch), Body-Check (Baseline: Fotos/Maße/Gewicht), 2,5 L Wasser, Tagesschritte-Baseline |
+| 2 | Gesunde Ernährung | Neues Rezept/Woche (läuft ab hier durch), optionale externe Kalorien-App (klar als optional markiert), **Trainings-Einstieg: 1× Kraft/Woche**, 20–30g Protein/Mahlzeit, 1 Vollwertkost-Tausch/Tag, Sonntags-Meal-Prep |
+| 3 | Bewegung & Mobility | 8.000 Schritte/Tag, 10 Min. Mobility täglich (Training läuft aus Woche 2 weiter, keine eigene neue Trainings-Vorgabe) |
+| 4 | Schlaf & Regeneration | feste Schlafzeit, Bildschirm-Sperrstunde, Abendroutine, Schlafqualitäts-Notiz im Handy (statt App-Tracking), **Trainings-Stufe 2: +1× Cardio/Woche** |
+| 5 | Stressmanagement | Atemübung morgens, handyfreie Morgen-Minuten, wöchentlicher Offline-Abend, Supplement-Selbstcheck |
+| 6 | Verdauung & Darmgesundheit | fermentierte Lebensmittel, langsam essen, Ballaststoffziel ~30g/Tag (ohne App-Tracking-Anspruch), Warmwasser+Zitrone-Ritual, **Trainings-Stufe 3: 2× Kraft + 1× Cardio/Woche** |
+| 7 | Level Up | KI-Fragebogen erneut (Empfehlung anpassen), Body-Check-Wiederholung (Vergleich zur Woche-1-Baseline) |
+| 8 | Dein neues Normal | Habit-Audit, Vorher/Nachher-Ergebnisse, Langzeit-Supplementplan, nächste 8 Wochen planen |
+
+**Trainings-Stufenplan** (kein eigenes DB-Feld, läuft implizit über die obigen Habit-Texte): Woche 2–3 → 1× Kraft. Woche 4–5 → 1× Kraft + 1× Cardio. Woche 6–7 → 2× Kraft + 1× Cardio. Mobility/Stretching und Atemübungen unverändert ab Einführung.
+
+**Wichtig — Ernährungs-App im Produkt ist Rezept-/Meal-Planner, kein Tracker.** Kann keine Kalorien, Makros oder Schlafqualität erfassen; alle Habit-Texte, die das fälschlich unterstellten ("in der App tracken"), wurden entfernt/umformuliert.
+
+### 11.4 Scoring (tatsächliche Formel, `app/api/challenge/checkin/route.ts`) — ersetzt Punktetabelle aus Kap. 4
+
+```
+score_woche = 10 (Basispunkte fürs Einreichen)
+            + Σ über alle erwarteten Habit-Keys (Woche 1..aktuell, carry-forward):
+                gruen (komplett)   → +20
+                gelb  (teilweise)  → +10
+                rot   (gar nicht)  → +0
+```
+
+- Kein separates Streak-Bonus-Feld aktiv genutzt (Spalte `streak_bonus` existiert, wird aktuell nicht befüllt)
+- Kein Referral-Punkte-Handling aktiv verdrahtet (Tabelle `referrals` + `punkte_gutgeschrieben`-Flag existieren, aber keine API setzt sie)
+- `gesamt_score` der Teilnahme wird nach jedem Check-in per RPC `update_gesamt_score(p_teilnahme_id)` neu berechnet: Summe aller `score_woche` + Summe der Bonuspunkte vergebener Badges (`0011_fix_update_gesamt_score.sql` behebt einen Bug in dieser Funktion)
+- Da `habitsUpTo()` mit jeder Woche mehr Habits akkumuliert, steigt das maximal erreichbare Wochen-Score mit fortschreitender Challenge (Woche 1: 5 Habits × 20 + 10 = 110 max; Woche 8: alle ~29 Habits × 20 + 10 ≈ 590 max) — bewusst kein fixes Punktedeckel wie im ursprünglichen Plan.
+
+### 11.5 Wochen-Freischaltung (`lib/challengeSchedule.ts`)
+
+- Neue Woche startet kalenderfest am Montag (unabhängig vom exakten Registrierungs-Wochentag), berechnet aus `challenge.start_datum`
+- Check-in für die laufende Woche erst ab Sonntag freigeschaltet (`checkinUnlocked`)
+- `currentWeek` wird auf `[1, wochen_anzahl]` geclampt
+- **Masteradmin-Ausnahme** (`ist_admin`-Flag, `0012_masteradmin.sql`): umgeht Datums-Gate komplett, serverseitig in der Checkin-API durchgesetzt — kann jede Woche jederzeit einchecken. Genutzt für die Admin-Testseite `/challenge/admin/checkin-test`
+
+### 11.6 Gebaute Seiten/Routen (Ist-Stand, ergänzt Kap. 8 Tech-Stack)
+
+```
+app/challenge/
+  registrierung/, bestaetigung/, login/     — Auth-Flow
+  dashboard/                                — Wochen-Übersicht (2-Spalten-Grid, Akkordeon)
+  woche/[num]/                              — Detailseite "Warum diese Aufgaben?"
+  checkin/                                  — echter wöchentlicher Check-in
+  admin/                                    — Masteradmin-Übersicht aller User + Teilnahmen
+  admin/checkin-test/                       — alle Wochen-Check-ins ohne Datums-Gate durchklicken
+  ernaehrungsapp/                           — verlinkte Rezept-/Meal-Planner-Seite
+
+app/api/challenge/
+  registrierung/route.ts
+  onboarding/route.ts
+  checkin/route.ts                          — Scoring-Logik, siehe 11.4
+
+app/api/admin/users/route.ts                — Masteradmin: alle User + neueste Teilnahme + Score
+```
+
+### 11.7 Noch nicht gebaut (aus Kap. 1–10 weiterhin offen)
+
+- Registrierungs-Einladungsfunktion (Referral-Link-UI, WhatsApp/E-Mail-Share) — DB-Feld `referral_code` existiert, kein UI
+- E-Mail-Flows (Resend-Anbindung, alle Trigger aus Kap. 7)
+- Affiliate-Link-Ausspielung in Check-in-Auswertung (`affiliate_links`/`empfehlungen_log` existieren, keine Anzeigelogik)
+- Payment/CopeCart-Integration
+- Badge-Vergabe-Logik (Tabellen + Seed vorhanden, kein Trigger/Cron, der sie tatsächlich vergibt)
+- Testimonial-Flow nach Woche 8
+- Buddy-System-UI (nur DB-Feld)
+
+---
+
+## 12. Affiliate-Touchpoints (Konzept, Stand: diese Session — noch nicht gebaut)
+
+Die `affiliate_links`-Tabelle ist seit dieser Session mit 12 echten Partnerprodukten befüllt
+(Centa-Star, Vivobarefoot, BlackROLL, feels.like — siehe Migration `0013_affiliate_links_seed.sql`).
+Was noch fehlt: die **Ausspiel-Logik**, die diese Produkte dem User tatsächlich zeigt.
+
+Entscheidung dieser Session: **mindestens 3 Touchpoints**, an denen Produkte platziert werden —
+nicht zwingend überall dasselbe Produkt, pro Touchpoint wird das jeweils passendste ausgewählt.
+
+### 12.1 Touchpoint 1 — nach dem Onboarding-Fragebogen
+
+Direkt im Anschluss an die bestehende Supplement-Matching-Analyse (Ergebnisseite bzw. Onboarding-Abschluss
+der Challenge). Logik: "Das und das Produkt könnte für dich interessant sein" — basierend auf den
+Fragebogen-Antworten (analog zum bestehenden Supplement-Matching in `lib/matching.ts`, aber für
+`affiliate_links` statt `supplements`). Matching vermutlich über `trigger_tags[]` gegen aus den
+Antworten abgeleitete Tags.
+
+### 12.2 Touchpoint 2 — in der Wochenseite zum jeweiligen Thema
+
+Auf `/challenge/woche/[num]` (oder im Dashboard) wird das zur Wochen-Thematik passende Produkt gezeigt —
+Filterung über das `woche`-Feld in `affiliate_links` (NULL = jederzeit zeigbar, sonst nur in der
+angegebenen Woche). Die Produktauswahl aus 12.1 ist bereits mit `woche`-Werten vorbereitet (z.B.
+Woche 3 = Vivobarefoot/BlackROLL-Rolle, Woche 4 = Centa-Star/feels.like Night Complex).
+
+### 12.3 Touchpoint 3 — nach dem Wochen-Check-in (Auswertung)
+
+Nach Abgabe des Check-ins (wo Score berechnet wird, siehe Kap. 11.4) wird basierend auf den
+Antworten — Habit-Ampeln, Wohlbefinden, Schwierigkeit — ein passendes Produkt in der Auswertung
+gezeigt. Z.B. schlechtes Wohlbefinden/Schlaf-Habits auf Rot → Centa-Star/feels.like; Trainings-Habits
+auf Grün mehrere Wochen in Folge → BlackROLL-Regenerationsprodukt.
+
+### Offene technische Fragen (nächste Schritte, sobald umgesetzt wird)
+
+- Matching-Logik: eigene Funktion (`lib/affiliateMatching.ts`?) die je Touchpoint-Kontext
+  (Onboarding-Antworten / aktuelle Woche / Check-in-Antworten) die passendsten `trigger_tags`
+  gegen `affiliate_links` matched — ähnliches Muster wie `lib/matching.ts`, aber schlanker
+  (kein Score-Threshold-System nötig, eher Top-1-2 Auswahl pro Touchpoint)
+- `empfehlungen_log`-Tabelle existiert bereits (Kontext-Enum `onboarding`, `wochenemail`,
+  `checkin_auswertung`, `abschluss`) — passt fast 1:1 zu den 3 Touchpoints, muss beim Anzeigen
+  befüllt werden (für Klick-Tracking)
+- Rabattcodes pro Partner — Format/Wert noch nicht vom User mitgeteilt, folgt separat
+- Reihenfolge der Umsetzung noch offen — wird vermutlich nicht in einer Session fertig
