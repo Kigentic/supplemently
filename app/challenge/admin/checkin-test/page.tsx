@@ -147,13 +147,13 @@ export default function CheckinTestPage() {
         </div>
 
         {/* Wochen-Buttons */}
-        <div className="mb-10 grid grid-cols-4 gap-2">
+        <div className="mb-10 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {CHALLENGE_WEEKS.map((week) => (
             <button
               key={week.num}
               type="button"
               onClick={() => selectWeek(week.num)}
-              className={`flex flex-col items-center gap-1 rounded-xl border-[0.5px] px-2 py-3 transition ${
+              className={`flex min-h-[76px] flex-col items-center justify-center gap-1 rounded-xl border-[0.5px] px-2 py-3 text-center transition ${
                 selectedWeek === week.num ? 'ring-2 ring-accent ring-offset-2 ring-offset-bg' : 'border-outline'
               }`}
               style={{ backgroundColor: week.color }}
@@ -161,7 +161,7 @@ export default function CheckinTestPage() {
               <span className="text-lg font-bold leading-none" style={{ color: week.textColor }}>
                 {week.num}
               </span>
-              <span className="text-center text-[10px] font-medium leading-tight" style={{ color: week.textColor }}>
+              <span className="text-center text-[10px] font-medium leading-tight break-words" style={{ color: week.textColor }}>
                 {week.theme}
               </span>
             </button>
