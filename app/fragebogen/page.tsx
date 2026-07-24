@@ -374,6 +374,8 @@ export default function FragebogenPage() {
 
     // Eingeloggter Challenge-Teilnehmer: Onboarding speichert das Matching
     // beim User statt es sofort anzuzeigen — sichtbar wird es im Dashboard.
+    // Touchpoint 1 (GAMEPLAN Kap. 12.1): erst die Affiliate-Empfehlung zeigen,
+    // dann weiter zur Ernährungs-App.
     const { data: sessionData } = await getBrowserClient().auth.getSession();
     const accessToken = sessionData.session?.access_token;
 
@@ -395,7 +397,7 @@ export default function FragebogenPage() {
         setSubmitting(false);
         return;
       }
-      router.push('/challenge/ernaehrungsapp');
+      router.push('/challenge/empfehlung');
       return;
     }
 

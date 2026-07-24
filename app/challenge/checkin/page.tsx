@@ -10,6 +10,7 @@ import { habitsUpTo } from '@/lib/challengeWeeks';
 import { getChallengeSchedule, formatUnlockDate } from '@/lib/challengeSchedule';
 import { TrafficLight, ScalePicker, type Ampel } from '@/app/_components/CheckinControls';
 import AnleitungLink from '@/app/_components/AnleitungModal';
+import AffiliateProductCard, { type AffiliateProduct } from '@/app/_components/AffiliateProductCard';
 
 interface CheckinData {
   teilnahmeId: string;
@@ -31,6 +32,7 @@ export default function CheckinPage() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
   const [scoreResult, setScoreResult] = useState<number | null>(null);
+  const [affiliateEmpfehlungen, setAffiliateEmpfehlungen] = useState<AffiliateProduct[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -147,6 +149,7 @@ export default function CheckinPage() {
         return;
       }
       setScoreResult(json.score_woche ?? null);
+      setAffiliateEmpfehlungen(json.affiliate_empfehlungen ?? []);
       setStatus('success');
     } catch {
       setError('Server nicht erreichbar. Bitte erneut versuchen.');
@@ -209,6 +212,16 @@ export default function CheckinPage() {
               ? `Du hast ${scoreResult} Punkte für diese Woche gesammelt.`
               : 'Dein Check-in für diese Woche ist bereits gespeichert.'}
           </p>
+
+          {affiliateEmpfehlungen.length > 0 && (
+            <div className="mt-10 space-y-4 text-left">
+              <p className="text-sm font-semibold text-text">Könnte jetzt für dich passen</p>
+              {affiliateEmpfehlungen.map((p) => (
+                <AffiliateProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          )}
+
           <Link
             href="/challenge/dashboard"
             className="mt-8 inline-block rounded-full bg-accent px-8 py-4 text-base font-semibold text-on-accent transition hover:bg-accent-hover"

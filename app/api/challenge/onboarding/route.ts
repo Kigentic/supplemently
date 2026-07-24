@@ -5,6 +5,7 @@ import { validateAnswers } from '@/lib/questions';
 import { match, type Supplement } from '@/lib/matching';
 import { getServiceClient } from '@/lib/supabaseServer';
 import { getUserFromAuthHeader } from '@/lib/apiAuth';
+import { matchForOnboarding, type AffiliateLink } from '@/lib/affiliateMatching';
 
 export const runtime = 'nodejs';
 
@@ -100,6 +101,28 @@ export async function POST(req: Request) {
   if (empfehlungError) {
     console.error('Empfehlung save error:', empfehlungError);
     return NextResponse.json({ error: 'Empfehlung konnte nicht gespeichert werden.' }, { status: 500 });
+  }
+
+  // Touchpoint 1 (siehe GAMEPLAN Kap. 12.1): passendes Affiliate-Produkt
+  // direkt nach dem Onboarding auswählen und loggen. Getrennt von der
+  // Supplement-Empfehlung oben — die Integration beider folgt später.
+  const { data: activeLinks } = await supabase
+    .from('affiliate_links')
+    .select('id, partner_name, produkt_name, kategorie, beschreibung, url, bild_url, trigger_tags, woche, rabattcode')
+    .eq('ist_aktiv', true);
+
+  if (activeLinks && activeLinks.length > 0) {
+    const affiliateEmpfehlungen = matchForOnboarding(activeLinks as AffiliateLink[], answers);
+    if (affiliateEmpfehlungen.length > 0) {
+      const { error: logError } = await supabase.from('empfehlungen_log').insert(
+        affiliateEmpfehlungen.map((l) => ({
+          teilnahme_id: teilnahme.id,
+          affiliate_link_id: l.id,
+          kontext: 'onboarding',
+        }))
+      );
+      if (logError) console.error('Empfehlungen-Log error (onboarding):', logError);
+    }
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });

@@ -8,23 +8,36 @@ import SiteFooter from '@/app/_components/SiteFooter';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
 import { CHALLENGE_WEEKS } from '@/lib/challengeWeeks';
 import AnleitungLink from '@/app/_components/AnleitungModal';
+import AffiliateProductCard, { type AffiliateProduct } from '@/app/_components/AffiliateProductCard';
 
 export default function WochenDetailPage() {
   const params = useParams<{ num: string }>();
   const router = useRouter();
   const [checkedAuth, setCheckedAuth] = useState(false);
+  const [empfehlungen, setEmpfehlungen] = useState<AffiliateProduct[]>([]);
 
   useEffect(() => {
     getBrowserClient()
       .auth.getUser()
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         if (!data.user) {
           router.push('/challenge/login');
           return;
         }
         setCheckedAuth(true);
+
+        const { data: sessionData } = await getBrowserClient().auth.getSession();
+        const token = sessionData.session?.access_token;
+        if (!token) return;
+        const res = await fetch(`/api/challenge/woche/${params?.num}/empfehlung`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const json = await res.json();
+          setEmpfehlungen(json.empfehlungen ?? []);
+        }
       });
-  }, [router]);
+  }, [router, params?.num]);
 
   const num = Number(params?.num);
   const week = CHALLENGE_WEEKS.find((w) => w.num === num);
@@ -116,6 +129,15 @@ export default function WochenDetailPage() {
             </div>
           ))}
         </div>
+
+        {empfehlungen.length > 0 && (
+          <div className="mt-10 space-y-4">
+            <h2 className="text-lg font-semibold text-text">Passt zu dieser Woche</h2>
+            {empfehlungen.map((p) => (
+              <AffiliateProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        )}
 
         <div className="mt-10 text-center">
           <Link

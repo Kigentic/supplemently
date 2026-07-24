@@ -7,6 +7,7 @@ import { getUserFromAuthHeader } from '@/lib/apiAuth';
 import { habitsUpTo } from '@/lib/challengeWeeks';
 import { getChallengeSchedule } from '@/lib/challengeSchedule';
 import { AMPEL_PUNKTE, CHECKIN_BASISPUNKTE, type Ampel } from '@/lib/challengeScoring';
+import { matchForCheckin, type AffiliateLink } from '@/lib/affiliateMatching';
 
 export const runtime = 'nodejs';
 
@@ -127,5 +128,32 @@ export async function POST(req: Request) {
     // Nicht kritisch für die Response — Check-in ist gespeichert.
   }
 
-  return NextResponse.json({ ok: true, score_woche: scoreWoche }, { status: 200 });
+  // Touchpoint 3 (siehe GAMEPLAN Kap. 12.3): passendes Affiliate-Produkt
+  // anhand der Check-in-Antworten auswählen, für die Auswertung zurückgeben
+  // und im Log festhalten. Nicht kritisch — Check-in bleibt auch ohne Treffer gültig.
+  let affiliateEmpfehlungen: AffiliateLink[] = [];
+  const { data: activeLinks } = await supabase
+    .from('affiliate_links')
+    .select('id, partner_name, produkt_name, kategorie, beschreibung, url, bild_url, trigger_tags, woche, rabattcode')
+    .eq('ist_aktiv', true);
+
+  if (activeLinks && activeLinks.length > 0) {
+    affiliateEmpfehlungen = matchForCheckin(activeLinks as AffiliateLink[], { weekNum: woche, wohlbefinden, schwierigkeit });
+    if (affiliateEmpfehlungen.length > 0) {
+      const { error: logError } = await supabase.from('empfehlungen_log').insert(
+        affiliateEmpfehlungen.map((l) => ({
+          teilnahme_id: teilnahme.id,
+          affiliate_link_id: l.id,
+          kontext: 'checkin_auswertung',
+          woche,
+        }))
+      );
+      if (logError) console.error('Empfehlungen-Log error (checkin):', logError);
+    }
+  }
+
+  return NextResponse.json(
+    { ok: true, score_woche: scoreWoche, affiliate_empfehlungen: affiliateEmpfehlungen },
+    { status: 200 }
+  );
 }
