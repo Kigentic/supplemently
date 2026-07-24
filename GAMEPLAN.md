@@ -366,7 +366,6 @@ app/api/admin/users/route.ts                — Masteradmin: alle User + neueste
 
 - Registrierungs-Einladungsfunktion (Referral-Link-UI, WhatsApp/E-Mail-Share) — DB-Feld `referral_code` existiert, kein UI
 - E-Mail-Flows (Resend-Anbindung, alle Trigger aus Kap. 7)
-- Affiliate-Link-Ausspielung in Check-in-Auswertung (`affiliate_links`/`empfehlungen_log` existieren, keine Anzeigelogik)
 - Payment/CopeCart-Integration
 - Badge-Vergabe-Logik (Tabellen + Seed vorhanden, kein Trigger/Cron, der sie tatsächlich vergibt)
 - Testimonial-Flow nach Woche 8
@@ -374,45 +373,50 @@ app/api/admin/users/route.ts                — Masteradmin: alle User + neueste
 
 ---
 
-## 12. Affiliate-Touchpoints (Konzept, Stand: diese Session — noch nicht gebaut)
+## 12. Affiliate-Touchpoints (implementiert)
 
-Die `affiliate_links`-Tabelle ist seit dieser Session mit 12 echten Partnerprodukten befüllt
-(Centa-Star, Vivobarefoot, BlackROLL, feels.like — siehe Migration `0013_affiliate_links_seed.sql`).
-Was noch fehlt: die **Ausspiel-Logik**, die diese Produkte dem User tatsächlich zeigt.
+Die `affiliate_links`-Tabelle ist mit 12 echten Partnerprodukten befüllt (Centa-Star, Vivobarefoot,
+BlackROLL, feels.like — Migration `0013_affiliate_links_seed.sql`) inkl. Rabattcodes pro Partner
+(Spalte `rabattcode`, Migration `0014_affiliate_links_rabattcode.sql`): BlackROLL `TURNKISTE-10`,
+feels.like `PKTRAINING`, Vivobarefoot `VIVOFOREVER`, Centa-Star `PK10`. Supplement-Partner sind noch
+in Verhandlung, kommen später separat dazu.
 
-Entscheidung dieser Session: **mindestens 3 Touchpoints**, an denen Produkte platziert werden —
-nicht zwingend überall dasselbe Produkt, pro Touchpoint wird das jeweils passendste ausgewählt.
+Matching-Logik in `lib/affiliateMatching.ts` — schlanker als `lib/matching.ts` (kein
+Score-Threshold-System, Top-1/2-Auswahl per Tag-Überschneidung). **3 Touchpoints, nicht zwingend
+dasselbe Produkt pro Touchpoint:**
 
 ### 12.1 Touchpoint 1 — nach dem Onboarding-Fragebogen
 
-Direkt im Anschluss an die bestehende Supplement-Matching-Analyse (Ergebnisseite bzw. Onboarding-Abschluss
-der Challenge). Logik: "Das und das Produkt könnte für dich interessant sein" — basierend auf den
-Fragebogen-Antworten (analog zum bestehenden Supplement-Matching in `lib/matching.ts`, aber für
-`affiliate_links` statt `supplements`). Matching vermutlich über `trigger_tags[]` gegen aus den
-Antworten abgeleitete Tags.
+Neue Seite `/challenge/empfehlung` — der Fragebogen leitet nach dem Challenge-Onboarding (POST
+`/api/challenge/onboarding`) dorthin statt direkt zur Ernährungs-App. Die API berechnet beim
+Absenden `matchForOnboarding()` aus den Fragebogen-Antworten (Schlaf/Stress/Training/Gelenke →
+Tags) und loggt das Ergebnis in `empfehlungen_log` (Kontext `onboarding`). Die Seite selbst liest
+über `GET /api/challenge/empfehlung` die geloggten Einträge zurück (kein Neu-Berechnen bei jedem
+Aufruf — stabile Empfehlung). Bewusst getrennt von der bestehenden Supplement-Matching-Analyse
+(`lib/matching.ts`) gehalten, Integration beider folgt später.
 
-### 12.2 Touchpoint 2 — in der Wochenseite zum jeweiligen Thema
+### 12.2 Touchpoint 2 — Wochenseite zum jeweiligen Thema
 
-Auf `/challenge/woche/[num]` (oder im Dashboard) wird das zur Wochen-Thematik passende Produkt gezeigt —
-Filterung über das `woche`-Feld in `affiliate_links` (NULL = jederzeit zeigbar, sonst nur in der
-angegebenen Woche). Die Produktauswahl aus 12.1 ist bereits mit `woche`-Werten vorbereitet (z.B.
-Woche 3 = Vivobarefoot/BlackROLL-Rolle, Woche 4 = Centa-Star/feels.like Night Complex).
+`/challenge/woche/[num]` lädt über `GET /api/challenge/woche/[num]/empfehlung` das zur Woche
+passende Produkt (`matchForWeek()`, filtert auf `affiliate_links.woche`, Fallback auf
+wochenunabhängige Produkte). Loggt nur einmal pro Teilnahme+Woche in `empfehlungen_log`
+(Kontext `wochenemail`), kein Spam bei wiederholtem Aufruf.
 
 ### 12.3 Touchpoint 3 — nach dem Wochen-Check-in (Auswertung)
 
-Nach Abgabe des Check-ins (wo Score berechnet wird, siehe Kap. 11.4) wird basierend auf den
-Antworten — Habit-Ampeln, Wohlbefinden, Schwierigkeit — ein passendes Produkt in der Auswertung
-gezeigt. Z.B. schlechtes Wohlbefinden/Schlaf-Habits auf Rot → Centa-Star/feels.like; Trainings-Habits
-auf Grün mehrere Wochen in Folge → BlackROLL-Regenerationsprodukt.
+`POST /api/challenge/checkin` berechnet zusätzlich zum Score `matchForCheckin()` aus Woche +
+Wohlbefinden + Schwierigkeit (schlechtes Wohlbefinden → Regeneration/Schlaf-Produkte, hohes
+Wohlbefinden + niedrige Schwierigkeit → Trainings-Produkte als Belohnung) und gibt die Treffer in
+der Response zurück (`affiliate_empfehlungen`). Die Check-in-Seite zeigt sie direkt in der
+Erfolgsansicht neben dem Score. Loggt in `empfehlungen_log` (Kontext `checkin_auswertung`).
 
-### Offene technische Fragen (nächste Schritte, sobald umgesetzt wird)
+### Gemeinsame Komponente
 
-- Matching-Logik: eigene Funktion (`lib/affiliateMatching.ts`?) die je Touchpoint-Kontext
-  (Onboarding-Antworten / aktuelle Woche / Check-in-Antworten) die passendsten `trigger_tags`
-  gegen `affiliate_links` matched — ähnliches Muster wie `lib/matching.ts`, aber schlanker
-  (kein Score-Threshold-System nötig, eher Top-1-2 Auswahl pro Touchpoint)
-- `empfehlungen_log`-Tabelle existiert bereits (Kontext-Enum `onboarding`, `wochenemail`,
-  `checkin_auswertung`, `abschluss`) — passt fast 1:1 zu den 3 Touchpoints, muss beim Anzeigen
-  befüllt werden (für Klick-Tracking)
-- Rabattcodes pro Partner — Format/Wert noch nicht vom User mitgeteilt, folgt separat
-- Reihenfolge der Umsetzung noch offen — wird vermutlich nicht in einer Session fertig
+`app/_components/AffiliateProductCard.tsx` — Partner, Produktname, Beschreibung, Link-Button,
+Rabattcode-Badge. Wird an allen 3 Touchpoints wiederverwendet.
+
+### Noch offen
+
+- Klick-Tracking (`empfehlungen_log.geklickt_at`) wird noch nicht befüllt — aktuell nur Impressions
+- Integration mit der Supplement-Matching-Analyse (Touchpoint 1) — bewusst verschoben
+- Supplement-Partner-Produkte fehlen noch (Verhandlung läuft), kommen als weitere `affiliate_links`-Zeilen
