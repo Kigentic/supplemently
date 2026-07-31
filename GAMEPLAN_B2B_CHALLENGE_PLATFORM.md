@@ -97,6 +97,9 @@ zu schreiben ist der eigentliche Aufwand.
   in `GAMEPLAN.md` Kap. 9, gilt hier genauso)
 - Nach Abschluss: generierter Anmeldelink für die Endkunden des Studios (analog zum bestehenden
   `slug`-Konzept bei `studios`)
+- Da das Studio rechtlich der Betreiber ist (siehe "Offene Fragen/Risiken" Punkt 3): Studio hinterlegt
+  bei der Registrierung eigene Impressums-/Kontaktdaten, die im Endkunden-Flow des jeweiligen Studios
+  angezeigt werden — kein globales Impressum für alle Studios
 
 ### 4. Affiliate/Upsell-Ebene
 
@@ -128,9 +131,12 @@ denkbare Erweiterung, aber **bewusst nicht Kern-Scope** — Gefahr, das Konzept 
    fachlich fundierte Inhalte (z.B. Physio-Hintergrund für Rücken-Challenge).
 2. **Preismodell fürs Studio** — einmalig, Abo, pro Teilnehmer, gestaffelt nach Studiogröße? Noch
    nicht entschieden.
-3. **Rechtliches bei unbrandeten White-Label-Systemen** — wer steht im Impressum/als
-   Verantwortlicher, wenn das Studio das System unter eigenem Namen an seine Kunden weitergibt,
-   ohne dass es gebrandet ist? Klärungsbedarf, bevor das live geht.
+3. **Rechtliches bei unbrandeten White-Label-Systemen** — **Entscheidung (diese Session):** Wir
+   stellen nur die Architektur/Plattform bereit (reines SaaS-/Infrastruktur-Verhältnis). Der
+   eigentliche **Betreiber der jeweiligen Challenge gegenüber den Endkunden ist das Studio** —
+   Impressum, Verantwortlichkeit, Kundenbeziehung liegen beim Studio, nicht bei uns. Muss sich in
+   AGB/Studio-Vertrag und ggf. im Anmeldeflow (Impressum-Angabe pro Studio statt global) widerspiegeln,
+   sobald es konkret wird — aber Grundprinzip steht.
 4. **Wie viele Challenge-Typen zum Start?** — Reicht ein zweiter Typ (z.B. Rücken) als
    Machbarkeitsnachweis, bevor in die volle Plattform investiert wird?
 5. **Studiospezifische Upsells** — explizit als "später, vielleicht" markiert, nicht Kern-Scope.
