@@ -123,6 +123,12 @@ export default function LoginPage() {
               placeholder="Dein Passwort"
               autoComplete="current-password"
             />
+            <Link
+              href="/challenge/passwort-vergessen"
+              className="mt-1.5 inline-block text-sm text-accent hover:underline"
+            >
+              Passwort vergessen?
+            </Link>
           </div>
 
           {error && (

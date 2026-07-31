@@ -88,6 +88,49 @@ export async function sendConfirmationEmail({
   if (error) throw new Error(typeof error === 'string' ? error : error.message);
 }
 
+export async function sendPasswordResetEmail({
+  to,
+  vorname,
+  resetLink,
+}: {
+  to: string;
+  vorname: string;
+  resetLink: string;
+}) {
+  const body = `
+    <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#707070;">Hey ${escapeHtml(vorname)} 👋</h1>
+    <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#4a4a4a;">
+      Du hast ein neues Passwort angefordert. Klick auf den Button, um ein neues Passwort zu setzen.
+    </p>
+    <table role="presentation" cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+          <a href="${resetLink}" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
+            Neues Passwort setzen
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="margin:28px 0 0;font-size:13px;line-height:1.6;color:#959595;">
+      Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:<br/>
+      <a href="${resetLink}" style="color:#4f90c1;word-break:break-all;">${resetLink}</a>
+    </p>
+    <p style="margin:20px 0 0;font-size:13px;line-height:1.6;color:#959595;">
+      Der Link ist 1 Stunde gültig. Wenn du das nicht warst, kannst du diese Mail ignorieren — dein Passwort bleibt unverändert.
+    </p>
+  `;
+
+  const resend = getResend();
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to,
+    subject: 'Neues Passwort setzen — Longevity Lifestyle Challenge',
+    html: layout(body),
+  });
+
+  if (error) throw new Error(typeof error === 'string' ? error : error.message);
+}
+
 function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 }
