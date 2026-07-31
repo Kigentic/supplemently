@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
+import PasswordInput from '@/app/_components/PasswordInput';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
 
 const inputBase =
@@ -149,12 +150,11 @@ export default function PasswortZuruecksetzenPage() {
             <label htmlFor="passwort" className={labelBase}>
               Neues Passwort
             </label>
-            <input
+            <PasswordInput
               id="passwort"
-              type="password"
               className={inputBase}
               value={passwort}
-              onChange={(e) => setPasswort(e.target.value)}
+              onChange={setPasswort}
               placeholder="Mind. 8 Zeichen"
               autoComplete="new-password"
             />
@@ -163,12 +163,11 @@ export default function PasswortZuruecksetzenPage() {
             <label htmlFor="passwortWiederholen" className={labelBase}>
               Passwort wiederholen
             </label>
-            <input
+            <PasswordInput
               id="passwortWiederholen"
-              type="password"
               className={inputBase}
               value={passwortWiederholen}
-              onChange={(e) => setPasswortWiederholen(e.target.value)}
+              onChange={setPasswortWiederholen}
               placeholder="Nochmal eingeben"
               autoComplete="new-password"
             />

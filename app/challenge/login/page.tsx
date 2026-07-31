@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
+import PasswordInput from '@/app/_components/PasswordInput';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
 
 const inputBase =
@@ -114,12 +115,11 @@ export default function LoginPage() {
             <label htmlFor="passwort" className={labelBase}>
               Passwort
             </label>
-            <input
+            <PasswordInput
               id="passwort"
-              type="password"
               className={inputBase}
               value={passwort}
-              onChange={(e) => setPasswort(e.target.value)}
+              onChange={setPasswort}
               placeholder="Dein Passwort"
               autoComplete="current-password"
             />
