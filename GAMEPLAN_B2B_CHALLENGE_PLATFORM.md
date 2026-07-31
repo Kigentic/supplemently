@@ -155,8 +155,128 @@ denkbare Erweiterung, aber **bewusst nicht Kern-Scope** — Gefahr, das Konzept 
 
 ---
 
-## Nächster Schritt
+## Implementierungsplan (Architektur — Inhalte kommen später)
 
-Kein Code, keine Migration — dieses Dokument wartet auf grünes Licht. Wenn's losgehen soll: erst
-Phase 1 (Datenmodell) einzeln planen, bevor irgendetwas an den bestehenden Challenge-Tabellen
-angefasst wird.
+Detaillierter Plan für Phase 1+, unten in konkreten Schritten. **Reine Architektur** — überall wo
+Inhalte (Wochentexte, Habits, Anleitungen für neue Challenge-Typen) gebraucht würden, wird nur die
+Datenstruktur angelegt, nicht befüllt. Leitplanke für die gesamte Umsetzung: **additiv und
+nullable, wo immer möglich** — die laufende B2C-Longevity-Challenge darf zu keinem Zeitpunkt
+brechen. `lib/challengeWeeks.ts` bleibt bis zum finalen Cutover unangetastet funktionsfähig.
+
+### Schritt 1 — Neue Tabellen: Challenge-Typen als Daten
+
+```
+challenge_typen
+  id UUID PK, slug TEXT UNIQUE, name TEXT, beschreibung TEXT,
+  wochen_anzahl SMALLINT DEFAULT 8, ist_aktiv BOOLEAN, created_at
+
+challenge_typ_wochen                         -- 1 Zeile pro Woche pro Typ
+  id UUID PK, challenge_typ_id FK, woche_nummer SMALLINT,
+  theme TEXT, motto TEXT, color TEXT, text_color TEXT,
+  icon_name TEXT,                            -- String-Referenz, siehe Icon-Mapping unten
+  pillars TEXT[], created_at
+  UNIQUE(challenge_typ_id, woche_nummer)
+
+challenge_typ_habits                         -- 1 Zeile pro Habit
+  id UUID PK, challenge_typ_wochen_id FK, sort_order SMALLINT,
+  text TEXT, why TEXT, created_at
+
+challenge_typ_habit_anleitungen              -- optional, "So geht's"-Varianten
+  id UUID PK, habit_id FK, titel TEXT, sort_order SMALLINT
+
+challenge_typ_habit_uebungen                 -- Einzelübungen je Variante
+  id UUID PK, anleitung_id FK, name TEXT, dauer TEXT, hinweis TEXT, sort_order SMALLINT
+```
+
+Diese Struktur bildet 1:1 die bestehenden TS-Interfaces ab (`ChallengeWeek`, `ChallengeHabit`,
+`AnleitungsVariante`, `HabitExercise` aus `lib/challengeWeeks.ts`) — normalisiert statt hartkodiert.
+**Alternative, leichtgewichtigere Option:** ein einzelnes JSONB-Feld `habits_json` auf
+`challenge_typ_wochen`, das die komplette Wochenstruktur als Blob hält, statt 3 zusätzlicher
+Tabellen. Spart Migrationskomplexität, macht aber ein späteres Non-Code-Editier-Tool fürs Studio/
+Team schwerer zu bauen (kein einzelnes Feld editierbar, nur der ganze Blob). Empfehlung: normalisiert,
+falls perspektivisch ein Content-Editor für neue Challenge-Typen entstehen soll — sonst reicht JSONB.
+
+**Migration A:** Tabellen anlegen (leer). **Migration B (separat, später):** Ein-Zeilen-Seed
+`challenge_typen` mit genau einem Eintrag `slug='longevity-lifestyle'`, damit die bestehende
+Challenge referenzierbar ist, ohne dass sich an ihrem Verhalten etwas ändert.
+
+### Schritt 2 — Multi-Tenant-Spalten (additiv, nullable)
+
+```
+ALTER TABLE challenges ADD COLUMN challenge_typ_id UUID REFERENCES challenge_typen(id);  -- nullable
+ALTER TABLE challenges ADD COLUMN studio_id       UUID REFERENCES studios(id);           -- nullable
+
+CREATE TABLE studio_admins (
+  id UUID PK, studio_id FK, user_id UUID REFERENCES auth.users(id),
+  rolle TEXT DEFAULT 'inhaber', created_at
+);
+
+CREATE TABLE studio_challenge_typen (           -- welche Typen hat ein Studio gebucht
+  studio_id FK, challenge_typ_id FK, freigeschaltet_am TIMESTAMPTZ,
+  PRIMARY KEY (studio_id, challenge_typ_id)
+);
+
+ALTER TABLE studios ADD COLUMN impressum JSONB DEFAULT '{}'::jsonb;  -- Name/Anschrift/Kontakt fürs Endkunden-Impressum
+```
+
+Backfill: bestehende(r) `challenges`-Zeile(n) bekommen `challenge_typ_id` = die geseedete
+Longevity-Zeile aus Schritt 1, `studio_id` bleibt NULL (die aktuelle B2C-Challenge gehört keinem
+Studio — das ist explizit erlaubt, nicht jede Challenge braucht ein Studio).
+
+### Schritt 3 — RLS/Zugriffslogik erweitern
+
+Der Masteradmin-Check läuft aktuell überall applikationsseitig über `profiles.ist_admin` in den
+API-Routes (nicht per RLS-Policy, siehe z.B. `app/api/admin/users/route.ts`). Neue Helper-Funktion
+`isStudioAdminFor(userId, studioId)` (Lookup gegen `studio_admins`), genutzt in einem neuen Satz
+Studio-Admin-API-Routes (`/api/studio-admin/...`), analog zu den bestehenden `/api/admin/...`-Routes,
+aber gefiltert auf `challenges.studio_id = <eigenes Studio>`. Masteradmin-Flag bleibt als globaler
+Override bestehen (sieht alle Studios).
+
+### Schritt 4 — Code-Refactor: Datenquelle austauschen, Interfaces behalten
+
+Kernidee: **alle Konsumenten von `CHALLENGE_WEEKS` ändern sich nicht**, wenn die TS-Interfaces
+gleich bleiben. Nur die Quelle wechselt von "hartkodierte Konstante" zu "DB-Query".
+
+- `lib/challengeWeeks.ts`: `CHALLENGE_WEEKS`-Konstante wird zu einer Funktion
+  `getChallengeContent(challengeTypId): Promise<ChallengeWeek[]>`, die die 5 neuen Tabellen lädt
+  und zu exakt derselben `ChallengeWeek[]`-Struktur zusammenbaut wie heute.
+- **Icon-Problem:** `icon: TablerIcon` ist aktuell eine React-Komponentenreferenz, kann nicht in der
+  DB stehen. Lösung: DB speichert `icon_name: string` (z.B. `"IconMoon"`), ein kleines
+  `ICON_MAP: Record<string, TablerIcon>` in Code löst den String zur Laufzeit auf. Endliche,
+  überschaubare Icon-Menge — muss nicht dynamisch sein.
+- `habitsUpTo()`, `habitKey()`, `carryForwardText()`, `pickAnleitungsVariante()`: bleiben **pure
+  Funktionen**, bekommen aber das schon geladene `ChallengeWeek[]` als Parameter statt implizit auf
+  die alte Konstante zuzugreifen. Aufrufer (Seiten/API-Routes) laden die Wochen einmal (async) und
+  reichen sie durch.
+- `lib/challengeScoring.ts`: `maxScoreForWeek()`/`maxGesamtScore()` hängen von `habitsUpTo()` ab —
+  bekommen ebenfalls `weeks: ChallengeWeek[]` als Parameter statt es implizit zu importieren.
+- Betroffene Aufrufer (Signatur-Änderung durchreichen, aber keine Verhaltensänderung für die
+  bestehende Longevity-Challenge): `ChallengeWeeksOverview.tsx`, `woche/[num]/page.tsx`,
+  `checkin/page.tsx`, `admin/checkin-test/page.tsx`, `api/challenge/checkin/route.ts`,
+  `api/admin/teilnahme/[teilnahmeId]/checkins/route.ts`.
+
+### Schritt 5 — Affiliate-Ebene um Challenge-Typ ergänzen (optional, additiv)
+
+`ALTER TABLE affiliate_links ADD COLUMN challenge_typ_id UUID REFERENCES challenge_typen(id);`
+(nullable = für alle Typen nutzbar, wie bisher). Verhindert z.B., dass eine Rücken-Challenge
+Barfußschuhe empfiehlt, nur weil `trigger_tags` zufällig matchen.
+
+### Schritt 6 — Studio-Onboarding-Flow + B2B-Landingpage (neues Feature, kein Umbau)
+
+Separates Stück Arbeit, baut auf Schritt 1–5 auf: Registrierung, Challenge-Typ-Auswahl, Payment,
+generierter Anmeldelink, Impressum-Eingabe. Kommt erst, wenn das Datenmodell steht und mit der
+migrierten Longevity-Challenge als erstem "Typ" durchgetestet ist.
+
+### Reihenfolge & Sicherheits-Leitplanke
+
+1. Schritt 1+2 als reine additive Migrationen — **kann parallel zum B2C-Betrieb passieren**, ändert
+   nichts an bestehendem Verhalten (alles nullable, nichts wird gelesen).
+2. Content-Migrationsskript (später, separates Vorhaben): bestehende Longevity-Inhalte aus
+   `lib/challengeWeeks.ts` per Einmal-Skript in die neuen Tabellen überführen — **erst nachdem**
+   Schritt 4 (Code-Refactor) auf einer Kopie/Staging verifiziert wurde.
+3. Schritt 3+4 (RLS + Code-Cutover): erst wenn Content-Migration steht, **und erst nach dem
+   B2C-Newsletter-Launch**, nicht währenddessen anfassen.
+4. Schritt 5+6: eigene Vorhaben danach.
+
+Kein Code, keine Migration wird durch dieses Dokument ausgelöst — das hier ist der Bauplan, auf den
+sich Schritt 1 bezieht, sobald grünes Licht kommt.
