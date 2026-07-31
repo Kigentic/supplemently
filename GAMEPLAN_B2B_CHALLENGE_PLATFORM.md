@@ -163,7 +163,7 @@ Datenstruktur angelegt, nicht befüllt. Leitplanke für die gesamte Umsetzung: *
 nullable, wo immer möglich** — die laufende B2C-Longevity-Challenge darf zu keinem Zeitpunkt
 brechen. `lib/challengeWeeks.ts` bleibt bis zum finalen Cutover unangetastet funktionsfähig.
 
-### Schritt 1 — Neue Tabellen: Challenge-Typen als Daten
+### Schritt 1 — Neue Tabellen: Challenge-Typen als Daten ✅ umgesetzt (Migration `0016_challenge_typen.sql`)
 
 ```
 challenge_typen
@@ -200,7 +200,7 @@ falls perspektivisch ein Content-Editor für neue Challenge-Typen entstehen soll
 `challenge_typen` mit genau einem Eintrag `slug='longevity-lifestyle'`, damit die bestehende
 Challenge referenzierbar ist, ohne dass sich an ihrem Verhalten etwas ändert.
 
-### Schritt 2 — Multi-Tenant-Spalten (additiv, nullable)
+### Schritt 2 — Multi-Tenant-Spalten (additiv, nullable) ✅ umgesetzt (Migration `0017_multi_tenant_columns.sql`)
 
 ```
 ALTER TABLE challenges ADD COLUMN challenge_typ_id UUID REFERENCES challenge_typen(id);  -- nullable
@@ -269,14 +269,12 @@ migrierten Longevity-Challenge als erstem "Typ" durchgetestet ist.
 
 ### Reihenfolge & Sicherheits-Leitplanke
 
-1. Schritt 1+2 als reine additive Migrationen — **kann parallel zum B2C-Betrieb passieren**, ändert
-   nichts an bestehendem Verhalten (alles nullable, nichts wird gelesen).
-2. Content-Migrationsskript (später, separates Vorhaben): bestehende Longevity-Inhalte aus
+1. ✅ Schritt 1+2 als reine additive Migrationen — umgesetzt, gegen die Produktions-DB angewendet
+   und verifiziert (Backfill korrekt, `tsc`/Build weiterhin sauber, B2C-Challenge unverändert
+   funktionsfähig — nichts liest die neuen Tabellen bisher).
+2. Content-Migrationsskript (noch offen, separates Vorhaben): bestehende Longevity-Inhalte aus
    `lib/challengeWeeks.ts` per Einmal-Skript in die neuen Tabellen überführen — **erst nachdem**
    Schritt 4 (Code-Refactor) auf einer Kopie/Staging verifiziert wurde.
-3. Schritt 3+4 (RLS + Code-Cutover): erst wenn Content-Migration steht, **und erst nach dem
-   B2C-Newsletter-Launch**, nicht währenddessen anfassen.
+3. Schritt 3+4 (RLS + Code-Cutover): **bewusst noch nicht angefasst.** Erst wenn Content-Migration
+   steht, **und erst nach dem B2C-Newsletter-Launch**, nicht währenddessen.
 4. Schritt 5+6: eigene Vorhaben danach.
-
-Kein Code, keine Migration wird durch dieses Dokument ausgelöst — das hier ist der Bauplan, auf den
-sich Schritt 1 bezieht, sobald grünes Licht kommt.
