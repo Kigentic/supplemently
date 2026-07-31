@@ -1,6 +1,6 @@
 # Plan B — B2B Challenge-Plattform für inhabergeführte Fitnessstudios
 
-**Stand:** Juli 2026 · **Status:** Architektur-Umbau läuft (Schritt 1+2 umgesetzt, Referenz-Studio Turnkiste angelegt)
+**Stand:** Juli 2026 · **Status:** Architektur-Umbau weit fortgeschritten (Schritt 1+2+4 umgesetzt, Content-Migration + Code-Cutover live verifiziert — nur Schritt 3 Studio-RLS-Helper noch offen)
 
 > **Wichtige Abgrenzung:** Dieses Dokument ist bewusst getrennt von [`GAMEPLAN.md`](GAMEPLAN.md) gehalten.
 > Die dort beschriebene Longevity-Lifestyle-Challenge ist die **laufende B2C-Geschichte** — die geht
@@ -238,28 +238,29 @@ Studio-Admin-API-Routes (`/api/studio-admin/...`), analog zu den bestehenden `/a
 aber gefiltert auf `challenges.studio_id = <eigenes Studio>`. Masteradmin-Flag bleibt als globaler
 Override bestehen (sieht alle Studios).
 
-### Schritt 4 — Code-Refactor: Datenquelle austauschen, Interfaces behalten
+### Schritt 4 — Code-Refactor: Datenquelle austauschen, Interfaces behalten ✅ umgesetzt
 
-Kernidee: **alle Konsumenten von `CHALLENGE_WEEKS` ändern sich nicht**, wenn die TS-Interfaces
-gleich bleiben. Nur die Quelle wechselt von "hartkodierte Konstante" zu "DB-Query".
+Content-Migration + Code-Cutover abgeschlossen (Migration `0016` seit Schritt 1 bereits angelegt,
+Inhalte per Einmal-Skript befüllt — Skript danach gelöscht, da CHALLENGE_WEEKS als Quelle entfernt
+wurde). `lib/challengeWeeks.ts` exportiert jetzt `fetchChallengeWeeks(supabase, challengeTypId)`
+(async DB-Query) statt der hartkodierten Konstante — TS-Interfaces blieben unverändert bis auf
+`icon: TablerIcon` → `icon_name: string` (Auflösung über `ICON_MAP`, da React-Komponenten nicht in
+der DB liegen können).
 
-- `lib/challengeWeeks.ts`: `CHALLENGE_WEEKS`-Konstante wird zu einer Funktion
-  `getChallengeContent(challengeTypId): Promise<ChallengeWeek[]>`, die die 5 neuen Tabellen lädt
-  und zu exakt derselben `ChallengeWeek[]`-Struktur zusammenbaut wie heute.
-- **Icon-Problem:** `icon: TablerIcon` ist aktuell eine React-Komponentenreferenz, kann nicht in der
-  DB stehen. Lösung: DB speichert `icon_name: string` (z.B. `"IconMoon"`), ein kleines
-  `ICON_MAP: Record<string, TablerIcon>` in Code löst den String zur Laufzeit auf. Endliche,
-  überschaubare Icon-Menge — muss nicht dynamisch sein.
-- `habitsUpTo()`, `habitKey()`, `carryForwardText()`, `pickAnleitungsVariante()`: bleiben **pure
-  Funktionen**, bekommen aber das schon geladene `ChallengeWeek[]` als Parameter statt implizit auf
-  die alte Konstante zuzugreifen. Aufrufer (Seiten/API-Routes) laden die Wochen einmal (async) und
-  reichen sie durch.
-- `lib/challengeScoring.ts`: `maxScoreForWeek()`/`maxGesamtScore()` hängen von `habitsUpTo()` ab —
-  bekommen ebenfalls `weeks: ChallengeWeek[]` als Parameter statt es implizit zu importieren.
-- Betroffene Aufrufer (Signatur-Änderung durchreichen, aber keine Verhaltensänderung für die
-  bestehende Longevity-Challenge): `ChallengeWeeksOverview.tsx`, `woche/[num]/page.tsx`,
-  `checkin/page.tsx`, `admin/checkin-test/page.tsx`, `api/challenge/checkin/route.ts`,
-  `api/admin/teilnahme/[teilnahmeId]/checkins/route.ts`.
+`habitsUpTo()` und die Scoring-Funktionen (`maxScoreForWeek`/`maxGesamtScore`) nehmen jetzt `weeks`
+als Parameter statt implizit auf die Konstante zuzugreifen. Alle 6 betroffenen Konsumenten angepasst:
+`ChallengeWeeksOverview.tsx`, `woche/[num]/page.tsx`, `checkin/page.tsx`, `admin/checkin-test/page.tsx`,
+`api/challenge/checkin/route.ts`, `api/admin/teilnahme/[teilnahmeId]/checkins/route.ts`,
+`api/admin/users/route.ts`.
+
+**Verifiziert:** Inhalts-Struktur/Sortierung per Skript exakt gegen die alte Konstante geprüft, dann
+live im Browser (Test-Session) durch Dashboard, Wochenseite (inkl. "So geht's"-Popup), Check-in-Test
+(Score exakt korrekt berechnet) und Admin-Übersicht (Score/Note/Aufgaben-Breakdown) geklickt —
+alles identisch zum bisherigen Verhalten. `tsc`/Build sauber.
+
+**Bewusst noch offen (Schritt 3):** Der `isStudioAdminFor()`-Helper + eigene Studio-Admin-Routes
+sind noch nicht gebaut — aktuell sieht weiterhin nur der globale Masteradmin alles. Wird gebraucht,
+sobald ein zweites Studio echten Zugriff braucht (Schritt 6).
 
 ### Schritt 5 — Affiliate-Ebene um Challenge-Typ ergänzen (optional, additiv)
 
@@ -283,11 +284,9 @@ migrierten Longevity-Challenge als erstem "Typ" durchgetestet ist.
    Launch"-Bremse für die Multi-Tenant-Grundstruktur aufgehoben:** neue B2C-Anmeldungen aus dem
    Newsletter landen automatisch als virtuelle Turnkiste-Mitglieder, die Struktur muss nicht mehr
    nachträglich eingezogen werden.
-3. Content-Migrationsskript (noch offen, separates Vorhaben): bestehende Longevity-Inhalte aus
-   `lib/challengeWeeks.ts` per Einmal-Skript in die neuen Tabellen überführen — **erst danach**
-   Schritt 4 (Code-Refactor) angehen, idealerweise gegen eine Kopie/Staging verifiziert.
-4. Schritt 3 (RLS/Zugriffslogik-Helper) + Schritt 4 (Code-Cutover): weiterhin sorgfältig timen — das
-   sind die Schritte, die tatsächlich Verhalten ändern (Datenquelle wechselt). Empfehlung bleibt:
-   nicht in der eigentlichen Launch-Woche selbst, auch wenn die Turnkiste-Zuordnung das Risiko schon
-   deutlich reduziert hat.
+3. ✅ Content-Migration + Schritt 4 (Code-Cutover) — umgesetzt und end-to-end verifiziert (Details
+   oben bei Schritt 4). `lib/challengeWeeks.ts` lädt jetzt aus der DB, Longevity-Inhalte liegen in
+   den `challenge_typ_*`-Tabellen.
+4. Schritt 3 (RLS/Zugriffslogik-Helper `isStudioAdminFor()`) — noch offen. Nicht dringend, solange
+   nur ein Studio (Turnkiste) existiert und der globale Masteradmin-Check ausreicht.
 5. Schritt 5+6: eigene Vorhaben danach.
