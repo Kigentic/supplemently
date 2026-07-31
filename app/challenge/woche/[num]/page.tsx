@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
-import { CHALLENGE_WEEKS } from '@/lib/challengeWeeks';
+import { fetchChallengeWeeks, fetchChallengeTypIdBySlug, LONGEVITY_CHALLENGE_TYP_SLUG, ICON_MAP, type ChallengeWeek } from '@/lib/challengeWeeks';
 import AnleitungLink from '@/app/_components/AnleitungModal';
 import AffiliateProductCard, { type AffiliateProduct } from '@/app/_components/AffiliateProductCard';
 
@@ -14,6 +14,8 @@ export default function WochenDetailPage() {
   const params = useParams<{ num: string }>();
   const router = useRouter();
   const [checkedAuth, setCheckedAuth] = useState(false);
+  const [weeksLoading, setWeeksLoading] = useState(true);
+  const [weeks, setWeeks] = useState<ChallengeWeek[]>([]);
   const [empfehlungen, setEmpfehlungen] = useState<AffiliateProduct[]>([]);
 
   useEffect(() => {
@@ -26,7 +28,14 @@ export default function WochenDetailPage() {
         }
         setCheckedAuth(true);
 
-        const { data: sessionData } = await getBrowserClient().auth.getSession();
+        const supabase = getBrowserClient();
+        const challengeTypId = await fetchChallengeTypIdBySlug(supabase, LONGEVITY_CHALLENGE_TYP_SLUG);
+        if (challengeTypId) {
+          setWeeks(await fetchChallengeWeeks(supabase, challengeTypId));
+        }
+        setWeeksLoading(false);
+
+        const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData.session?.access_token;
         if (!token) return;
         const res = await fetch(`/api/challenge/woche/${params?.num}/empfehlung`, {
@@ -40,9 +49,9 @@ export default function WochenDetailPage() {
   }, [router, params?.num]);
 
   const num = Number(params?.num);
-  const week = CHALLENGE_WEEKS.find((w) => w.num === num);
+  const week = weeks.find((w) => w.num === num);
 
-  if (!checkedAuth) {
+  if (!checkedAuth || weeksLoading) {
     return (
       <div className="min-h-screen bg-bg">
         <SiteHeader loggedIn />
@@ -69,7 +78,7 @@ export default function WochenDetailPage() {
     );
   }
 
-  const Icon = week.icon;
+  const Icon = ICON_MAP[week.icon_name];
 
   return (
     <div className="min-h-screen bg-bg">

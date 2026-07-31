@@ -4,7 +4,7 @@
 import { NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabaseServer';
 import { getUserFromAuthHeader } from '@/lib/apiAuth';
-import { habitsUpTo } from '@/lib/challengeWeeks';
+import { habitsUpTo, fetchChallengeWeeks, fetchChallengeTypIdBySlug, LONGEVITY_CHALLENGE_TYP_SLUG } from '@/lib/challengeWeeks';
 import { getChallengeSchedule } from '@/lib/challengeSchedule';
 import { AMPEL_PUNKTE, CHECKIN_BASISPUNKTE, type Ampel } from '@/lib/challengeScoring';
 import { matchForCheckin, type AffiliateLink } from '@/lib/affiliateMatching';
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
   const [{ data: teilnahme, error: teilnahmeError }, { data: profile }] = await Promise.all([
     supabase
       .from('challenge_teilnahmen')
-      .select('id, challenges ( start_datum, wochen_anzahl )')
+      .select('id, challenges ( start_datum, wochen_anzahl, challenge_typ_id )')
       .eq('user_id', user.id)
       .order('joined_at', { ascending: false })
       .limit(1)
@@ -84,9 +84,24 @@ export async function POST(req: Request) {
     }
   }
 
+  // Challenge-Typ auflösen (Fallback auf Longevity, falls z.B. bei einer
+  // älteren Teilnahme ohne gesetzten Typ) und die zugehörigen Wochen laden.
+  const challengeTypId =
+    challenge?.challenge_typ_id ?? (await fetchChallengeTypIdBySlug(supabase, LONGEVITY_CHALLENGE_TYP_SLUG));
+  if (!challengeTypId) {
+    return NextResponse.json({ error: 'Challenge-Typ konnte nicht ermittelt werden.' }, { status: 500 });
+  }
+  let weeks;
+  try {
+    weeks = await fetchChallengeWeeks(supabase, challengeTypId);
+  } catch (err) {
+    console.error('Challenge-Wochen lookup error:', err);
+    return NextResponse.json({ error: 'Challenge-Inhalte konnten nicht geladen werden.' }, { status: 500 });
+  }
+
   // Erwartete Habit-Keys für diese Woche (Carry-forward 1..woche) — verhindert
   // dass der Client beliebige Keys/Ampeln unterschiebt.
-  const expectedKeys = habitsUpTo(woche).flatMap((g) => g.items.map((i) => i.key));
+  const expectedKeys = habitsUpTo(weeks, woche).flatMap((g) => g.items.map((i) => i.key));
   if (!habit_status || typeof habit_status !== 'object') {
     return NextResponse.json({ error: 'Habit-Status fehlt.' }, { status: 400 });
   }

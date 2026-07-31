@@ -4,7 +4,7 @@
 // Wochenfarben sind bewusst hartkodierte Hex-Werte (kein Dark-Mode-Invert).
 import { useState } from 'react';
 import Link from 'next/link';
-import { CHALLENGE_WEEKS, carryForwardText, type ChallengeWeek } from '@/lib/challengeWeeks';
+import { ICON_MAP, carryForwardText, type ChallengeWeek } from '@/lib/challengeWeeks';
 import AnleitungLink from '@/app/_components/AnleitungModal';
 
 function ChevronIcon({ open, color }: { open: boolean; color: string }) {
@@ -32,7 +32,7 @@ function WeekTile({
   open: boolean;
   onToggle: () => void;
 }) {
-  const Icon = week.icon;
+  const Icon = ICON_MAP[week.icon_name];
   const carry = carryForwardText(week.num);
 
   return (
@@ -115,7 +115,7 @@ function WeekTile({
   );
 }
 
-export default function ChallengeWeeksOverview({ currentWeek }: { currentWeek?: number }) {
+export default function ChallengeWeeksOverview({ weeks, currentWeek }: { weeks: ChallengeWeek[]; currentWeek?: number }) {
   const [openWeeks, setOpenWeeks] = useState<Set<number>>(() => new Set(currentWeek ? [currentWeek] : []));
 
   function toggle(num: number) {
@@ -132,7 +132,7 @@ export default function ChallengeWeeksOverview({ currentWeek }: { currentWeek?: 
       <h2 className="mb-4 text-lg font-semibold text-text">Dein Challenge Plan</h2>
 
       <div className="grid grid-cols-2 items-start gap-3">
-        {CHALLENGE_WEEKS.map((week) => (
+        {weeks.map((week) => (
           <WeekTile
             key={week.num}
             week={week}

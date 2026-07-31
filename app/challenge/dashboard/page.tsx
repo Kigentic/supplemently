@@ -8,6 +8,7 @@ import SiteFooter from '@/app/_components/SiteFooter';
 import ChallengeWeeksOverview from '@/app/_components/ChallengeWeeksOverview';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
 import { getChallengeSchedule, formatUnlockDate } from '@/lib/challengeSchedule';
+import { fetchChallengeWeeks, fetchChallengeTypIdBySlug, LONGEVITY_CHALLENGE_TYP_SLUG, type ChallengeWeek } from '@/lib/challengeWeeks';
 
 // ── Hauptseite ────────────────────────────────────────────────────────────────
 
@@ -20,6 +21,7 @@ interface DashboardData {
   checkinUnlocked: boolean;
   checkinUnlockDate: Date;
   isAdmin: boolean;
+  weeks: ChallengeWeek[];
 }
 
 export default function DashboardPage() {
@@ -43,7 +45,7 @@ export default function DashboardPage() {
         supabase.from('profiles').select('vorname, ist_admin').eq('id', user.id).maybeSingle(),
         supabase
           .from('challenge_teilnahmen')
-          .select('id, joined_at, challenges ( name, start_datum, wochen_anzahl )')
+          .select('id, joined_at, challenges ( name, start_datum, wochen_anzahl, challenge_typ_id )')
           .eq('user_id', user.id)
           .order('joined_at', { ascending: false })
           .limit(1)
@@ -72,6 +74,9 @@ export default function DashboardPage() {
         checkinDone = !!checkin;
       }
 
+      const challengeTypId = challenge?.challenge_typ_id ?? (await fetchChallengeTypIdBySlug(supabase, LONGEVITY_CHALLENGE_TYP_SLUG));
+      const weeks = challengeTypId ? await fetchChallengeWeeks(supabase, challengeTypId) : [];
+
       if (cancelled) return;
 
       setData({
@@ -83,6 +88,7 @@ export default function DashboardPage() {
         checkinUnlocked: isAdmin || schedule.checkinUnlocked,
         checkinUnlockDate: schedule.checkinUnlockDate,
         isAdmin,
+        weeks,
       });
       setLoading(false);
     }
@@ -161,7 +167,7 @@ export default function DashboardPage() {
         </div>
 
         {/* 8-Wochen Challenge Übersicht */}
-        <ChallengeWeeksOverview currentWeek={data.currentWeek} />
+        <ChallengeWeeksOverview weeks={data.weeks} currentWeek={data.currentWeek} />
       </main>
 
       <SiteFooter />

@@ -1,6 +1,9 @@
-// Zentrale Wochen-/Habit-Daten der 8-Wochen-Challenge.
-// Genutzt von ChallengeWeeksOverview (Dashboard), dem Wochen-Check-in
-// und den Wochen-Detailseiten (/challenge/woche/[num]).
+// Wochen-/Habit-Daten der Challenge — seit Plan B (Schritt 4, siehe
+// GAMEPLAN_B2B_CHALLENGE_PLATFORM.md) aus der DB geladen statt hartkodiert,
+// damit mehrere Challenge-Typen (Longevity, später Rücken/Abnehmen/...)
+// denselben Code nutzen können. Die TS-Interfaces sind bewusst unverändert
+// geblieben (bis auf icon → icon_name), damit Konsumenten nur die Datenquelle
+// austauschen mussten, nicht ihre Logik.
 import {
   IconCompass,
   IconSalad,
@@ -12,6 +15,21 @@ import {
   IconStar,
   type Icon as TablerIcon,
 } from '@tabler/icons-react';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+export const LONGEVITY_CHALLENGE_TYP_SLUG = 'longevity-lifestyle';
+
+/** String-Referenz statt React-Komponente in der DB — Auflösung über ICON_MAP. */
+export const ICON_MAP: Record<string, TablerIcon> = {
+  IconCompass,
+  IconSalad,
+  IconRun,
+  IconMoon,
+  IconBrain,
+  IconLeaf,
+  IconTrendingUp,
+  IconStar,
+};
 
 export interface HabitExercise {
   name: string;
@@ -36,288 +54,106 @@ export interface ChallengeWeek {
   num: number;
   color: string;
   textColor: string;
-  icon: TablerIcon;
+  icon_name: string;
   theme: string;
   motto: string;
   habits: ChallengeHabit[];
   pillars: string[];
 }
 
-export const CHALLENGE_WEEKS: ChallengeWeek[] = [
-  {
-    num: 1,
-    color: '#1D9E75',
-    textColor: '#E1F5EE',
-    icon: IconCompass,
-    theme: 'Fundament',
-    motto: 'Orientierung schaffen – dein Ausgangspunkt',
-    habits: [
-      {
-        text: 'KI-Supplement-Fragebogen ausfüllen → persönliche Empfehlung erhalten',
-        why: 'Dein Supplement-Bedarf hängt von Ernährung, Training, Schlaf und persönlichen Faktoren ab — nicht von Trends. Der Fragebogen berechnet, was bei dir wirklich fehlt, statt dir ein Standardpaket zu verkaufen. Wer das überspringt, nimmt am Ende Präparate, die er nicht braucht, und lässt die aus, die wirklich etwas bringen würden.',
-      },
-      {
-        text: 'Ernährungs-App einrichten & persönliche Vorlieben hinterlegen (Ziel, Ernährungsstil, Mahlzeiten/Kochfrequenz)',
-        why: 'Die App plant dir passende Rezepte nur dann vor, wenn sie dein Ziel, deine Vorlieben und deinen Kochrhythmus kennt. Ein sauberes Setup jetzt spart dir in den nächsten Wochen jedes Mal manuelles Nachjustieren.',
-      },
-      {
-        text: 'Body-Check: Fotos, Maße & Gewicht dokumentieren – deine Ausgangswerte',
-        why: 'Ohne Ausgangswerte gibt es später nichts zum Vergleichen. Fotos, Maße und Gewicht am Start sind der einzige Weg, Fortschritt in Woche 7 wirklich sichtbar zu machen — die Waage allein erzählt sonst nur die halbe Geschichte.',
-      },
-      {
-        text: '2,5 L Wasser täglich trinken (Erinnerungen stellen)',
-        why: 'Schon leichter Flüssigkeitsverlust senkt nachweislich Konzentration, Kraftleistung und Stimmung. Wasser reguliert außerdem Verdauung und Nährstofftransport — beides wird in den nächsten Wochen wichtig. Erinnerungen zu stellen ist kein Kindergarten, sondern der Unterschied zwischen "ich trinke genug" (gefühlt) und tatsächlich genug trinken.',
-      },
-      {
-        text: 'Tagesschritte erfassen – Baseline bestimmen',
-        why: 'Du kannst nur verbessern, was du misst. Deine aktuelle Schrittzahl ist der Ausgangspunkt für die Steigerung in Woche 5 — ohne sie weißt du nicht, ob du wirklich aktiver wirst oder es dir nur so vorkommt. Nebenbei verbrennt Alltagsbewegung bei den meisten Menschen mehr Kalorien als das Training selbst.',
-      },
-    ],
-    pillars: ['§20 App', 'Supplements', 'Hydration'],
-  },
-  {
-    num: 2,
-    color: '#639922',
-    textColor: '#EAF3DE',
-    icon: IconSalad,
-    theme: 'Gesunde Ernährung',
-    motto: 'Was du isst, macht den Unterschied',
-    habits: [
-      {
-        text: 'Neues Rezept aus der App ausprobieren (ab jetzt jede Woche)',
-        why: 'Abwechslung ist der beste Schutz gegen Ernährungs-Langeweile — die Hauptursache dafür, dass Menschen nach ein paar Wochen wieder in alte Muster zurückfallen. Ein neues Rezept pro Woche hält Motivation und Speiseplan frisch.',
-      },
-      {
-        text: 'Optional: separate Kalorien-/Makro-Tracking-App parallel nutzen',
-        why: 'Die Ernährungs-App plant Mahlzeiten, trackt aber keine Kalorien oder Makros. Wer genauer wissen will, wo er steht, kann optional eine zweite App parallel nutzen — Pflicht ist das nicht, ein hilfreicher Zusatz für alle, die es genauer wollen.',
-      },
-      {
-        text: '1x Krafttraining pro Woche einbauen (Ganzkörper, Home oder Studio)',
-        why: 'Der Einstieg ins Training funktioniert am besten klein und konsistent statt sofort mit Vollgas. Eine Einheit pro Woche baut die Gewohnheit auf, bevor in den kommenden Wochen Umfang und Intensität schrittweise steigen.',
-      },
-      {
-        text: 'Jede Mahlzeit mit 20–30 g Protein starten',
-        why: 'Protein sättigt am stärksten aller Makronährstoffe, hält den Blutzucker stabil und schützt Muskelmasse — besonders wichtig, wenn du gleichzeitig trainierst. Ohne ausreichend Protein baut dein Körper unter Belastung eher Muskeln ab statt Fett.',
-      },
-      {
-        text: '1 ultra-verarbeitetes Produkt durch Vollwertkost ersetzen',
-        why: 'Stark verarbeitete Lebensmittel enthalten oft versteckten Zucker und Zusatzstoffe, die Sättigung und Blutzucker aus dem Gleichgewicht bringen. Du musst nicht alles auf einmal umstellen — ein Tausch pro Tag reicht für spürbare Wirkung, ohne dass es sich wie Verzicht anfühlt.',
-      },
-      {
-        text: 'Sonntag: 30 Min. Meal-Prep für die Woche',
-        why: 'Die größte Ursache für schlechte Ernährungsentscheidungen ist nicht fehlendes Wissen, sondern fehlende Zeit im Moment des Hungers. Wer vorbereitet hat, entscheidet mit vollem statt leerem Magen — und trifft dann automatisch bessere Entscheidungen.',
-      },
-    ],
-    pillars: ['§20 App', 'Ernährung'],
-  },
-  {
-    num: 3,
-    color: '#D85A30',
-    textColor: '#FAECE7',
-    icon: IconRun,
-    theme: 'Bewegung & Mobility',
-    motto: 'Bewegung ist die günstigste Medizin der Welt',
-    habits: [
-      {
-        text: 'Täglich 8.000 Schritte',
-        why: 'Studien verknüpfen rund 8.000 Schritte täglich mit einer deutlich reduzierten Gesamtsterblichkeit — unabhängig vom Trainingsprogramm. Gehen ist die Bewegungsform mit dem besten Aufwand-Nutzen-Verhältnis, die dein Körper nie "zu viel" wird.',
-      },
-      {
-        text: '10 Min. Mobility/Stretching täglich – morgens oder abends',
-        why: 'Bewegliche Gelenke reduzieren Verletzungsrisiko, verbessern Trainingsqualität und wirken aktiv gegen Verspannungen aus Sitzen und einseitiger Belastung. Zehn Minuten am Tag wirken nur, wenn sie regelmäßig passieren — nicht einmal pro Woche für eine Stunde.',
-        anleitungVarianten: [
-          {
-            titel: 'Variante A: Oberkörper-Fokus',
-            uebungen: [
-              { name: 'Katze-Kuh', dauer: '10 Wiederholungen', hinweis: 'Auf allen Vieren Wirbelsäule abwechselnd runden und durchdrücken, langsam atmen.' },
-              { name: 'Schulterkreisen', dauer: '45 Sek. je Richtung', hinweis: 'Große, langsame Kreise, Arme locker hängen lassen.' },
-              { name: 'Brustöffner an der Wand', dauer: '45 Sek. je Seite', hinweis: 'Unterarm an die Wand, Oberkörper langsam wegdrehen bis Zug in der Brust.' },
-              { name: 'Nacken seitlich dehnen', dauer: '30 Sek. je Seite', hinweis: 'Ohr Richtung Schulter ziehen, Gegenschulter aktiv nach unten drücken.' },
-              { name: 'Handgelenke kreisen & dehnen', dauer: '30 Sek.', hinweis: 'Besonders wichtig bei viel Bildschirmarbeit.' },
-            ],
-          },
-          {
-            titel: 'Variante B: Unterkörper-Fokus',
-            uebungen: [
-              { name: 'Hüftbeuger-Ausfallschritt', dauer: '45 Sek. je Seite', hinweis: 'Becken aktiv nach vorne kippen, Rücken gerade halten.' },
-              { name: 'Waden-Dehnung an der Stufe', dauer: '45 Sek. je Seite', hinweis: 'Ferse tief hängen lassen, Knie durchgestreckt.' },
-              { name: 'Tiefe Kniebeuge halten', dauer: '60 Sek.', hinweis: 'Fersen am Boden, Ellbogen drücken die Knie sanft nach außen.' },
-              { name: 'Schmetterlingssitz', dauer: '60 Sek.', hinweis: 'Fußsohlen aneinander, Knie locker sinken lassen, Rücken gerade.' },
-            ],
-          },
-          {
-            titel: 'Variante C: Ganzkörper-Flow',
-            uebungen: [
-              { name: 'Welt-Umsegler (World\'s Greatest Stretch)', dauer: '5 Wiederholungen je Seite', hinweis: 'Ausfallschritt → Hand zum Boden → Rotation zur Decke, fließend ohne Pause.' },
-              { name: 'Inchworm', dauer: '5 Wiederholungen', hinweis: 'Aus dem Stand mit den Händen zum Boden laufen, in den Liegestütz, zurück.' },
-              { name: 'Hüftkreisen im Stand', dauer: '30 Sek. je Richtung', hinweis: 'Große Kreise, Oberkörper möglichst ruhig halten.' },
-              { name: 'Ausfallschritt mit Rotation', dauer: '45 Sek. je Seite', hinweis: 'Im Ausfallschritt Oberkörper zur vorderen Seite drehen.' },
-            ],
-          },
-        ],
-      },
-    ],
-    pillars: ['Training', 'Mobility'],
-  },
-  {
-    num: 4,
-    color: '#7F77DD',
-    textColor: '#EEEDFE',
-    icon: IconMoon,
-    theme: 'Schlaf & Regeneration',
-    motto: 'Schlaf ist deine stärkste Waffe',
-    habits: [
-      {
-        text: 'Feste Schlaf- & Aufwachzeit (±30 Min.) einhalten',
-        why: 'Deine innere Uhr steuert Hormonhaushalt, Regeneration und Energielevel. Ein fester Rhythmus — auch am Wochenende — sorgt für tieferen, effizienteren Schlaf als die gleiche Stundenzahl zu wechselnden Zeiten.',
-      },
-      {
-        text: '60 Min. vor dem Schlafen: alle Bildschirme aus',
-        why: 'Blaues Licht von Bildschirmen unterdrückt die Melatonin-Produktion und verzögert das Einschlafen messbar. Die letzte Stunde ohne Bildschirm ist einer der wirksamsten Hebel für besseren Schlaf — wirksamer als die meisten Schlaf-Supplements.',
-      },
-      {
-        text: 'Abendroutine: 3 Dinge notieren oder 5 Min. Atemübung',
-        why: 'Grübeln im Bett ist einer der häufigsten Gründe fürs Nicht-Einschlafen-Können. Das bewusste "Auslagern" von Gedanken aufs Papier oder eine kurze Atemübung senken nachweislich die Einschlafzeit.',
-        anleitungVarianten: [
-          {
-            titel: '4-7-8-Atmung (beruhigend, für abends)',
-            uebungen: [
-              { name: 'Einatmen durch die Nase', dauer: '4 Sek.' },
-              { name: 'Atem anhalten', dauer: '7 Sek.' },
-              { name: 'Ausatmen durch den Mund', dauer: '8 Sek.', hinweis: 'Hörbar und langsam ausatmen, als würdest du eine Kerze auspusten.' },
-              { name: 'Wiederholen', dauer: '4 Runden', hinweis: 'Danach fühlt sich der Körper spürbar ruhiger an — ideal direkt vor dem Einschlafen.' },
-            ],
-          },
-        ],
-      },
-      {
-        text: 'Schlafqualität als Notiz im Handy festhalten (kurze Bewertung 1–5)',
-        why: 'Was du festhältst, kannst du verbessern. Eine kurze tägliche Notiz reicht, um zu sehen, welche deiner neuen Gewohnheiten wirklich wirken — ganz ohne App, die das für dich übernehmen könnte.',
-      },
-      {
-        text: 'Zusätzlich 1x Cardio pro Woche einbauen (Laufen, Rad, Schwimmen – 20–30 Min.)',
-        why: 'Nach zwei Wochen mit Krafttraining ist der Körper bereit für den nächsten Reiz. Cardio verbessert Ausdauer und Herz-Kreislauf-Gesundheit — ein Bereich, den reines Krafttraining allein nicht abdeckt.',
-      },
-    ],
-    pillars: ['§20 App', 'Schlaf'],
-  },
-  {
-    num: 5,
-    color: '#378ADD',
-    textColor: '#E6F1FB',
-    icon: IconBrain,
-    theme: 'Stressmanagement',
-    motto: 'Ruhe ist keine Schwäche – sie ist Performance',
-    habits: [
-      {
-        text: '5 Min. Atemübung täglich (morgens, vor dem Kaffee)',
-        why: 'Bewusste, langsame Atmung aktiviert den "Ruhe-Nerv" (Parasympathikus) und senkt Stresshormone messbar innerhalb weniger Minuten. Fünf Minuten morgens setzen den Ton für den ganzen Tag — bevor sich Stress überhaupt aufbaut.',
-        anleitungVarianten: [
-          {
-            titel: 'Box-Breathing (4-4-4-4, aktivierend für morgens)',
-            uebungen: [
-              { name: 'Einatmen durch die Nase', dauer: '4 Sek.' },
-              { name: 'Atem anhalten', dauer: '4 Sek.' },
-              { name: 'Ausatmen durch die Nase', dauer: '4 Sek.' },
-              { name: 'Atem anhalten (leer)', dauer: '4 Sek.' },
-              { name: 'Wiederholen', dauer: '5–6 Runden', hinweis: 'Wird auch von Elite-Einheiten zur Fokussierung vor stressigen Situationen genutzt.' },
-            ],
-          },
-        ],
-      },
-      {
-        text: '30 handyfreie Minuten jeden Morgen',
-        why: 'Der erste Griff zum Handy überflutet dein Gehirn sofort mit fremden Reizen und Dringlichkeiten, bevor du selbst entschieden hast, worauf du dich konzentrierst. Eine handyfreie Morgenroutine schützt deine mentale Energie für den Tag.',
-      },
-      {
-        text: '1× pro Woche Offline-Abend (kein Bildschirm ab 20 Uhr)',
-        why: 'Chronische Reizüberflutung durch Bildschirme erhöht nachweislich Stresslevel und stört die Schlafqualität. Ein bewusster Abend ohne Screens gibt deinem Nervensystem die Erholung, die es sonst selten bekommt.',
-      },
-      {
-        text: 'Wöchentlichen Supplement-Selbstcheck durchführen',
-        why: 'Dein Bedarf verändert sich mit Trainingsintensität, Stress und Jahreszeit. Ein kurzer wöchentlicher Check stellt sicher, dass dein Stack noch zu deinem aktuellen Zustand passt statt zu dem von vor fünf Wochen.',
-      },
-    ],
-    pillars: ['Stressmanagement', 'Supplements'],
-  },
-  {
-    num: 6,
-    color: '#BA7517',
-    textColor: '#FAEEDA',
-    icon: IconLeaf,
-    theme: 'Verdauung & Darmgesundheit',
-    motto: 'Dein Darm ist dein zweites Gehirn',
-    habits: [
-      {
-        text: 'Täglich fermentierte Lebensmittel (Joghurt, Kefir, Sauerkraut)',
-        why: 'Fermentierte Lebensmittel liefern lebende Bakterienkulturen, die dein Mikrobiom diversifizieren. Ein diverses Mikrobiom wird mit besserer Verdauung, stärkerem Immunsystem und sogar besserer Stimmung in Verbindung gebracht — über die Darm-Hirn-Achse.',
-      },
-      {
-        text: 'Mahlzeiten bewusst langsam essen: mind. 15–20 Min.',
-        why: 'Dein Sättigungssignal braucht rund 20 Minuten, um beim Gehirn anzukommen. Wer schneller isst, isst automatisch mehr, bevor das Sättigungsgefühl überhaupt einsetzt — und belastet zusätzlich die Verdauung.',
-      },
-      {
-        text: 'Ballaststoffreiche Lebensmittel bewusst einbauen: Ziel ca. 30 g täglich',
-        why: 'Ballaststoffe füttern die guten Darmbakterien, regulieren den Blutzucker und sorgen für Sättigung. Die meisten Menschen erreichen nur die Hälfte des empfohlenen Werts — mit spürbaren Folgen für Verdauung und Energielevel.',
-      },
-      {
-        text: 'Morgenritual: 1 Glas warmes Wasser + Zitrone vor dem Frühstück',
-        why: 'Warmes Wasser regt die Verdauungstätigkeit direkt nach dem Aufwachen an, die Zitrone liefert zusätzlich Vitamin C. Kein Wundermittel, aber ein einfacher, konsistenter Start, der den restlichen Tag positiv beeinflusst.',
-      },
-      {
-        text: 'Krafttraining auf 2x pro Woche steigern (weiter plus 1x Cardio)',
-        why: 'Nach vier Wochen mit stabilem Rhythmus verträgt der Körper mehr Trainingsreiz. Zwei Krafteinheiten pro Woche beschleunigen Muskelaufbau und Stoffwechsel-Effekte spürbar, ohne die Regeneration zu sprengen.',
-      },
-    ],
-    pillars: ['§20 App', 'Verdauung'],
-  },
-  {
-    num: 7,
-    color: '#D4537E',
-    textColor: '#FBEAF0',
-    icon: IconTrendingUp,
-    theme: 'Level Up – Intensivierung',
-    motto: 'Jetzt zeigt sich, wer du geworden bist',
-    habits: [
-      {
-        text: 'KI-Supplement-Fragebogen erneut ausfüllen → Empfehlung anpassen',
-        why: 'Dein Profil hat sich in sechs Wochen verändert — anderes Trainingslevel, andere Ernährung, vielleicht anderer Schlaf. Eine erneute Auswertung stellt sicher, dass deine Supplementierung mit deinem Fortschritt mitwächst statt stehen zu bleiben.',
-      },
-      {
-        text: 'Body-Check wiederholen: Fotos, Maße & Gewicht – Vergleich zur Baseline aus Woche 1',
-        why: 'Die Waage zeigt nur einen Bruchteil der Wahrheit. Fotos und Maße machen Veränderungen sichtbar, die sich oft nicht in Kilogramm ausdrücken — Muskelaufbau bei gleichzeitigem Fettabbau zum Beispiel. Der direkte Vergleich zu Woche 1 macht Fortschritt greifbar.',
-      },
-    ],
-    pillars: ['Training', 'Supplements', '§20 App'],
-  },
-  {
-    num: 8,
-    color: '#888780',
-    textColor: '#F1EFE8',
-    icon: IconStar,
-    theme: 'Dein neues Normal',
-    motto: 'Das ist nicht das Ende – das ist dein Neustart',
-    habits: [
-      {
-        text: 'Habit-Audit: Was bleibt, was wird angepasst, was fällt weg?',
-        why: 'Nicht jede Gewohnheit muss für immer bleiben — aber die, die bleiben, solltest du bewusst wählen statt zufällig weiterzuführen. Ein ehrlicher Rückblick zeigt, was wirklich einen Unterschied gemacht hat.',
-      },
-      {
-        text: 'Ergebnisse festhalten: Vorher/Nachher & App-Auswertung',
-        why: 'Dein Gedächtnis passt sich schnell an neue Normalität an und vergisst, wie du dich vor acht Wochen gefühlt hast. Der direkte Vergleich macht sichtbar, was sich wirklich verändert hat — und ist der stärkste Motivator, weiterzumachen.',
-      },
-      {
-        text: 'Langzeit-Supplementplan mit KI-Ratgeber erstellen',
-        why: 'Die Challenge endet, dein Körper braucht aber weiterhin, was er in acht Wochen als hilfreich identifiziert hat. Ein Langzeitplan verhindert, dass du nach dem Ende wieder bei null anfängst.',
-      },
-      {
-        text: 'Nächste 8 Wochen planen & neue Ziele setzen',
-        why: 'Nachhaltige Veränderung entsteht nicht durch ein einmaliges Programm, sondern durch wiederholte Zyklen mit neuen, leicht gesteigerten Zielen. Wer jetzt weiterplant, verhindert den größten Rückfall-Trigger: das Gefühl, "fertig" zu sein.',
-      },
-    ],
-    pillars: ['Alle Pillars', 'Supplements', '§20 App'],
-  },
-];
+interface UebungRow {
+  name: string;
+  dauer: string;
+  hinweis: string | null;
+  sort_order: number;
+}
+
+interface AnleitungRow {
+  titel: string;
+  sort_order: number;
+  challenge_typ_habit_uebungen: UebungRow[];
+}
+
+interface HabitRow {
+  text: string;
+  why: string;
+  sort_order: number;
+  challenge_typ_habit_anleitungen: AnleitungRow[];
+}
+
+interface WocheRow {
+  woche_nummer: number;
+  theme: string;
+  motto: string | null;
+  color: string;
+  text_color: string;
+  icon_name: string;
+  pillars: string[];
+  challenge_typ_habits: HabitRow[];
+}
+
+/** Lädt den kompletten Wochen-/Habit-Baum eines Challenge-Typs aus der DB. */
+export async function fetchChallengeWeeks(
+  supabase: SupabaseClient,
+  challengeTypId: string
+): Promise<ChallengeWeek[]> {
+  const { data, error } = await supabase
+    .from('challenge_typ_wochen')
+    .select(
+      `woche_nummer, theme, motto, color, text_color, icon_name, pillars,
+       challenge_typ_habits (
+         text, why, sort_order,
+         challenge_typ_habit_anleitungen (
+           titel, sort_order,
+           challenge_typ_habit_uebungen ( name, dauer, hinweis, sort_order )
+         )
+       )`
+    )
+    .eq('challenge_typ_id', challengeTypId);
+
+  if (error) throw new Error(`Challenge-Wochen konnten nicht geladen werden: ${error.message}`);
+
+  const rows = (data ?? []) as unknown as WocheRow[];
+
+  return rows
+    .map((w): ChallengeWeek => ({
+      num: w.woche_nummer,
+      color: w.color,
+      textColor: w.text_color,
+      icon_name: w.icon_name,
+      theme: w.theme,
+      motto: w.motto ?? '',
+      pillars: w.pillars,
+      habits: [...w.challenge_typ_habits]
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map((h): ChallengeHabit => ({
+          text: h.text,
+          why: h.why,
+          anleitungVarianten:
+            h.challenge_typ_habit_anleitungen.length > 0
+              ? [...h.challenge_typ_habit_anleitungen]
+                  .sort((a, b) => a.sort_order - b.sort_order)
+                  .map((a): AnleitungsVariante => ({
+                    titel: a.titel,
+                    uebungen: [...a.challenge_typ_habit_uebungen]
+                      .sort((x, y) => x.sort_order - y.sort_order)
+                      .map((u): HabitExercise => ({
+                        name: u.name,
+                        dauer: u.dauer,
+                        hinweis: u.hinweis ?? undefined,
+                      })),
+                  }))
+              : undefined,
+        })),
+    }))
+    .sort((a, b) => a.num - b.num);
+}
+
+/** Auflösung von challenge_typ_id über den Slug — Startpunkt für Konsumenten ohne eigenen Challenge-Kontext. */
+export async function fetchChallengeTypIdBySlug(supabase: SupabaseClient, slug: string): Promise<string | null> {
+  const { data } = await supabase.from('challenge_typen').select('id').eq('slug', slug).maybeSingle();
+  return data?.id ?? null;
+}
 
 export function carryForwardText(num: number): string | null {
   if (num <= 1) return null;
@@ -345,14 +181,17 @@ export function pickAnleitungsVariante(
 
 /** Alle Habits von Woche 1 bis einschließlich currentWeek, gruppiert nach Woche. */
 export function habitsUpTo(
+  weeks: ChallengeWeek[],
   currentWeek: number
 ): { week: ChallengeWeek; items: { key: string; text: string; anleitungVarianten?: AnleitungsVariante[] }[] }[] {
-  return CHALLENGE_WEEKS.filter((w) => w.num <= currentWeek).map((week) => ({
-    week,
-    items: week.habits.map((h, i) => ({
-      key: habitKey(week.num, i),
-      text: h.text,
-      anleitungVarianten: h.anleitungVarianten,
-    })),
-  }));
+  return weeks
+    .filter((w) => w.num <= currentWeek)
+    .map((week) => ({
+      week,
+      items: week.habits.map((h, i) => ({
+        key: habitKey(week.num, i),
+        text: h.text,
+        anleitungVarianten: h.anleitungVarianten,
+      })),
+    }));
 }

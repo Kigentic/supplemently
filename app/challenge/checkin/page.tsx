@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
-import { habitsUpTo } from '@/lib/challengeWeeks';
+import { habitsUpTo, fetchChallengeWeeks, fetchChallengeTypIdBySlug, LONGEVITY_CHALLENGE_TYP_SLUG, type ChallengeWeek } from '@/lib/challengeWeeks';
 import { getChallengeSchedule, formatUnlockDate } from '@/lib/challengeSchedule';
 import { TrafficLight, ScalePicker, type Ampel } from '@/app/_components/CheckinControls';
 import AnleitungLink from '@/app/_components/AnleitungModal';
@@ -24,6 +24,7 @@ export default function CheckinPage() {
   const router = useRouter();
   const [data, setData] = useState<CheckinData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [weeks, setWeeks] = useState<ChallengeWeek[]>([]);
 
   const [habitStatus, setHabitStatus] = useState<Record<string, Ampel>>({});
   const [wohlbefinden, setWohlbefinden] = useState<number | null>(null);
@@ -49,7 +50,7 @@ export default function CheckinPage() {
       const [{ data: teilnahme }, { data: profile }] = await Promise.all([
         supabase
           .from('challenge_teilnahmen')
-          .select('id, status, challenges ( start_datum, wochen_anzahl )')
+          .select('id, status, challenges ( start_datum, wochen_anzahl, challenge_typ_id )')
           .eq('user_id', user.id)
           .order('joined_at', { ascending: false })
           .limit(1)
@@ -83,8 +84,12 @@ export default function CheckinPage() {
         .eq('woche', currentWeek)
         .maybeSingle();
 
+      const challengeTypId = challenge?.challenge_typ_id ?? (await fetchChallengeTypIdBySlug(supabase, LONGEVITY_CHALLENGE_TYP_SLUG));
+      const loadedWeeks = challengeTypId ? await fetchChallengeWeeks(supabase, challengeTypId) : [];
+
       if (cancelled) return;
 
+      setWeeks(loadedWeeks);
       setData({
         teilnahmeId: teilnahme.id,
         currentWeek,
@@ -101,7 +106,7 @@ export default function CheckinPage() {
     };
   }, [router]);
 
-  const weekGroups = data ? habitsUpTo(data.currentWeek) : [];
+  const weekGroups = data ? habitsUpTo(weeks, data.currentWeek) : [];
   const allHabitKeys = weekGroups.flatMap((g) => g.items.map((i) => i.key));
   const allAnswered = allHabitKeys.length > 0 && allHabitKeys.every((k) => habitStatus[k]);
 

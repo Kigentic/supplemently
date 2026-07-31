@@ -2,7 +2,7 @@
 // Einzige Quelle der Wahrheit für Punktwerte — wird sowohl von der
 // Check-in-API (Score-Berechnung) als auch vom Masteradmin-Bereich
 // (Anzeige/Nachvollziehbarkeit) genutzt, damit beide nie auseinanderlaufen.
-import { habitsUpTo } from './challengeWeeks';
+import { habitsUpTo, type ChallengeWeek } from './challengeWeeks';
 
 export type Ampel = 'gruen' | 'gelb' | 'rot';
 
@@ -10,15 +10,15 @@ export const AMPEL_PUNKTE: Record<Ampel, number> = { gruen: 20, gelb: 10, rot: 0
 export const CHECKIN_BASISPUNKTE = 10;
 
 /** Maximal erreichbarer Score für den Check-in einer einzelnen Woche (inkl. Carry-Forward-Habits aus Vorwochen). */
-export function maxScoreForWeek(week: number): number {
-  const habitCount = habitsUpTo(week).reduce((sum, g) => sum + g.items.length, 0);
+export function maxScoreForWeek(weeks: ChallengeWeek[], week: number): number {
+  const habitCount = habitsUpTo(weeks, week).reduce((sum, g) => sum + g.items.length, 0);
   return CHECKIN_BASISPUNKTE + habitCount * AMPEL_PUNKTE.gruen;
 }
 
 /** Maximal erreichbarer Gesamt-Score, wenn alle Check-ins bis einschließlich `uptoWeek` perfekt (alles grün) abgegeben wurden. */
-export function maxGesamtScore(uptoWeek: number): number {
+export function maxGesamtScore(weeks: ChallengeWeek[], uptoWeek: number): number {
   let total = 0;
-  for (let w = 1; w <= uptoWeek; w++) total += maxScoreForWeek(w);
+  for (let w = 1; w <= uptoWeek; w++) total += maxScoreForWeek(weeks, w);
   return total;
 }
 

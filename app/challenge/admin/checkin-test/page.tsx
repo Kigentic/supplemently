@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
-import { CHALLENGE_WEEKS, habitsUpTo } from '@/lib/challengeWeeks';
+import { habitsUpTo, fetchChallengeWeeks, fetchChallengeTypIdBySlug, LONGEVITY_CHALLENGE_TYP_SLUG, type ChallengeWeek } from '@/lib/challengeWeeks';
 import { TrafficLight, ScalePicker, type Ampel } from '@/app/_components/CheckinControls';
 import AnleitungLink from '@/app/_components/AnleitungModal';
 
@@ -18,6 +18,7 @@ type Status = 'idle' | 'submitting' | 'success';
 export default function CheckinTestPage() {
   const router = useRouter();
   const [checkedAdmin, setCheckedAdmin] = useState(false);
+  const [weeks, setWeeks] = useState<ChallengeWeek[]>([]);
 
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
   const [habitStatus, setHabitStatus] = useState<Record<string, Ampel>>({});
@@ -47,6 +48,10 @@ export default function CheckinTestPage() {
         router.push('/challenge/dashboard');
         return;
       }
+      const challengeTypId = await fetchChallengeTypIdBySlug(supabase, LONGEVITY_CHALLENGE_TYP_SLUG);
+      if (challengeTypId) {
+        setWeeks(await fetchChallengeWeeks(supabase, challengeTypId));
+      }
       setCheckedAdmin(true);
     }
     load();
@@ -66,7 +71,7 @@ export default function CheckinTestPage() {
     setScoreResult(null);
   }
 
-  const weekGroups = selectedWeek ? habitsUpTo(selectedWeek) : [];
+  const weekGroups = selectedWeek ? habitsUpTo(weeks, selectedWeek) : [];
   const allHabitKeys = weekGroups.flatMap((g) => g.items.map((i) => i.key));
   const allAnswered = allHabitKeys.length > 0 && allHabitKeys.every((k) => habitStatus[k]);
 
@@ -149,7 +154,7 @@ export default function CheckinTestPage() {
 
         {/* Wochen-Buttons */}
         <div className="mb-10 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {CHALLENGE_WEEKS.map((week) => (
+          {weeks.map((week) => (
             <button
               key={week.num}
               type="button"

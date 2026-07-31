@@ -4,6 +4,7 @@ import { getServiceClient } from '@/lib/supabaseServer';
 import { getUserFromAuthHeader } from '@/lib/apiAuth';
 import { getChallengeSchedule } from '@/lib/challengeSchedule';
 import { maxGesamtScore, noteFuer } from '@/lib/challengeScoring';
+import { fetchChallengeWeeks, fetchChallengeTypIdBySlug, LONGEVITY_CHALLENGE_TYP_SLUG, type ChallengeWeek } from '@/lib/challengeWeeks';
 
 export const runtime = 'nodejs';
 
@@ -32,7 +33,7 @@ export async function GET(req: Request) {
 
   const { data: teilnahmen, error: teilnahmenError } = await supabase
     .from('challenge_teilnahmen')
-    .select('id, user_id, status, gesamt_score, joined_at, challenges ( name, start_datum, wochen_anzahl )');
+    .select('id, user_id, status, gesamt_score, joined_at, challenges ( name, start_datum, wochen_anzahl, challenge_typ_id )');
 
   if (teilnahmenError) {
     console.error('Admin teilnahmen lookup error:', teilnahmenError);
@@ -48,33 +49,49 @@ export async function GET(req: Request) {
     }
   }
 
-  const users = (profiles ?? []).map((p) => {
-    const t = teilnahmeByUser.get(p.id);
-    const challenge = Array.isArray(t?.challenges) ? t?.challenges[0] : t?.challenges;
+  // Wochen pro Challenge-Typ einmal laden und cachen (i.d.R. nur ein Typ,
+  // aber vorbereitet für mehrere Studios/Typen — siehe GAMEPLAN_B2B).
+  const fallbackTypId = await fetchChallengeTypIdBySlug(supabase, LONGEVITY_CHALLENGE_TYP_SLUG);
+  const weeksByTypId = new Map<string, ChallengeWeek[]>();
+  async function weeksFor(typId: string | null): Promise<ChallengeWeek[]> {
+    const resolvedTypId = typId ?? fallbackTypId;
+    if (!resolvedTypId) return [];
+    if (!weeksByTypId.has(resolvedTypId)) {
+      weeksByTypId.set(resolvedTypId, await fetchChallengeWeeks(supabase, resolvedTypId));
+    }
+    return weeksByTypId.get(resolvedTypId)!;
+  }
 
-    const currentWeek = challenge?.start_datum
-      ? getChallengeSchedule(challenge.start_datum, challenge.wochen_anzahl ?? 8).currentWeek
-      : 1;
-    const gesamtScore = t?.gesamt_score ?? 0;
-    const maxScore = t ? maxGesamtScore(currentWeek) : 0;
-    const note = noteFuer(gesamtScore, maxScore);
+  const users = await Promise.all(
+    (profiles ?? []).map(async (p) => {
+      const t = teilnahmeByUser.get(p.id);
+      const challenge = Array.isArray(t?.challenges) ? t?.challenges[0] : t?.challenges;
 
-    return {
-      id: p.id,
-      teilnahme_id: t?.id ?? null,
-      vorname: p.vorname,
-      nachname: p.nachname,
-      email: p.email,
-      ist_admin: p.ist_admin,
-      created_at: p.created_at,
-      challenge_name: challenge?.name ?? null,
-      status: t?.status ?? null,
-      gesamt_score: gesamtScore,
-      max_score: maxScore,
-      note_wert: t ? note.wert : null,
-      note_label: t ? note.label : null,
-    };
-  });
+      const currentWeek = challenge?.start_datum
+        ? getChallengeSchedule(challenge.start_datum, challenge.wochen_anzahl ?? 8).currentWeek
+        : 1;
+      const gesamtScore = t?.gesamt_score ?? 0;
+      const weeks = t ? await weeksFor(challenge?.challenge_typ_id ?? null) : [];
+      const maxScore = t ? maxGesamtScore(weeks, currentWeek) : 0;
+      const note = noteFuer(gesamtScore, maxScore);
+
+      return {
+        id: p.id,
+        teilnahme_id: t?.id ?? null,
+        vorname: p.vorname,
+        nachname: p.nachname,
+        email: p.email,
+        ist_admin: p.ist_admin,
+        created_at: p.created_at,
+        challenge_name: challenge?.name ?? null,
+        status: t?.status ?? null,
+        gesamt_score: gesamtScore,
+        max_score: maxScore,
+        note_wert: t ? note.wert : null,
+        note_label: t ? note.label : null,
+      };
+    })
+  );
 
   return NextResponse.json({ users }, { status: 200 });
 }
