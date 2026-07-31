@@ -1,13 +1,19 @@
 # Plan B — B2B Challenge-Plattform für inhabergeführte Fitnessstudios
 
-**Stand:** Juli 2026 · **Status:** Konzeptphase, noch nicht begonnen
+**Stand:** Juli 2026 · **Status:** Architektur-Umbau läuft (Schritt 1+2 umgesetzt, Referenz-Studio Turnkiste angelegt)
 
 > **Wichtige Abgrenzung:** Dieses Dokument ist bewusst getrennt von [`GAMEPLAN.md`](GAMEPLAN.md) gehalten.
 > Die dort beschriebene Longevity-Lifestyle-Challenge ist die **laufende B2C-Geschichte** — die geht
 > so live, wie sie ist. Newsletter an bestehende Leads/Endkunden gehen voraussichtlich nächste Woche
 > raus. Nichts aus diesem Plan-B-Dokument darf den B2C-Launch verzögern oder das bestehende
-> Challenge-System destabilisieren. Dieses Dokument ist reine Konzeptarbeit für eine mögliche
-> **zweite, parallele Produktlinie** — kein Auftrag, jetzt etwas umzubauen.
+> Challenge-System destabilisieren.
+>
+> **Auflösung des "erst nach dem Launch"-Dilemmas (diese Session):** Die bestehende Longevity-Challenge
+> wurde einem echten Referenz-Studio **"Turnkiste"** zugeordnet (Migration `0018_turnkiste_studio.sql`),
+> statt bis nach dem Launch mit `studio_id = NULL` zu warten. Der Masteradmin ist gleichzeitig
+> Studio-Admin von Turnkiste. B2C-Kunden aus dem Newsletter werden dadurch automatisch zu
+> "virtuellen Mitgliedern" von Turnkiste — die Multi-Tenant-Struktur existiert von Anfang an, ohne
+> dass sich am B2C-Verhalten irgendetwas ändert (kein Code liest `studio_id` bisher).
 
 ---
 
@@ -272,9 +278,16 @@ migrierten Longevity-Challenge als erstem "Typ" durchgetestet ist.
 1. ✅ Schritt 1+2 als reine additive Migrationen — umgesetzt, gegen die Produktions-DB angewendet
    und verifiziert (Backfill korrekt, `tsc`/Build weiterhin sauber, B2C-Challenge unverändert
    funktionsfähig — nichts liest die neuen Tabellen bisher).
-2. Content-Migrationsskript (noch offen, separates Vorhaben): bestehende Longevity-Inhalte aus
-   `lib/challengeWeeks.ts` per Einmal-Skript in die neuen Tabellen überführen — **erst nachdem**
-   Schritt 4 (Code-Refactor) auf einer Kopie/Staging verifiziert wurde.
-3. Schritt 3+4 (RLS + Code-Cutover): **bewusst noch nicht angefasst.** Erst wenn Content-Migration
-   steht, **und erst nach dem B2C-Newsletter-Launch**, nicht währenddessen.
-4. Schritt 5+6: eigene Vorhaben danach.
+2. ✅ Referenz-Studio "Turnkiste" angelegt (Migration `0018_turnkiste_studio.sql`) — Masteradmin ist
+   Studio-Admin, bestehende Challenge ist Turnkiste zugeordnet. **Damit ist die "erst nach dem
+   Launch"-Bremse für die Multi-Tenant-Grundstruktur aufgehoben:** neue B2C-Anmeldungen aus dem
+   Newsletter landen automatisch als virtuelle Turnkiste-Mitglieder, die Struktur muss nicht mehr
+   nachträglich eingezogen werden.
+3. Content-Migrationsskript (noch offen, separates Vorhaben): bestehende Longevity-Inhalte aus
+   `lib/challengeWeeks.ts` per Einmal-Skript in die neuen Tabellen überführen — **erst danach**
+   Schritt 4 (Code-Refactor) angehen, idealerweise gegen eine Kopie/Staging verifiziert.
+4. Schritt 3 (RLS/Zugriffslogik-Helper) + Schritt 4 (Code-Cutover): weiterhin sorgfältig timen — das
+   sind die Schritte, die tatsächlich Verhalten ändern (Datenquelle wechselt). Empfehlung bleibt:
+   nicht in der eigentlichen Launch-Woche selbst, auch wenn die Turnkiste-Zuordnung das Risiko schon
+   deutlich reduziert hat.
+5. Schritt 5+6: eigene Vorhaben danach.
