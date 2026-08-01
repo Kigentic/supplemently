@@ -1,9 +1,14 @@
 # Plan B — B2B Challenge-Plattform für inhabergeführte Fitnessstudios
 
 **Stand:** Juli 2026 · **Status:** Schritt 1–4 + 6 (Kern) umgesetzt und verifiziert — Studios können
-sich unter `/studio/registrierung` selbst anlegen. Offen: Schritt 5 (Affiliate-Ebene pro Typ),
-Payment, echte Challenge-Kohorten pro Studio + Anmeldelink für deren Endkunden, sowie separat
-Konto-Reaktivierung/Einladungslink/Mitglieder-Detailauswertung für den Studio-Admin.
+sich unter `/studio/registrierung` selbst anlegen und unter `/challenge/admin/durchgaenge` eigene
+Challenge-Durchgänge (Startdatum wählbar, fix 8 Wochen) anlegen. Offen: Schritt 5 (Affiliate-Ebene
+pro Typ), Payment, Anmeldelink für Endkunden pro Durchgang, sowie separat Konto-Reaktivierung/
+Einladungslink/Mitglieder-Detailauswertung für den Studio-Admin.
+>
+> **Begriffsklärung:** Was in Supabase/Code als "Kohorte" bezeichnet wurde (ein konkreter Lauf einer
+> Challenge mit Start-/Enddatum), heißt ab jetzt durchgängig **"Challenge-Durchgang"** oder kurz
+> **"Durchgang"** — verständlicher, "Kohorte" wird hier nicht mehr verwendet.
 
 > **Wichtige Abgrenzung:** Dieses Dokument ist bewusst getrennt von [`GAMEPLAN.md`](GAMEPLAN.md) gehalten.
 > Die dort beschriebene Longevity-Lifestyle-Challenge ist die **laufende B2C-Geschichte** — die geht
@@ -68,7 +73,7 @@ Das ist **fast genau das Fundament**, das die B2B-Challenge-Plattform braucht �
 im Kern schon ein Subscription-Gate, `slug` schon eine Microsite-URL-Lösung. Die Challenge-Tabellen
 (`challenges`, `challenge_teilnahmen`, etc. aus Migration `0008_challenge_platform.sql`) referenzieren
 aktuell **keine** `studios` — die Challenge ist komplett single-tenant gebaut (ein globaler
-Masteradmin, eine Kohorte). Der Umbau ist also: **bestehendes `studios`-Konzept auf die
+Masteradmin, ein Durchgang). Der Umbau ist also: **bestehendes `studios`-Konzept auf die
 Challenge-Tabellen ausweiten**, nicht von null anfangen.
 
 ---
@@ -300,13 +305,33 @@ wie B2C (Resend statt Supabase-Standardmail, `lib/email.ts` `layout()` jetzt mit
 `studio_challenge_typen`-Buchung des gewählten Typs. Login-Seite leitet Studio-Admins ohne eigene
 Teilnahme jetzt zu `/challenge/admin` statt fälschlich zum Fragebogen.
 
-**Bewusst nicht dabei:** Payment/CopeCart (separates Vorhaben, offene Preismodell-Frage siehe
-"Offene Fragen" oben), generierter Anmeldelink für Endkunden pro Studio-Kohorte (bräuchte erst
-eine echte Challenge-Kohorte pro Studio — aktuell bucht die Registrierung nur den Challenge-*Typ*,
-noch keine konkrete Kohorte/`challenges`-Zeile).
+**Bewusst nicht dabei bei der Registrierung selbst:** Payment/CopeCart (separates Vorhaben, offene
+Preismodell-Frage siehe "Offene Fragen" oben). Ein Anmeldelink für Endkunden pro Durchgang fehlt
+noch — siehe Schritt 6b.
 
 **Verifiziert:** End-to-End gegen die Produktions-DB getestet (echte Registrierung mit
 Rückenfit-Auswahl durchgespielt, alle Verknüpfungen korrekt, danach aufgeräumt).
+
+### Schritt 6b — Challenge-Durchgänge anlegen ✅ umgesetzt
+
+`/challenge/admin/durchgaenge`: Studio-Admin wählt Startdatum + Challenge-Typ (aus den fürs Studio
+gebuchten), Dauer ist bewusst **fix 8 Wochen** (kein variables Feld — sonst Chaos mit den
+Wocheninhalten, die pro Woche fest durchnummeriert sind). `POST/GET /api/studio/durchgaenge` legt
+an bzw. listet bestehende Durchgänge. `getAdminScope()` (`lib/apiAuth.ts`) ermittelt jetzt immer
+auch die Studio-Zugehörigkeit (auch für den Masteradmin, der z.B. gleichzeitig Studio-Admin von
+Turnkiste ist) — nötig, damit er einen Durchgang für sein eigenes Studio anlegen kann.
+
+**Sicherheitsfix im Zuge dessen:** `app/api/challenge/registrierung` + `onboarding` suchten bislang
+global nach "irgendeiner offenen Challenge" ohne Studio-Filter. Sobald ein zweites Studio einen
+eigenen offenen Durchgang anlegt, hätte das den B2C-Anmeldeflow kapern können. Beide Routen sind
+jetzt bewusst auf Turnkiste beschränkt (`lib/studio.ts`).
+
+**Verifiziert:** neuen Durchgang mit Startdatum 01.09.2026 angelegt, Enddatum korrekt auf
+27.10.2026 berechnet (exakt 8 Wochen), danach wieder gelöscht.
+
+**Noch offen:** ein Anmeldelink, den das Studio an seine Endkunden weitergeben kann, damit sich
+diese gezielt für EINEN bestimmten Durchgang registrieren (aktuell landet jede B2C-Registrierung
+nur bei Turnkiste, siehe Sicherheitsfix oben).
 
 ### Reihenfolge & Sicherheits-Leitplanke
 
@@ -323,5 +348,7 @@ Rückenfit-Auswahl durchgespielt, alle Verknüpfungen korrekt, danach aufgeräum
    den `challenge_typ_*`-Tabellen.
 4. ✅ Schritt 3 (Studio-Admin-Rolle) — umgesetzt, Isolation gegen die Produktions-DB verifiziert
    (Details oben bei Schritt 3).
-5. Schritt 5+6: eigene Vorhaben danach. Zusätzlich als eigener Task vorgemerkt: Konto-Reaktivierung,
-   Einladungslink-Versand, Mitglieder-Detailauswertung/Fortschrittsbalken für den Studio-Admin.
+5. ✅ Schritt 6 (Kern) + 6b — umgesetzt und verifiziert (Details oben). Offen bleibt: Payment,
+   Schritt 5 (Affiliate-Ebene pro Typ), Anmeldelink pro Durchgang für Endkunden, sowie als eigener
+   Task vorgemerkt: Konto-Reaktivierung, Einladungslink-Versand,
+   Mitglieder-Detailauswertung/Fortschrittsbalken für den Studio-Admin.
