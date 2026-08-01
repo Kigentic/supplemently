@@ -1,6 +1,6 @@
 # Plan B — B2B Challenge-Plattform für inhabergeführte Fitnessstudios
 
-**Stand:** Juli 2026 · **Status:** Architektur-Umbau weit fortgeschritten (Schritt 1+2+4 umgesetzt, Content-Migration + Code-Cutover live verifiziert — nur Schritt 3 Studio-RLS-Helper noch offen)
+**Stand:** Juli 2026 · **Status:** Architektur-Umbau Schritt 1–4 umgesetzt und verifiziert. Offen: Schritt 5+6 (Affiliate-Ebene pro Typ, Studio-Onboarding/B2B-Landingpage) sowie separat Konto-Reaktivierung/Einladungslink/Mitglieder-Detailauswertung für den Studio-Admin.
 
 > **Wichtige Abgrenzung:** Dieses Dokument ist bewusst getrennt von [`GAMEPLAN.md`](GAMEPLAN.md) gehalten.
 > Die dort beschriebene Longevity-Lifestyle-Challenge ist die **laufende B2C-Geschichte** — die geht
@@ -229,14 +229,30 @@ Backfill: bestehende(r) `challenges`-Zeile(n) bekommen `challenge_typ_id` = die 
 Longevity-Zeile aus Schritt 1, `studio_id` bleibt NULL (die aktuelle B2C-Challenge gehört keinem
 Studio — das ist explizit erlaubt, nicht jede Challenge braucht ein Studio).
 
-### Schritt 3 — RLS/Zugriffslogik erweitern
+### Schritt 3 — Studio-Admin-Rolle (Kern) ✅ umgesetzt
 
-Der Masteradmin-Check läuft aktuell überall applikationsseitig über `profiles.ist_admin` in den
-API-Routes (nicht per RLS-Policy, siehe z.B. `app/api/admin/users/route.ts`). Neue Helper-Funktion
-`isStudioAdminFor(userId, studioId)` (Lookup gegen `studio_admins`), genutzt in einem neuen Satz
-Studio-Admin-API-Routes (`/api/studio-admin/...`), analog zu den bestehenden `/api/admin/...`-Routes,
-aber gefiltert auf `challenges.studio_id = <eigenes Studio>`. Masteradmin-Flag bleibt als globaler
-Override bestehen (sieht alle Studios).
+`getAdminScope()`/`hasAdminAccess()` in `lib/apiAuth.ts`: Masteradmin (`profiles.ist_admin`) hat
+Vorrang und sieht alles; sonst wird gegen `studio_admins` geprüft, für welche Studio(s) der User
+Admin ist. Kein neuer Routen-Satz nötig — die 3 bestehenden Admin-Routen wurden direkt gescopt:
+
+- `/api/admin/users` — Studio-Admin sieht nur Teilnehmer + Profile der eigenen Studio(s)
+- `/api/admin/teilnahme/[id]/checkins` — prüft, dass die Teilnahme zum eigenen Studio gehört
+- `/api/admin/affiliate-stats` — Klicks/Impressions nur aus dem eigenen Scope (über die eigenen
+  Teilnahme-IDs gefiltert, da `empfehlungen_log` keine direkte `studio_id`-Spalte hat)
+
+Frontend (`/challenge/admin`, `/challenge/admin/affiliate-stats`) zeigt je nach zurückgegebenem
+`scope` ("all"/"studio") "Masteradmin" oder "Studio-Admin". "Check-in-Fragen testen" bleibt
+Masteradmin-only (Content-Testing-Tool, keine Studio-Management-Funktion).
+
+**Isolation verifiziert:** temporäres zweites Studio + Challenge + Teilnahme gegen die
+Produktions-DB angelegt, exakte Route-Query beidseitig getestet (gescoped auf Turnkiste zeigt
+NICHT die fremde Teilnahme, gescoped auf das andere Studio zeigt NUR diese) — kein Datenleck,
+danach vollständig aufgeräumt.
+
+**Bewusst nicht Teil davon (eigener Task, siehe User-Anfrage):** Konto-Reaktivierung,
+Einladungslink-Versand, Mitglieder-Detailauswertung/Fortschrittsbalken pro Mitglied. Diese
+Features existieren aktuell auch für den Masteradmin nirgends — kein reines Scoping-Thema,
+sondern neue Funktionalität.
 
 ### Schritt 4 — Code-Refactor: Datenquelle austauschen, Interfaces behalten ✅ umgesetzt
 
@@ -287,6 +303,7 @@ migrierten Longevity-Challenge als erstem "Typ" durchgetestet ist.
 3. ✅ Content-Migration + Schritt 4 (Code-Cutover) — umgesetzt und end-to-end verifiziert (Details
    oben bei Schritt 4). `lib/challengeWeeks.ts` lädt jetzt aus der DB, Longevity-Inhalte liegen in
    den `challenge_typ_*`-Tabellen.
-4. Schritt 3 (RLS/Zugriffslogik-Helper `isStudioAdminFor()`) — noch offen. Nicht dringend, solange
-   nur ein Studio (Turnkiste) existiert und der globale Masteradmin-Check ausreicht.
-5. Schritt 5+6: eigene Vorhaben danach.
+4. ✅ Schritt 3 (Studio-Admin-Rolle) — umgesetzt, Isolation gegen die Produktions-DB verifiziert
+   (Details oben bei Schritt 3).
+5. Schritt 5+6: eigene Vorhaben danach. Zusätzlich als eigener Task vorgemerkt: Konto-Reaktivierung,
+   Einladungslink-Versand, Mitglieder-Detailauswertung/Fortschrittsbalken für den Studio-Admin.
