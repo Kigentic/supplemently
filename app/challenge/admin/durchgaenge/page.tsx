@@ -24,6 +24,8 @@ interface Durchgang {
   wochenAnzahl: number;
   istAktiv: boolean;
   istOffen: boolean;
+  benoetigtFreischaltung: boolean;
+  anmeldeLink: string;
 }
 
 interface ChallengeTypOption {
@@ -38,6 +40,7 @@ export default function DurchgaengePage() {
   const [studioId, setStudioId] = useState<string | null>(null);
   const [typen, setTypen] = useState<ChallengeTypOption[]>([]);
   const [durchgaenge, setDurchgaenge] = useState<Durchgang[] | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const [startDatum, setStartDatum] = useState('');
   const [challengeTypId, setChallengeTypId] = useState('');
@@ -251,12 +254,13 @@ export default function DurchgaengePage() {
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Zeitraum</th>
                 <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Anmeldelink</th>
               </tr>
             </thead>
             <tbody>
               {durchgaenge && durchgaenge.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="px-4 py-6 text-center text-text-muted">
+                  <td colSpan={4} className="px-4 py-6 text-center text-text-muted">
                     Noch kein Durchgang angelegt.
                   </td>
                 </tr>
@@ -275,6 +279,19 @@ export default function DurchgaengePage() {
                     >
                       {d.istOffen ? 'Offen' : 'Geschlossen'}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(d.anmeldeLink);
+                        setCopiedId(d.id);
+                        setTimeout(() => setCopiedId((cur) => (cur === d.id ? null : cur)), 2000);
+                      }}
+                      className="text-xs font-medium text-accent hover:underline"
+                    >
+                      {copiedId === d.id ? 'Kopiert ✓' : 'Link kopieren'}
+                    </button>
                   </td>
                 </tr>
               ))}
