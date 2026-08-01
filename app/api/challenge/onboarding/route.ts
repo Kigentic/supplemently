@@ -31,21 +31,10 @@ export async function POST(req: Request) {
 
   const supabase = getServiceClient();
 
-  // 1. Supplement-Katalog laden + Matching berechnen.
-  const { data: supplements, error: loadErr } = await supabase
-    .from('supplements')
-    .select(
-      'id, name, kategorie, tier, zielgruppe, wirkung, bevorzugte_form, dosierung_empfehlung, kontraindikationen, evidenzlevel, ist_kombipraeparat, inhaltsstoffe'
-    );
-  if (loadErr) {
-    return NextResponse.json({ error: 'Katalog konnte nicht geladen werden.' }, { status: 500 });
-  }
-  const ergebnis = match(answers, (supplements ?? []) as Supplement[]);
-
-  // 2. Teilnahme des Users finden (aus der Registrierung bereits angelegt).
+  // 1. Teilnahme des Users finden (aus der Registrierung bereits angelegt).
   let { data: teilnahme, error: teilnahmeError } = await supabase
     .from('challenge_teilnahmen')
-    .select('id')
+    .select('id, status, challenges ( benoetigt_freischaltung )')
     .eq('user_id', user.id)
     .order('joined_at', { ascending: false })
     .limit(1)
@@ -55,6 +44,30 @@ export async function POST(req: Request) {
     console.error('Teilnahme lookup error:', teilnahmeError);
     return NextResponse.json({ error: 'Teilnahme konnte nicht geladen werden.' }, { status: 500 });
   }
+
+  // Manuelle Freischaltung durch das Studio nötig (kein automatisiertes
+  // Payment über uns) — solange die Zahlung nicht bestätigt und die
+  // Teilnahme nicht freigeschaltet ist, bleibt der Fragebogen gesperrt.
+  if (teilnahme) {
+    const challenge = Array.isArray(teilnahme.challenges) ? teilnahme.challenges[0] : teilnahme.challenges;
+    if (challenge?.benoetigt_freischaltung && teilnahme.status === 'pre_registered') {
+      return NextResponse.json(
+        { error: 'Dein Zugang muss erst von deinem Studio freigeschaltet werden — meist nach Zahlungseingang.' },
+        { status: 403 }
+      );
+    }
+  }
+
+  // 2. Supplement-Katalog laden + Matching berechnen.
+  const { data: supplements, error: loadErr } = await supabase
+    .from('supplements')
+    .select(
+      'id, name, kategorie, tier, zielgruppe, wirkung, bevorzugte_form, dosierung_empfehlung, kontraindikationen, evidenzlevel, ist_kombipraeparat, inhaltsstoffe'
+    );
+  if (loadErr) {
+    return NextResponse.json({ error: 'Katalog konnte nicht geladen werden.' }, { status: 500 });
+  }
+  const ergebnis = match(answers, (supplements ?? []) as Supplement[]);
 
   // Selbstheilung: falls bei der Registrierung noch keine offene Challenge
   // existierte (oder aus anderem Grund keine Teilnahme angelegt wurde),
@@ -88,14 +101,16 @@ export async function POST(req: Request) {
       console.error('Teilnahme create error:', createError);
       return NextResponse.json({ error: 'Teilnahme konnte nicht angelegt werden.' }, { status: 500 });
     }
-    teilnahme = neueTeilnahme;
+    teilnahme = { id: neueTeilnahme.id, status: 'pre_registered', challenges: [] };
   }
+
+  const teilnahmeId: string = teilnahme.id;
 
   // 3. Onboarding-Antworten speichern, Status auf aktiv setzen.
   const { error: updateError } = await supabase
     .from('challenge_teilnahmen')
     .update({ onboarding_antworten: answers, status: 'aktiv' })
-    .eq('id', teilnahme.id);
+    .eq('id', teilnahmeId);
   if (updateError) {
     console.error('Teilnahme update error:', updateError);
     return NextResponse.json({ error: 'Antworten konnten nicht gespeichert werden.' }, { status: 500 });
@@ -104,7 +119,7 @@ export async function POST(req: Request) {
   // 4. Matching-Ergebnis speichern (nicht sofort anzeigen — das Dashboard holt es ab).
   const { error: empfehlungError } = await supabase
     .from('supplement_empfehlungen')
-    .upsert({ teilnahme_id: teilnahme.id, match_result: ergebnis }, { onConflict: 'teilnahme_id' });
+    .upsert({ teilnahme_id: teilnahmeId, match_result: ergebnis }, { onConflict: 'teilnahme_id' });
   if (empfehlungError) {
     console.error('Empfehlung save error:', empfehlungError);
     return NextResponse.json({ error: 'Empfehlung konnte nicht gespeichert werden.' }, { status: 500 });
@@ -123,7 +138,7 @@ export async function POST(req: Request) {
     if (affiliateEmpfehlungen.length > 0) {
       const { error: logError } = await supabase.from('empfehlungen_log').insert(
         affiliateEmpfehlungen.map((l) => ({
-          teilnahme_id: teilnahme.id,
+          teilnahme_id: teilnahmeId,
           affiliate_link_id: l.id,
           kontext: 'onboarding',
         }))

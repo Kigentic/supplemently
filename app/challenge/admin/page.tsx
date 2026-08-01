@@ -93,6 +93,7 @@ export default function AdminPage() {
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
   const [breakdown, setBreakdown] = useState<CheckinBreakdown[] | null>(null);
   const [breakdownLoading, setBreakdownLoading] = useState(false);
+  const [freischaltenLoading, setFreischaltenLoading] = useState<string | null>(null);
   const [breakdownError, setBreakdownError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -171,6 +172,22 @@ export default function AdminPage() {
     } catch {
       setBreakdownError('Server nicht erreichbar.');
       setBreakdownLoading(false);
+    }
+  }
+
+  async function onFreischalten(u: AdminUser) {
+    if (!u.teilnahme_id || !accessToken) return;
+    setFreischaltenLoading(u.id);
+    try {
+      const res = await fetch(`/api/admin/teilnahme/${u.teilnahme_id}/freischalten`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (res.ok) {
+        setUsers((prev) => prev?.map((x) => (x.id === u.id ? { ...x, status: 'aktiv' } : x)) ?? prev);
+      }
+    } finally {
+      setFreischaltenLoading(null);
     }
   }
 
@@ -286,15 +303,27 @@ export default function AdminPage() {
                         {new Date(u.created_at).toLocaleDateString('de-DE')}
                       </td>
                       <td className="px-4 py-3">
-                        {u.teilnahme_id && (
-                          <button
-                            type="button"
-                            onClick={() => toggleDetails(u)}
-                            className="whitespace-nowrap text-xs font-medium text-accent hover:underline"
-                          >
-                            {expandedUserId === u.id ? 'Schließen ▴' : 'Aufgaben ▾'}
-                          </button>
-                        )}
+                        <div className="flex flex-wrap items-center gap-3">
+                          {u.status === 'pre_registered' && (
+                            <button
+                              type="button"
+                              onClick={() => onFreischalten(u)}
+                              disabled={freischaltenLoading === u.id}
+                              className="whitespace-nowrap rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-on-accent transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {freischaltenLoading === u.id ? 'Wird freigeschaltet …' : 'Freischalten'}
+                            </button>
+                          )}
+                          {u.teilnahme_id && (
+                            <button
+                              type="button"
+                              onClick={() => toggleDetails(u)}
+                              className="whitespace-nowrap text-xs font-medium text-accent hover:underline"
+                            >
+                              {expandedUserId === u.id ? 'Schließen ▴' : 'Aufgaben ▾'}
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                     {expandedUserId === u.id && (

@@ -48,7 +48,7 @@ export async function GET(req: Request) {
 
   const { data, error } = await supabase
     .from('challenges')
-    .select('id, name, slug, start_datum, end_datum, wochen_anzahl, ist_aktiv, ist_offen, challenge_typen ( name )')
+    .select('id, name, slug, start_datum, end_datum, wochen_anzahl, ist_aktiv, ist_offen, benoetigt_freischaltung, challenge_typen ( name )')
     .eq('studio_id', resolved)
     .order('start_datum', { ascending: false });
 
@@ -68,6 +68,8 @@ export async function GET(req: Request) {
       wochenAnzahl: c.wochen_anzahl,
       istAktiv: c.ist_aktiv,
       istOffen: c.ist_offen,
+      benoetigtFreischaltung: c.benoetigt_freischaltung,
+      anmeldeLink: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://supplemently.vercel.app'}/anmelden/${c.slug}`,
     };
   });
 
@@ -145,6 +147,10 @@ export async function POST(req: Request) {
       ist_offen: true,
       paywall_aktiv: false,
       preis_cent: 0,
+      // Neu registrierte Endkunden bleiben "pre_registered", bis das Studio
+      // sie nach eingegangener (eigenständig abgewickelter) Zahlung manuell
+      // freischaltet — siehe app/api/admin/teilnahme/[teilnahmeId]/freischalten.
+      benoetigt_freischaltung: true,
     })
     .select('id, name, slug, start_datum, end_datum')
     .single();

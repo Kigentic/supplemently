@@ -50,7 +50,7 @@ export async function POST(req: Request) {
   const [{ data: teilnahme, error: teilnahmeError }, { data: profile }] = await Promise.all([
     supabase
       .from('challenge_teilnahmen')
-      .select('id, challenges ( start_datum, wochen_anzahl, challenge_typ_id )')
+      .select('id, status, challenges ( start_datum, wochen_anzahl, challenge_typ_id, benoetigt_freischaltung )')
       .eq('user_id', user.id)
       .order('joined_at', { ascending: false })
       .limit(1)
@@ -68,6 +68,15 @@ export async function POST(req: Request) {
 
   const isAdmin = !!profile?.ist_admin;
   const challenge = Array.isArray(teilnahme.challenges) ? teilnahme.challenges[0] : teilnahme.challenges;
+
+  // Manuelle Freischaltung durch das Studio nötig (kein automatisiertes
+  // Payment über uns) — solange nicht freigeschaltet, kein Check-in möglich.
+  if (!isAdmin && challenge?.benoetigt_freischaltung && teilnahme.status === 'pre_registered') {
+    return NextResponse.json(
+      { error: 'Dein Zugang muss erst von deinem Studio freigeschaltet werden — meist nach Zahlungseingang.' },
+      { status: 403 }
+    );
+  }
 
   // Datums-Gate serverseitig durchsetzen — Client-Checks sind nur UI-Komfort.
   // Masteradmin darf jede Woche jederzeit einchecken.

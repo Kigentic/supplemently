@@ -78,6 +78,19 @@ export default function LoginPage() {
       return;
     }
 
+    if (teilnahme?.status === 'pre_registered') {
+      const { data: sessionData2 } = await supabase.auth.getSession();
+      const token = sessionData2.session?.access_token;
+      if (token) {
+        const res = await fetch('/api/challenge/mein-status', { headers: { Authorization: `Bearer ${token}` } });
+        const json = await res.json().catch(() => ({}));
+        if (json?.wartetAufFreischaltung) {
+          router.push('/challenge/warten-auf-freischaltung');
+          return;
+        }
+      }
+    }
+
     const [{ data: profile }, { data: studioAdmin }] = (await Promise.all([
       supabase.from('profiles').select('ist_admin').eq('id', userId).maybeSingle(),
       supabase.from('studio_admins').select('id').eq('user_id', userId).limit(1).maybeSingle(),

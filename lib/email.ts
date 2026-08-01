@@ -177,6 +177,100 @@ export async function sendStudioConfirmationEmail({
   if (error) throw new Error(typeof error === 'string' ? error : error.message);
 }
 
+export async function sendDurchgangConfirmationEmail({
+  to,
+  vorname,
+  studioName,
+  durchgangName,
+  confirmLink,
+}: {
+  to: string;
+  vorname: string;
+  studioName: string;
+  durchgangName: string;
+  confirmLink: string;
+}) {
+  const body = `
+    <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#707070;">Hey ${escapeHtml(vorname)} 👋</h1>
+    <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#4a4a4a;">
+      Bestätige deine E-Mail-Adresse für <strong>${escapeHtml(durchgangName)}</strong> bei
+      ${escapeHtml(studioName)}. Dein Studio schaltet dich nach Zahlungseingang frei — danach
+      geht's direkt los.
+    </p>
+    <table role="presentation" cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+          <a href="${confirmLink}" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
+            E-Mail bestätigen
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="margin:28px 0 0;font-size:13px;line-height:1.6;color:#959595;">
+      Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:<br/>
+      <a href="${confirmLink}" style="color:#4f90c1;word-break:break-all;">${confirmLink}</a>
+    </p>
+    <p style="margin:20px 0 0;font-size:13px;line-height:1.6;color:#959595;">
+      Der Link ist 24 Stunden gültig. Wenn du dich nicht angemeldet hast, kannst du diese Mail ignorieren.
+    </p>
+  `;
+
+  const resend = getResend();
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Bestätige deine E-Mail — ${durchgangName}`,
+    html: layout(body, studioName),
+  });
+
+  if (error) throw new Error(typeof error === 'string' ? error : error.message);
+}
+
+export async function sendNeueRegistrierungEmail({
+  to,
+  studioName,
+  durchgangName,
+  teilnehmerName,
+  teilnehmerEmail,
+}: {
+  to: string;
+  studioName: string;
+  durchgangName: string;
+  teilnehmerName: string;
+  teilnehmerEmail: string;
+}) {
+  const body = `
+    <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#707070;">Neue Registrierung 🎉</h1>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4a4a4a;">
+      <strong>${escapeHtml(teilnehmerName)}</strong> (${escapeHtml(teilnehmerEmail)}) hat sich gerade
+      für <strong>${escapeHtml(durchgangName)}</strong> registriert.
+    </p>
+    <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#4a4a4a;">
+      Sobald die Zahlung bei euch eingegangen ist, schaltet ihr das Mitglied in eurem
+      Studio-Bereich frei — erst dann kann es die Challenge nutzen.
+    </p>
+    <table role="presentation" cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+          <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://supplemently.vercel.app'}/challenge/admin" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
+            Zum Studio-Bereich
+          </a>
+        </td>
+      </tr>
+    </table>
+  `;
+
+  const resend = getResend();
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Neue Registrierung — ${durchgangName}`,
+    html: layout(body, studioName),
+  });
+
+  if (error) throw new Error(typeof error === 'string' ? error : error.message);
+}
+
 function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 }
