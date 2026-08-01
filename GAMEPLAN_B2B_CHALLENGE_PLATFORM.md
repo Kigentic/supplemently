@@ -1,6 +1,9 @@
 # Plan B — B2B Challenge-Plattform für inhabergeführte Fitnessstudios
 
-**Stand:** Juli 2026 · **Status:** Architektur-Umbau Schritt 1–4 umgesetzt und verifiziert. Offen: Schritt 5+6 (Affiliate-Ebene pro Typ, Studio-Onboarding/B2B-Landingpage) sowie separat Konto-Reaktivierung/Einladungslink/Mitglieder-Detailauswertung für den Studio-Admin.
+**Stand:** Juli 2026 · **Status:** Schritt 1–4 + 6 (Kern) umgesetzt und verifiziert — Studios können
+sich unter `/studio/registrierung` selbst anlegen. Offen: Schritt 5 (Affiliate-Ebene pro Typ),
+Payment, echte Challenge-Kohorten pro Studio + Anmeldelink für deren Endkunden, sowie separat
+Konto-Reaktivierung/Einladungslink/Mitglieder-Detailauswertung für den Studio-Admin.
 
 > **Wichtige Abgrenzung:** Dieses Dokument ist bewusst getrennt von [`GAMEPLAN.md`](GAMEPLAN.md) gehalten.
 > Die dort beschriebene Longevity-Lifestyle-Challenge ist die **laufende B2C-Geschichte** — die geht
@@ -284,11 +287,26 @@ sobald ein zweites Studio echten Zugriff braucht (Schritt 6).
 (nullable = für alle Typen nutzbar, wie bisher). Verhindert z.B., dass eine Rücken-Challenge
 Barfußschuhe empfiehlt, nur weil `trigger_tags` zufällig matchen.
 
-### Schritt 6 — Studio-Onboarding-Flow + B2B-Landingpage (neues Feature, kein Umbau)
+### Schritt 6 — Studio-Onboarding-Flow ✅ Kern umgesetzt (ohne Payment)
 
-Separates Stück Arbeit, baut auf Schritt 1–5 auf: Registrierung, Challenge-Typ-Auswahl, Payment,
-generierter Anmeldelink, Impressum-Eingabe. Kommt erst, wenn das Datenmodell steht und mit der
-migrierten Longevity-Challenge als erstem "Typ" durchgetestet ist.
+`/studio/registrierung` — öffentliche Registrierungsseite: Studioname, Challenge-Typ-Dropdown
+(Longevity Lifestyle, **Rückenfit**, **Abnehmen** — die beiden neuen Typen sind reine
+Datenbank-Platzhalter ohne Wocheninhalte, siehe Schritt 1), Ansprechpartner
+(Vorname/Nachname/E-Mail/Telefon), Passwort, DSGVO-Einwilligung. Gleiches Bestätigungsmail-Muster
+wie B2C (Resend statt Supabase-Standardmail, `lib/email.ts` `layout()` jetzt mit `brandLabel`-Parameter).
+
+`POST /api/studio/registrierung` legt an: Auth-User für den Ansprechpartner, `profiles`-Zeile,
+`studios`-Zeile (Slug mit Kollisionsauflösung), `studio_admins`-Verknüpfung (`rolle: 'inhaber'`),
+`studio_challenge_typen`-Buchung des gewählten Typs. Login-Seite leitet Studio-Admins ohne eigene
+Teilnahme jetzt zu `/challenge/admin` statt fälschlich zum Fragebogen.
+
+**Bewusst nicht dabei:** Payment/CopeCart (separates Vorhaben, offene Preismodell-Frage siehe
+"Offene Fragen" oben), generierter Anmeldelink für Endkunden pro Studio-Kohorte (bräuchte erst
+eine echte Challenge-Kohorte pro Studio — aktuell bucht die Registrierung nur den Challenge-*Typ*,
+noch keine konkrete Kohorte/`challenges`-Zeile).
+
+**Verifiziert:** End-to-End gegen die Produktions-DB getestet (echte Registrierung mit
+Rückenfit-Auswahl durchgespielt, alle Verknüpfungen korrekt, danach aufgeräumt).
 
 ### Reihenfolge & Sicherheits-Leitplanke
 
