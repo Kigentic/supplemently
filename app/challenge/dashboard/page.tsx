@@ -1,33 +1,36 @@
 'use client';
 
+// Studio-Dashboard: Rasteransicht der eigenen Challenge-Durchgänge inkl.
+// Anmeldelink pro Durchgang (zum Teilen mit Interessenten) und Sprungmarken
+// zur vollen Teilnehmerliste. Reine Mitglieder ohne Studio-Rolle werden zur
+// persönlichen Wochenansicht weitergeleitet (siehe /challenge/wochenansicht,
+// die früher unter dieser URL lag).
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
-import ChallengeWeeksOverview from '@/app/_components/ChallengeWeeksOverview';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
-import { getChallengeSchedule, formatUnlockDate } from '@/lib/challengeSchedule';
-import { fetchChallengeWeeks, fetchChallengeTypIdBySlug, LONGEVITY_CHALLENGE_TYP_SLUG, type ChallengeWeek } from '@/lib/challengeWeeks';
 
-// ── Hauptseite ────────────────────────────────────────────────────────────────
-
-interface DashboardData {
-  vorname: string;
-  challengeName: string | null;
-  currentWeek: number;
+interface Durchgang {
+  id: string;
+  name: string;
+  challengeTypName: string | null;
+  startDatum: string;
+  endDatum: string;
   wochenAnzahl: number;
-  checkinDone: boolean;
-  checkinUnlocked: boolean;
-  checkinUnlockDate: Date;
-  isAdmin: boolean;
-  weeks: ChallengeWeek[];
+  istAktiv: boolean;
+  istOffen: boolean;
+  benoetigtFreischaltung: boolean;
+  anmeldeLink: string;
 }
 
-export default function DashboardPage() {
+export default function StudioDashboardPage() {
   const router = useRouter();
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [checked, setChecked] = useState(false);
+  const [studioName, setStudioName] = useState<string | null>(null);
+  const [durchgaenge, setDurchgaenge] = useState<Durchgang[] | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -35,62 +38,47 @@ export default function DashboardPage() {
     async function load() {
       const supabase = getBrowserClient();
       const { data: userData } = await supabase.auth.getUser();
-      const user = userData.user;
-      if (!user) {
-        router.push('/challenge/registrierung');
+      if (!userData.user) {
+        router.push('/challenge/login');
         return;
       }
 
-      const [{ data: profile }, { data: teilnahme }] = await Promise.all([
-        supabase.from('profiles').select('vorname, ist_admin').eq('id', user.id).maybeSingle(),
-        supabase
-          .from('challenge_teilnahmen')
-          .select('id, joined_at, challenges ( name, start_datum, wochen_anzahl, challenge_typ_id )')
-          .eq('user_id', user.id)
-          .order('joined_at', { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-      ]) as [{ data: { vorname: string; ist_admin: boolean } | null }, { data: any }];
-
-      if (cancelled) return;
-
-      const isAdmin = !!profile?.ist_admin;
-      const challenge = Array.isArray(teilnahme?.challenges) ? teilnahme?.challenges[0] : teilnahme?.challenges;
-      const wochenAnzahl = challenge?.wochen_anzahl ?? 8;
-
-      const schedule = challenge?.start_datum
-        ? getChallengeSchedule(challenge.start_datum, wochenAnzahl)
-        : { currentWeek: 1, checkinUnlocked: false, checkinUnlockDate: new Date() };
-      const currentWeek = schedule.currentWeek;
-
-      let checkinDone = false;
-      if (teilnahme?.id) {
-        const { data: checkin } = await supabase
-          .from('wochencheckins')
-          .select('id')
-          .eq('teilnahme_id', teilnahme.id)
-          .eq('woche', currentWeek)
-          .maybeSingle();
-        checkinDone = !!checkin;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        router.push('/challenge/login');
+        return;
       }
 
-      const challengeTypId = challenge?.challenge_typ_id ?? (await fetchChallengeTypIdBySlug(supabase, LONGEVITY_CHALLENGE_TYP_SLUG));
-      const weeks = challengeTypId ? await fetchChallengeWeeks(supabase, challengeTypId) : [];
+      const { data: studioAdminRow } = await supabase
+        .from('studio_admins')
+        .select('studio_id, studios ( name )')
+        .eq('user_id', userData.user.id)
+        .limit(1)
+        .maybeSingle();
 
+      const resolvedStudioId = (studioAdminRow as { studio_id: string } | null)?.studio_id ?? null;
       if (cancelled) return;
 
-      setData({
-        vorname: profile?.vorname ?? 'Du',
-        challengeName: challenge?.name ?? null,
-        currentWeek,
-        wochenAnzahl,
-        checkinDone,
-        checkinUnlocked: isAdmin || schedule.checkinUnlocked,
-        checkinUnlockDate: schedule.checkinUnlockDate,
-        isAdmin,
-        weeks,
+      if (!resolvedStudioId) {
+        // Kein Studio zugeordnet — das hier ist kein Studio-Admin, sondern ein
+        // normales Mitglied. Für die ist die Wochenansicht relevant.
+        router.push('/challenge/wochenansicht');
+        return;
+      }
+
+      const studios = (studioAdminRow as any)?.studios;
+      const studio = Array.isArray(studios) ? studios[0] : studios;
+      setStudioName(studio?.name ?? null);
+
+      const res = await fetch(`/api/studio/durchgaenge?studioId=${resolvedStudioId}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setLoading(false);
+      if (res.ok) {
+        const json = await res.json();
+        if (!cancelled) setDurchgaenge(json.durchgaenge ?? []);
+      }
+      if (!cancelled) setChecked(true);
     }
 
     load();
@@ -99,12 +87,22 @@ export default function DashboardPage() {
     };
   }, [router]);
 
-  if (loading || !data) {
+  function formatDate(iso: string): string {
+    return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  function copyLink(d: Durchgang) {
+    navigator.clipboard.writeText(d.anmeldeLink);
+    setCopiedId(d.id);
+    setTimeout(() => setCopiedId((cur) => (cur === d.id ? null : cur)), 2000);
+  }
+
+  if (!checked) {
     return (
       <div className="min-h-screen bg-bg">
         <SiteHeader loggedIn />
         <main className="mx-auto max-w-2xl px-5 py-24 text-center">
-          <p className="text-text-muted">Dashboard wird geladen …</p>
+          <p className="text-text-muted">Wird geladen …</p>
         </main>
         <SiteFooter />
       </div>
@@ -115,59 +113,84 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-bg">
       <SiteHeader loggedIn />
 
-      <main className="mx-auto max-w-2xl px-5 py-16 sm:py-20">
-        {/* Begrüßung */}
-        <div className="mb-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-            {data.challengeName ?? 'Longevity Lifestyle Challenge'}
-            {data.isAdmin && <span className="ml-2 rounded-full bg-text/10 px-2 py-0.5 text-[10px] font-semibold normal-case tracking-normal text-text-muted">Masteradmin</span>}
-          </p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
-            Hallo, {data.vorname}!
-          </h1>
-          <p className="mt-3 text-base leading-relaxed text-text-muted">
-            Hier ist deine Challenge-Übersicht — Woche {data.currentWeek} von {data.wochenAnzahl}.
-          </p>
-        </div>
-
-        {/* Check-in-CTA */}
-        <div
-          className={`mb-8 flex flex-col items-start justify-between gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center ${
-            data.checkinDone
-              ? 'border-outline/60 bg-surface'
-              : data.checkinUnlocked
-                ? 'border-accent/30 bg-accent/10'
-                : 'border-outline/60 bg-surface'
-          }`}
-        >
+      <main className="mx-auto max-w-5xl px-5 py-16 sm:py-20">
+        <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-semibold text-text">
-              {data.checkinDone
-                ? `Check-in für Woche ${data.currentWeek} erledigt ✓`
-                : data.checkinUnlocked
-                  ? `Wochen-Check-in für Woche ${data.currentWeek} steht an`
-                  : `Check-in für Woche ${data.currentWeek} noch nicht offen`}
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+              {studioName ?? 'Dein Studio'}
             </p>
-            <p className="mt-0.5 text-sm text-text-muted">
-              {data.checkinDone
-                ? "Am Wochenende geht's mit der nächsten Woche weiter."
-                : data.checkinUnlocked
-                  ? 'Ampel setzen für deine Gewohnheiten und kurz Feedback geben — dauert 2 Minuten.'
-                  : `Verfügbar ab ${formatUnlockDate(data.checkinUnlockDate)}.`}
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
+              Mitgliederübersicht
+            </h1>
+            <p className="mt-3 max-w-xl text-base leading-relaxed text-text-muted">
+              Deine Challenge-Durchgänge auf einen Blick. Anmeldelink kopieren und an Interessenten
+              schicken — Registrierungen landen inaktiv im System, bis du sie nach Zahlungseingang
+              freischaltest.
             </p>
           </div>
-          {!data.checkinDone && data.checkinUnlocked && (
+          <div className="flex shrink-0 gap-3">
             <Link
-              href="/challenge/checkin"
-              className="shrink-0 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
+              href="/challenge/admin/durchgaenge"
+              className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
             >
-              Jetzt Check-in machen
+              + Neuer Durchgang
             </Link>
-          )}
+            <Link
+              href="/challenge/admin"
+              className="rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text"
+            >
+              Teilnehmerliste
+            </Link>
+          </div>
         </div>
 
-        {/* 8-Wochen Challenge Übersicht */}
-        <ChallengeWeeksOverview weeks={data.weeks} currentWeek={data.currentWeek} />
+        {!durchgaenge || durchgaenge.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-outline/60 bg-surface p-10 text-center">
+            <p className="text-text-muted">
+              Noch kein Durchgang angelegt. Leg deinen ersten Durchgang an, um einen Anmeldelink zu
+              bekommen.
+            </p>
+            <Link
+              href="/challenge/admin/durchgaenge"
+              className="mt-4 inline-block rounded-full bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
+            >
+              Durchgang anlegen
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {durchgaenge.map((d) => (
+              <div key={d.id} className="flex flex-col justify-between rounded-2xl border border-outline/50 bg-surface p-5">
+                <div>
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <h2 className="font-semibold text-text">{d.name}</h2>
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        d.istOffen ? 'bg-accent/10 text-accent' : 'bg-outline/20 text-text-muted'
+                      }`}
+                    >
+                      {d.istOffen ? 'Offen' : 'Geschlossen'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-text-muted">
+                    {formatDate(d.startDatum)} – {formatDate(d.endDatum)}
+                  </p>
+                  {d.challengeTypName && (
+                    <p className="mt-1 text-xs uppercase tracking-wide text-text-muted">{d.challengeTypName}</p>
+                  )}
+                  <p className="mt-4 text-sm text-text-muted">Mitglieder: —</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => copyLink(d)}
+                  className="mt-5 w-full rounded-full border border-outline px-4 py-2.5 text-sm font-medium text-text transition hover:border-text"
+                >
+                  {copiedId === d.id ? 'Anmeldelink kopiert ✓' : 'Anmeldelink kopieren'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
 
       <SiteFooter />

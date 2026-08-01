@@ -122,7 +122,7 @@ export default function AdminPage() {
       if (cancelled) return;
 
       if (res.status === 403) {
-        router.push('/challenge/dashboard');
+        router.push('/challenge/wochenansicht');
         return;
       }
       if (!res.ok) {

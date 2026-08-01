@@ -71,7 +71,13 @@ export default function SiteHeader({
               href="/challenge/dashboard"
               className="text-sm font-medium text-text-muted transition hover:text-text"
             >
-              Wochen
+              Dashboard
+            </Link>
+            <Link
+              href="/challenge/wochenansicht"
+              className="text-sm font-medium text-text-muted transition hover:text-text"
+            >
+              Wochenansicht
             </Link>
             {isAdmin && (
               <Link

@@ -69,7 +69,7 @@ export default function WochenDetailPage() {
         <SiteHeader loggedIn />
         <main className="mx-auto max-w-2xl px-5 py-24 text-center">
           <h1 className="text-2xl font-semibold text-text">Woche nicht gefunden.</h1>
-          <Link href="/challenge/dashboard" className="mt-6 inline-block text-accent hover:underline">
+          <Link href="/challenge/wochenansicht" className="mt-6 inline-block text-accent hover:underline">
             Zurück zum Dashboard
           </Link>
         </main>
@@ -85,7 +85,7 @@ export default function WochenDetailPage() {
       <SiteHeader loggedIn />
 
       <main className="mx-auto max-w-2xl px-5 py-16 sm:py-20">
-        <Link href="/challenge/dashboard" className="text-sm text-text-muted hover:text-text">
+        <Link href="/challenge/wochenansicht" className="text-sm text-text-muted hover:text-text">
           ← Zurück zum Dashboard
         </Link>
 
@@ -150,7 +150,7 @@ export default function WochenDetailPage() {
 
         <div className="mt-10 text-center">
           <Link
-            href="/challenge/dashboard"
+            href="/challenge/wochenansicht"
             className="inline-block rounded-full bg-accent px-8 py-4 text-base font-semibold text-on-accent transition hover:bg-accent-hover"
           >
             Zurück zum Dashboard

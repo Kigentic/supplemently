@@ -284,7 +284,7 @@ export default function ErnaehrungsAppPage() {
               <p className="text-xs text-text-muted">
                 Jetzt mit der Konfiguration starten und {DISCOUNT_CODE} einlösen — inklusive Krankenkassenbezuschussung.
               </p>
-              <Link href="/challenge/dashboard" className="text-sm text-text-muted underline hover:text-text">
+              <Link href="/challenge/wochenansicht" className="text-sm text-text-muted underline hover:text-text">
                 Ich entscheide mich später — weiter zum Dashboard
               </Link>
             </div>

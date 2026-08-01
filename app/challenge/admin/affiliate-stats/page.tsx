@@ -59,7 +59,7 @@ export default function AffiliateStatsPage() {
       if (cancelled) return;
 
       if (res.status === 403) {
-        router.push('/challenge/dashboard');
+        router.push('/challenge/wochenansicht');
         return;
       }
       if (!res.ok) {

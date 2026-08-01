@@ -21,7 +21,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ empfehlu
   const link = log ? (Array.isArray(log.affiliate_links) ? log.affiliate_links[0] : log.affiliate_links) : null;
 
   if (!log || !link?.url) {
-    return NextResponse.redirect(new URL('/challenge/dashboard', req.url));
+    return NextResponse.redirect(new URL('/challenge/wochenansicht', req.url));
   }
 
   if (!log.geklickt_at) {

@@ -190,7 +190,7 @@ export default function CheckinPage() {
             Bis dahin: fleißig die Gewohnheiten dieser Woche umsetzen.
           </p>
           <Link
-            href="/challenge/dashboard"
+            href="/challenge/wochenansicht"
             className="mt-8 inline-block rounded-full bg-accent px-8 py-4 text-base font-semibold text-on-accent transition hover:bg-accent-hover"
           >
             Zurück zum Dashboard
@@ -228,7 +228,7 @@ export default function CheckinPage() {
           )}
 
           <Link
-            href="/challenge/dashboard"
+            href="/challenge/wochenansicht"
             className="mt-8 inline-block rounded-full bg-accent px-8 py-4 text-base font-semibold text-on-accent transition hover:bg-accent-hover"
           >
             Zurück zum Dashboard

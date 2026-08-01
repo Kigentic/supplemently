@@ -45,7 +45,7 @@ export default function CheckinTestPage() {
         .maybeSingle();
       if (cancelled) return;
       if (!(profile as { ist_admin: boolean } | null)?.ist_admin) {
-        router.push('/challenge/dashboard');
+        router.push('/challenge/wochenansicht');
         return;
       }
       const challengeTypId = await fetchChallengeTypIdBySlug(supabase, LONGEVITY_CHALLENGE_TYP_SLUG);
