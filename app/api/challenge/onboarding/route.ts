@@ -6,6 +6,7 @@ import { match, type Supplement } from '@/lib/matching';
 import { getServiceClient } from '@/lib/supabaseServer';
 import { getUserFromAuthHeader } from '@/lib/apiAuth';
 import { matchForOnboarding, type AffiliateLink } from '@/lib/affiliateMatching';
+import { getStudioIdBySlug, TURNKISTE_STUDIO_SLUG } from '@/lib/studio';
 
 export const runtime = 'nodejs';
 
@@ -59,13 +60,19 @@ export async function POST(req: Request) {
   // existierte (oder aus anderem Grund keine Teilnahme angelegt wurde),
   // jetzt eine anlegen statt mit 404 abzubrechen.
   if (!teilnahme) {
-    const { data: challenge } = await supabase
-      .from('challenges')
-      .select('id')
-      .eq('ist_offen', true)
-      .order('start_datum', { ascending: true })
-      .limit(1)
-      .maybeSingle();
+    // Bewusst auf Turnkiste beschränkt — siehe Kommentar in
+    // app/api/challenge/registrierung/route.ts.
+    const turnkisteId = await getStudioIdBySlug(supabase, TURNKISTE_STUDIO_SLUG);
+    const { data: challenge } = turnkisteId
+      ? await supabase
+          .from('challenges')
+          .select('id')
+          .eq('ist_offen', true)
+          .eq('studio_id', turnkisteId)
+          .order('start_datum', { ascending: true })
+          .limit(1)
+          .maybeSingle()
+      : { data: null };
 
     if (!challenge) {
       return NextResponse.json({ error: 'Aktuell ist keine Challenge offen. Bitte später erneut versuchen.' }, { status: 404 });

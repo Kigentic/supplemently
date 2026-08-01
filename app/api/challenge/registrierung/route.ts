@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabaseServer';
 import { sendConfirmationEmail } from '@/lib/email';
+import { getStudioIdBySlug, TURNKISTE_STUDIO_SLUG } from '@/lib/studio';
 
 // Feste Produktions-URL statt req.nextUrl.origin — sonst landen
 // Bestätigungslinks bei lokalem Testen auf localhost.
@@ -94,14 +95,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Profil konnte nicht gespeichert werden.' }, { status: 500 });
   }
 
-  // 4. Aktive/offene Challenge suchen
-  const { data: challenge } = await supabase
-    .from('challenges')
-    .select('id')
-    .eq('ist_offen', true)
-    .order('start_datum', { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  // 4. Aktive/offene Challenge suchen — bewusst auf Turnkiste beschränkt, damit
+  //    ein neuer Challenge-Durchgang eines anderen Studios hier nicht versehentlich
+  //    mitgezählt wird (dieser B2C-Flow ist nur für Turnkiste gedacht).
+  const turnkisteId = await getStudioIdBySlug(supabase, TURNKISTE_STUDIO_SLUG);
+  const { data: challenge } = turnkisteId
+    ? await supabase
+        .from('challenges')
+        .select('id')
+        .eq('ist_offen', true)
+        .eq('studio_id', turnkisteId)
+        .order('start_datum', { ascending: true })
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
 
   // 5. Teilnahme anlegen (falls Challenge vorhanden)
   let referral_code: string | null = null;

@@ -218,6 +218,12 @@ export default function AdminPage() {
             >
               Affiliate-Statistik →
             </Link>
+            <Link
+              href="/challenge/admin/durchgaenge"
+              className="inline-block rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text"
+            >
+              Challenge-Durchgänge →
+            </Link>
           </div>
         </div>
 
