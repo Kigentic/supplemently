@@ -3,7 +3,7 @@
 // Punkte, damit die Score-Berechnung für den Admin nachvollziehbar ist.
 import { NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabaseServer';
-import { getUserFromAuthHeader } from '@/lib/apiAuth';
+import { getUserFromAuthHeader, getAdminScope, hasAdminAccess } from '@/lib/apiAuth';
 import { habitsUpTo, fetchChallengeWeeks, fetchChallengeTypIdBySlug, LONGEVITY_CHALLENGE_TYP_SLUG } from '@/lib/challengeWeeks';
 import { AMPEL_PUNKTE, maxScoreForWeek, noteFuer, type Ampel } from '@/lib/challengeScoring';
 
@@ -16,8 +16,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ teilnahm
   }
 
   const supabase = getServiceClient();
-  const { data: callerProfile } = await supabase.from('profiles').select('ist_admin').eq('id', user.id).maybeSingle();
-  if (!callerProfile?.ist_admin) {
+  const scope = await getAdminScope(supabase, user.id);
+  if (!hasAdminAccess(scope)) {
     return NextResponse.json({ error: 'Kein Zugriff.' }, { status: 403 });
   }
 
@@ -31,7 +31,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ teilnahm
       .order('woche', { ascending: true }),
     supabase
       .from('challenge_teilnahmen')
-      .select('challenges ( challenge_typ_id )')
+      .select('challenges ( challenge_typ_id, studio_id )')
       .eq('id', teilnahmeId)
       .maybeSingle(),
   ]);
@@ -42,6 +42,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ teilnahm
   }
 
   const challenge = Array.isArray(teilnahme?.challenges) ? teilnahme?.challenges[0] : teilnahme?.challenges;
+
+  // Studio-Admin darf nur Teilnahmen der eigenen Studio(s) einsehen.
+  if (!scope.isMasterAdmin && !scope.studioIds.includes(challenge?.studio_id ?? '')) {
+    return NextResponse.json({ error: 'Kein Zugriff auf diese Teilnahme.' }, { status: 403 });
+  }
   const challengeTypId =
     challenge?.challenge_typ_id ?? (await fetchChallengeTypIdBySlug(supabase, LONGEVITY_CHALLENGE_TYP_SLUG));
   if (!challengeTypId) {

@@ -31,6 +31,7 @@ export default function AffiliateStatsPage() {
   const router = useRouter();
   const [produkte, setProdukte] = useState<ProduktStat[] | null>(null);
   const [touchpoints, setTouchpoints] = useState<TouchpointStat[]>([]);
+  const [scope, setScope] = useState<'all' | 'studio' | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,6 +71,7 @@ export default function AffiliateStatsPage() {
       const json = await res.json();
       setProdukte(json.produkte);
       setTouchpoints(json.touchpoints ?? []);
+      setScope(json.scope ?? 'all');
       setLoading(false);
     }
 
@@ -88,12 +90,15 @@ export default function AffiliateStatsPage() {
 
       <main className="mx-auto max-w-5xl px-5 py-16 sm:py-20">
         <div className="mb-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Masteradmin</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+            {scope === 'studio' ? 'Studio-Admin' : 'Masteradmin'}
+          </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
             Affiliate-Statistik
           </h1>
           <p className="mt-3 text-base leading-relaxed text-text-muted">
-            Gezeigt vs. geklickt, pro Produkt und pro Touchpoint.
+            Gezeigt vs. geklickt, pro Produkt und pro Touchpoint
+            {scope === 'studio' ? ' — nur für dein Studio.' : '.'}
           </p>
           <Link
             href="/challenge/admin"

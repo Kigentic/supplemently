@@ -85,6 +85,7 @@ const STATUS_STYLE: Record<string, string> = {
 export default function AdminPage() {
   const router = useRouter();
   const [users, setUsers] = useState<AdminUser[] | null>(null);
+  const [scope, setScope] = useState<'all' | 'studio' | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -131,6 +132,7 @@ export default function AdminPage() {
 
       const json = await res.json();
       setUsers(json.users);
+      setScope(json.scope ?? 'all');
       setLoading(false);
     }
 
@@ -190,20 +192,26 @@ export default function AdminPage() {
 
       <main className="mx-auto max-w-5xl px-5 py-16 sm:py-20">
         <div className="mb-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Masteradmin</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+            {scope === 'studio' ? 'Studio-Admin' : 'Masteradmin'}
+          </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
-            Alle Teilnehmer
+            {scope === 'studio' ? 'Teilnehmer deines Studios' : 'Alle Teilnehmer'}
           </h1>
           <p className="mt-3 text-base leading-relaxed text-text-muted">
-            {users ? `${users.length} registrierte User.` : ''}
+            {users
+              ? `${users.length} ${scope === 'studio' ? 'Teilnehmer in deinem Studio.' : 'registrierte User.'}`
+              : ''}
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link
-              href="/challenge/admin/checkin-test"
-              className="inline-block rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text"
-            >
-              Check-in-Fragen testen →
-            </Link>
+            {scope !== 'studio' && (
+              <Link
+                href="/challenge/admin/checkin-test"
+                className="inline-block rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text"
+              >
+                Check-in-Fragen testen →
+              </Link>
+            )}
             <Link
               href="/challenge/admin/affiliate-stats"
               className="inline-block rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text"

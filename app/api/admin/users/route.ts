@@ -1,7 +1,7 @@
 // API: Masteradmin-Übersicht aller registrierten User + ihrer Teilnahme.
 import { NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabaseServer';
-import { getUserFromAuthHeader } from '@/lib/apiAuth';
+import { getUserFromAuthHeader, getAdminScope, hasAdminAccess } from '@/lib/apiAuth';
 import { getChallengeSchedule } from '@/lib/challengeSchedule';
 import { maxGesamtScore, noteFuer } from '@/lib/challengeScoring';
 import { fetchChallengeWeeks, fetchChallengeTypIdBySlug, LONGEVITY_CHALLENGE_TYP_SLUG, type ChallengeWeek } from '@/lib/challengeWeeks';
@@ -16,24 +16,23 @@ export async function GET(req: Request) {
 
   const supabase = getServiceClient();
 
-  const { data: callerProfile } = await supabase.from('profiles').select('ist_admin').eq('id', user.id).maybeSingle();
-  if (!callerProfile?.ist_admin) {
+  const scope = await getAdminScope(supabase, user.id);
+  if (!hasAdminAccess(scope)) {
     return NextResponse.json({ error: 'Kein Zugriff.' }, { status: 403 });
   }
 
-  const { data: profiles, error: profilesError } = await supabase
-    .from('profiles')
-    .select('id, vorname, nachname, email, ist_admin, created_at')
-    .order('created_at', { ascending: false });
-
-  if (profilesError) {
-    console.error('Admin users lookup error:', profilesError);
-    return NextResponse.json({ error: 'Konnte User nicht laden.' }, { status: 500 });
-  }
-
-  const { data: teilnahmen, error: teilnahmenError } = await supabase
+  // Masteradmin: Teilnahmen aller Studios. Studio-Admin: nur Teilnahmen der
+  // eigenen Studio(s) — inner join erzwingt, dass challenges.studio_id existiert.
+  const teilnahmenQuery = supabase
     .from('challenge_teilnahmen')
-    .select('id, user_id, status, gesamt_score, joined_at, challenges ( name, start_datum, wochen_anzahl, challenge_typ_id )');
+    .select(
+      scope.isMasterAdmin
+        ? 'id, user_id, status, gesamt_score, joined_at, challenges ( name, start_datum, wochen_anzahl, challenge_typ_id )'
+        : 'id, user_id, status, gesamt_score, joined_at, challenges!inner ( name, start_datum, wochen_anzahl, challenge_typ_id, studio_id )'
+    );
+  const { data: teilnahmen, error: teilnahmenError } = scope.isMasterAdmin
+    ? await teilnahmenQuery
+    : await teilnahmenQuery.in('challenges.studio_id', scope.studioIds);
 
   if (teilnahmenError) {
     console.error('Admin teilnahmen lookup error:', teilnahmenError);
@@ -46,6 +45,37 @@ export async function GET(req: Request) {
     const existing = teilnahmeByUser.get(t.user_id);
     if (!existing || new Date(t.joined_at) > new Date(existing.joined_at)) {
       teilnahmeByUser.set(t.user_id, t);
+    }
+  }
+
+  // Masteradmin sieht auch registrierte User ohne Teilnahme; Studio-Admin sieht
+  // ausschließlich die Teilnehmer der eigenen Studio(s).
+  let profiles: { id: string; vorname: string; nachname: string; email: string; ist_admin: boolean; created_at: string }[];
+  if (scope.isMasterAdmin) {
+    const { data, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, vorname, nachname, email, ist_admin, created_at')
+      .order('created_at', { ascending: false });
+    if (profilesError) {
+      console.error('Admin users lookup error:', profilesError);
+      return NextResponse.json({ error: 'Konnte User nicht laden.' }, { status: 500 });
+    }
+    profiles = data ?? [];
+  } else {
+    const userIds = Array.from(teilnahmeByUser.keys());
+    if (userIds.length === 0) {
+      profiles = [];
+    } else {
+      const { data, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, vorname, nachname, email, ist_admin, created_at')
+        .in('id', userIds)
+        .order('created_at', { ascending: false });
+      if (profilesError) {
+        console.error('Admin users lookup error:', profilesError);
+        return NextResponse.json({ error: 'Konnte User nicht laden.' }, { status: 500 });
+      }
+      profiles = data ?? [];
     }
   }
 
@@ -93,5 +123,5 @@ export async function GET(req: Request) {
     })
   );
 
-  return NextResponse.json({ users }, { status: 200 });
+  return NextResponse.json({ users, scope: scope.isMasterAdmin ? 'all' : 'studio' }, { status: 200 });
 }
