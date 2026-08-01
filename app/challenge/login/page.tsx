@@ -63,7 +63,8 @@ export default function LoginPage() {
       return;
     }
 
-    // Onboarding schon erledigt? -> Dashboard. Sonst -> Fragebogen.
+    // Onboarding schon erledigt? -> Dashboard. Studio-/Masteradmin ohne eigene
+    // Teilnahme -> Admin-Bereich. Sonst -> Fragebogen.
     const { data: teilnahme } = (await supabase
       .from('challenge_teilnahmen')
       .select('status')
@@ -74,6 +75,16 @@ export default function LoginPage() {
 
     if (teilnahme?.status === 'aktiv' || teilnahme?.status === 'abgeschlossen') {
       router.push('/challenge/dashboard');
+      return;
+    }
+
+    const [{ data: profile }, { data: studioAdmin }] = (await Promise.all([
+      supabase.from('profiles').select('ist_admin').eq('id', userId).maybeSingle(),
+      supabase.from('studio_admins').select('id').eq('user_id', userId).limit(1).maybeSingle(),
+    ])) as [{ data: { ist_admin: boolean } | null }, { data: { id: string } | null }];
+
+    if (profile?.ist_admin || studioAdmin) {
+      router.push('/challenge/admin');
     } else {
       router.push('/fragebogen');
     }

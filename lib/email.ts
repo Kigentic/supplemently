@@ -10,7 +10,7 @@ function getResend() {
   return new Resend(key);
 }
 
-function layout(bodyHtml: string) {
+function layout(bodyHtml: string, brandLabel = 'Longevity Lifestyle Challenge') {
   return `
 <!DOCTYPE html>
 <html lang="de">
@@ -21,7 +21,7 @@ function layout(bodyHtml: string) {
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:20px;overflow:hidden;">
             <tr>
               <td style="background:linear-gradient(135deg,#4f90c1,#225990);padding:32px 40px;text-align:center;">
-                <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:0.02em;">Longevity Lifestyle Challenge</span>
+                <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:0.02em;">${escapeHtml(brandLabel)}</span>
               </td>
             </tr>
             <tr>
@@ -32,7 +32,7 @@ function layout(bodyHtml: string) {
             <tr>
               <td style="padding:0 40px 32px;">
                 <p style="margin:0;font-size:12px;line-height:1.6;color:#959595;">
-                  Longevity Lifestyle Challenge · Diese Mail wurde automatisch versendet.
+                  ${escapeHtml(brandLabel)} · Diese Mail wurde automatisch versendet.
                 </p>
               </td>
             </tr>
@@ -126,6 +126,52 @@ export async function sendPasswordResetEmail({
     to,
     subject: 'Neues Passwort setzen — Longevity Lifestyle Challenge',
     html: layout(body),
+  });
+
+  if (error) throw new Error(typeof error === 'string' ? error : error.message);
+}
+
+export async function sendStudioConfirmationEmail({
+  to,
+  ansprechpartnerVorname,
+  studioName,
+  confirmLink,
+}: {
+  to: string;
+  ansprechpartnerVorname: string;
+  studioName: string;
+  confirmLink: string;
+}) {
+  const body = `
+    <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#707070;">Hey ${escapeHtml(ansprechpartnerVorname)} 👋</h1>
+    <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#4a4a4a;">
+      Fast fertig — bestätige die E-Mail-Adresse für <strong>${escapeHtml(studioName)}</strong>,
+      dann kannst du dich einloggen und dein Studio verwalten.
+    </p>
+    <table role="presentation" cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+          <a href="${confirmLink}" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
+            E-Mail bestätigen
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="margin:28px 0 0;font-size:13px;line-height:1.6;color:#959595;">
+      Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:<br/>
+      <a href="${confirmLink}" style="color:#4f90c1;word-break:break-all;">${confirmLink}</a>
+    </p>
+    <p style="margin:20px 0 0;font-size:13px;line-height:1.6;color:#959595;">
+      Der Link ist 24 Stunden gültig. Wenn du das nicht warst, kannst du diese Mail ignorieren.
+    </p>
+  `;
+
+  const resend = getResend();
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Bestätige deine E-Mail — ${studioName} bei Supplemently`,
+    html: layout(body, 'Supplemently für Studios'),
   });
 
   if (error) throw new Error(typeof error === 'string' ? error : error.message);
