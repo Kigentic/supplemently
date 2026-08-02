@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 import ChallengeWeeksOverview from '@/app/_components/ChallengeWeeksOverview';
+import CoachWidget from '@/app/_components/CoachWidget';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
 import { getChallengeSchedule, formatUnlockDate } from '@/lib/challengeSchedule';
 import { fetchChallengeWeeks, fetchChallengeTypIdBySlug, LONGEVITY_CHALLENGE_TYP_SLUG, type ChallengeWeek } from '@/lib/challengeWeeks';
@@ -173,6 +174,7 @@ export default function WochenansichtPage() {
       </main>
 
       <SiteFooter />
+      <CoachWidget />
     </div>
   );
 }

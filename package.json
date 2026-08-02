@@ -6,12 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test:match": "tsx scripts/test-matching.ts"
+    "test:match": "tsx scripts/test-matching.ts",
+    "ingest:kb": "tsx scripts/ingest-kb.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
     "@tabler/icons-react": "^3.45.0",
     "next": "^15.1.0",
+    "openai": "^7.3.0",
+    "pdf-parse": "^2.4.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "resend": "^6.18.0"

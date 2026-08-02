@@ -9,6 +9,7 @@ import { getBrowserClient } from '@/lib/supabaseBrowser';
 import { fetchChallengeWeeks, fetchChallengeTypIdBySlug, LONGEVITY_CHALLENGE_TYP_SLUG, ICON_MAP, type ChallengeWeek } from '@/lib/challengeWeeks';
 import AnleitungLink from '@/app/_components/AnleitungModal';
 import AffiliateProductCard, { type AffiliateProduct } from '@/app/_components/AffiliateProductCard';
+import CoachWidget from '@/app/_components/CoachWidget';
 
 export default function WochenDetailPage() {
   const params = useParams<{ num: string }>();
@@ -70,7 +71,7 @@ export default function WochenDetailPage() {
         <main className="mx-auto max-w-2xl px-5 py-24 text-center">
           <h1 className="text-2xl font-semibold text-text">Woche nicht gefunden.</h1>
           <Link href="/challenge/wochenansicht" className="mt-6 inline-block text-accent hover:underline">
-            Zurück zum Dashboard
+            Zurück zur Wochenansicht
           </Link>
         </main>
         <SiteFooter />
@@ -86,7 +87,7 @@ export default function WochenDetailPage() {
 
       <main className="mx-auto max-w-2xl px-5 py-16 sm:py-20">
         <Link href="/challenge/wochenansicht" className="text-sm text-text-muted hover:text-text">
-          ← Zurück zum Dashboard
+          ← Zurück zur Wochenansicht
         </Link>
 
         {/* Wochen-Header */}
@@ -153,12 +154,13 @@ export default function WochenDetailPage() {
             href="/challenge/wochenansicht"
             className="inline-block rounded-full bg-accent px-8 py-4 text-base font-semibold text-on-accent transition hover:bg-accent-hover"
           >
-            Zurück zum Dashboard
+            Zurück zur Wochenansicht
           </Link>
         </div>
       </main>
 
       <SiteFooter />
+      <CoachWidget />
     </div>
   );
 }

@@ -26,3 +26,6 @@ yarn-error.log*
 # Editor
 .vscode/
 .idea/
+
+# Wissensdatenbank-Quellen (große PDFs, nicht ins Repo)
+/kb/

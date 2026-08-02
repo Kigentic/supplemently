@@ -11,6 +11,7 @@ import { getChallengeSchedule, formatUnlockDate } from '@/lib/challengeSchedule'
 import { TrafficLight, ScalePicker, type Ampel } from '@/app/_components/CheckinControls';
 import AnleitungLink from '@/app/_components/AnleitungModal';
 import AffiliateProductCard, { type AffiliateProduct } from '@/app/_components/AffiliateProductCard';
+import CoachWidget from '@/app/_components/CoachWidget';
 
 interface CheckinData {
   teilnahmeId: string;
@@ -193,7 +194,7 @@ export default function CheckinPage() {
             href="/challenge/wochenansicht"
             className="mt-8 inline-block rounded-full bg-accent px-8 py-4 text-base font-semibold text-on-accent transition hover:bg-accent-hover"
           >
-            Zurück zum Dashboard
+            Zurück zur Wochenansicht
           </Link>
         </main>
         <SiteFooter />
@@ -231,7 +232,7 @@ export default function CheckinPage() {
             href="/challenge/wochenansicht"
             className="mt-8 inline-block rounded-full bg-accent px-8 py-4 text-base font-semibold text-on-accent transition hover:bg-accent-hover"
           >
-            Zurück zum Dashboard
+            Zurück zur Wochenansicht
           </Link>
         </main>
         <SiteFooter />
@@ -333,6 +334,7 @@ export default function CheckinPage() {
       </main>
 
       <SiteFooter />
+      <CoachWidget />
     </div>
   );
 }
