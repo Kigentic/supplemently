@@ -11,9 +11,9 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: 'Longevity Lifestyle Challenge — 8 Wochen zu deinem besseren Ich',
+  title: 'Supplemently — Das Studio Challenge System',
   description:
-    'Die Longevity Lifestyle Challenge: Training, Ernährung und Supplements individuell auf dich abgestimmt. 8 Wochen, echte Community, messbare Ergebnisse.',
+    'Schlüsselfertige 8-Wochen-Challenges für dein Fitnessstudio: Onboarding, KI-Coach, Check-ins und Supplement-Upsell inklusive.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -24,6 +24,7 @@ export async function POST(req: Request) {
   const ansprechpartner = clean(body?.ansprechpartner, 200);
   const email = clean(body?.email, 200);
   const telefon = clean(body?.telefon, 100);
+  const webseite = clean(body?.webseite, 300);
   const nachricht = clean(body?.nachricht, 2000);
 
   if (!studioname) return NextResponse.json({ error: 'Studioname ist erforderlich.' }, { status: 400 });
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
   const supabase = getServiceClient();
   const { error } = await supabase
     .from('interessenten')
-    .insert({ studioname, ansprechpartner, email, telefon, nachricht });
+    .insert({ studioname, ansprechpartner, email, telefon, webseite, nachricht });
 
   if (error) {
     return NextResponse.json({ error: 'Speichern fehlgeschlagen.', detail: error.message }, { status: 500 });

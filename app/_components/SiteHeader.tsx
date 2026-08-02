@@ -55,7 +55,7 @@ export default function SiteHeader({
   return (
     <header className="sticky top-0 z-30 border-b border-outline/40 bg-bg/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-        <Link href="/" aria-label="Startseite">
+        <Link href="/turnkiste" aria-label="Startseite">
           <Image
             src="/Logo-turnkiste-weisser-hintergrun.webp"
             alt="Logo"

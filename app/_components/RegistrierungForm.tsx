@@ -16,6 +16,7 @@ export default function RegistrierungForm() {
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     studioname: '',
+    webseite: '',
     ansprechpartner: '',
     email: '',
     telefon: '',
@@ -31,7 +32,7 @@ export default function RegistrierungForm() {
     setError(null);
 
     if (!form.studioname.trim() || !form.ansprechpartner.trim() || !form.email.trim()) {
-      setError('Bitte Studioname, Ansprechpartner und E-Mail ausfüllen.');
+      setError('Bitte Studioname, Kontaktperson und E-Mail ausfüllen.');
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
@@ -94,8 +95,20 @@ export default function RegistrierungForm() {
           />
         </div>
         <div className="sm:col-span-1">
+          <label htmlFor="webseite" className={labelBase}>
+            Webseite <span className="text-text-muted">(optional)</span>
+          </label>
+          <input
+            id="webseite"
+            className={inputBase}
+            value={form.webseite}
+            onChange={(e) => set('webseite', e.target.value)}
+            placeholder="www.dein-studio.de"
+          />
+        </div>
+        <div className="sm:col-span-1">
           <label htmlFor="ansprechpartner" className={labelBase}>
-            Ansprechpartner <span className="text-accent">*</span>
+            Kontaktperson <span className="text-accent">*</span>
           </label>
           <input
             id="ansprechpartner"
@@ -122,7 +135,7 @@ export default function RegistrierungForm() {
         </div>
         <div className="sm:col-span-1">
           <label htmlFor="telefon" className={labelBase}>
-            Telefon <span className="text-text-muted">(optional)</span>
+            Handynummer <span className="text-text-muted">(optional)</span>
           </label>
           <input
             id="telefon"
