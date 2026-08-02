@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
+import CoachWidget from '@/app/_components/CoachWidget';
 
 interface Durchgang {
   id: string;
@@ -194,6 +195,7 @@ export default function StudioDashboardPage() {
       </main>
 
       <SiteFooter />
+      <CoachWidget />
     </div>
   );
 }

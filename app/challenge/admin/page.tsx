@@ -7,6 +7,7 @@ import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
 import { CHECKIN_BASISPUNKTE } from '@/lib/challengeScoring';
+import CoachWidget from '@/app/_components/CoachWidget';
 
 interface AdminUser {
   id: string;
@@ -401,6 +402,7 @@ export default function AdminPage() {
       </main>
 
       <SiteFooter />
+      <CoachWidget />
     </div>
   );
 }
