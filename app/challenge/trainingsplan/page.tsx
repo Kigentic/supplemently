@@ -22,6 +22,7 @@ interface Uebung {
   pause_sekunden: number | null;
   lastvorgabe: string | null;
   hinweis: string | null;
+  varianten: string | null;
 }
 
 interface PlanData {
@@ -93,15 +94,20 @@ export default function TrainingsplanPage() {
         return;
       }
 
-      const { data: uebungen } = await supabase
+      const { data: uebungenRaw } = (await supabase
         .from('trainingsplan_uebungen')
-        .select('id, block, name, saetze, wiederholungen, pause_sekunden, lastvorgabe, hinweis')
+        .select('id, block, name, saetze, wiederholungen, pause_sekunden, lastvorgabe, hinweis, uebungsbibliothek ( varianten )')
         .eq('trainingsplan_id', plan.id)
-        .order('sort_order', { ascending: true });
+        .order('sort_order', { ascending: true })) as { data: any[] | null };
 
       if (cancelled) return;
 
-      setData({ planName: plan.name, phase, uebungen: (uebungen ?? []) as Uebung[] });
+      const uebungen: Uebung[] = (uebungenRaw ?? []).map((u) => {
+        const bib = Array.isArray(u.uebungsbibliothek) ? u.uebungsbibliothek[0] : u.uebungsbibliothek;
+        return { ...u, varianten: bib?.varianten ?? null };
+      });
+
+      setData({ planName: plan.name, phase, uebungen });
       setLoading(false);
     }
 
@@ -174,6 +180,11 @@ export default function TrainingsplanPage() {
                               .join(' · ')}
                           </p>
                         </div>
+                        {u.varianten && (
+                          <p className="mt-2 text-xs text-text-muted">
+                            <span className="font-medium">Varianten:</span> {u.varianten}
+                          </p>
+                        )}
                         {u.lastvorgabe && <p className="mt-2 text-sm text-text-muted">{u.lastvorgabe}</p>}
                         {u.hinweis && <p className="mt-1 text-sm italic text-text-muted">{u.hinweis}</p>}
                       </div>
