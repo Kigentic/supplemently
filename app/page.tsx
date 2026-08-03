@@ -1,31 +1,44 @@
-// Supplemently — B2B-Startseite: Pitch des Studio-Challenge-Systems an
+// MoveIn8 — B2B-Startseite: Pitch des Studio-Challenge-Systems an
 // Fitnessstudios/Trainer, die als Partner eigene Challenges anbieten wollen.
+// Eigene CI (Orange/Grau/Olive), unabhängig vom blauen Design-System der
+// restlichen App (Dashboard, Wochenansicht etc. bleiben unverändert) — Farben
+// sind daher lokal per CSS-Variablen auf dieser Seite gescoped, siehe MI_COLORS.
 // Die bisherige B2C-Landingpage (Turnkiste-eigene Longevity-Challenge) läuft
-// jetzt unter /turnkiste.
-import type { ReactNode } from 'react';
+// unter /turnkiste.
+import type { CSSProperties, ReactNode } from 'react';
 import Image from 'next/image';
 import RegistrierungForm from './_components/RegistrierungForm';
 
 export const metadata = {
-  title: 'Supplemently — Das Studio Challenge System',
+  title: 'MoveIn8 — Das Studio Challenge System',
   description:
     'Schlüsselfertige 8-Wochen-Challenges für dein Fitnessstudio: 3 Challenges zur Auswahl, intelligentes Onboarding, KI-Coach 24/7 und Supplement-Upsell inklusive.',
 };
 
+// CI-Farben: Orange = Highlight/Icons/CTA, Grau = dezenter Nebentext
+// (bewusst NICHT für Headlines/Fließtext — auf weißem Grund kaum lesbar),
+// Olive = Akzente/Sekundärflächen.
+const MI_COLORS: CSSProperties = {
+  ['--mi-orange' as string]: '#f68b35',
+  ['--mi-orange-dark' as string]: '#d9701e',
+  ['--mi-olive' as string]: '#b6b6aa',
+  ['--mi-grey' as string]: '#dfd8ce',
+};
+
 const btnPrimary =
-  'inline-block rounded-full bg-accent px-8 py-4 text-base font-semibold text-on-accent transition hover:bg-accent-hover active:scale-[.98]';
+  'inline-block rounded-full bg-[var(--mi-orange)] px-8 py-4 text-base font-semibold text-white transition hover:bg-[var(--mi-orange-dark)] active:scale-[.98]';
 const btnSecondary =
-  'inline-block rounded-full border border-outline px-8 py-4 text-base font-medium text-text transition hover:border-text';
+  'inline-block rounded-full border border-[var(--mi-olive)] px-8 py-4 text-base font-medium text-text transition hover:border-text';
 
 function Kicker({ children }: { children: ReactNode }) {
-  return <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{children}</p>;
+  return <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--mi-orange)]">{children}</p>;
 }
 
 function Check({ children }: { children: ReactNode }) {
   return (
     <li className="flex items-start gap-3 text-base text-text-muted">
       <svg className="mt-1 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none">
-        <path d="M20 6 9 17l-5-5" stroke="var(--color-accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M20 6 9 17l-5-5" stroke="var(--mi-orange)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       {children}
     </li>
@@ -34,9 +47,9 @@ function Check({ children }: { children: ReactNode }) {
 
 function NuggetIcon({ path }: { path: string }) {
   return (
-    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10">
+    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--mi-orange)]/10">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path d={path} stroke="var(--color-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={path} stroke="var(--mi-orange)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
   );
@@ -100,11 +113,11 @@ const STEPS = [
 
 export default function StudioPartnerPage() {
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="min-h-screen bg-bg" style={MI_COLORS}>
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-outline/40 bg-bg/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-          <Image src="/supplemently-logo-nobg.png" alt="Supplemently" width={140} height={44} style={{ height: 40, width: 'auto' }} priority />
+          <Image src="/MoveIN-nobg.png" alt="MoveIn8" width={200} height={100} style={{ height: 44, width: 'auto' }} priority />
           <nav className="hidden items-center gap-7 sm:flex">
             <a href="#funktionen" className="text-sm font-medium text-text-muted transition hover:text-text">
               Funktionen
@@ -113,7 +126,7 @@ export default function StudioPartnerPage() {
               So läuft's ab
             </a>
           </nav>
-          <a href="#anfrage" className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-on-accent transition hover:bg-accent-hover">
+          <a href="#anfrage" className="rounded-full bg-[var(--mi-orange)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--mi-orange-dark)]">
             Partner werden
           </a>
         </div>
@@ -124,21 +137,21 @@ export default function StudioPartnerPage() {
         <section className="relative overflow-hidden">
           <div
             className="pointer-events-none absolute inset-0"
-            style={{ background: 'radial-gradient(65% 55% at 15% 0%, rgba(79,144,193,0.16) 0%, transparent 65%)' }}
+            style={{ background: 'radial-gradient(65% 55% at 15% 0%, rgba(246,139,53,0.14) 0%, transparent 65%)' }}
           />
           <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pb-16 pt-16 sm:pt-24 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
             <div>
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
-                <span className="text-sm font-medium text-accent">Für Fitnessstudios &amp; Trainer</span>
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--mi-orange)]/30 bg-[var(--mi-orange)]/10 px-4 py-1.5">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--mi-orange)]" />
+                <span className="text-sm font-medium text-[var(--mi-orange)]">Für Fitnessstudios &amp; Trainer</span>
               </div>
 
               <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-text sm:text-5xl lg:text-6xl">
-                Dein eigenes Challenge-System. <span className="text-accent">Schlüsselfertig.</span>
+                Dein eigenes Challenge-System. <span className="text-[var(--mi-orange)]">Schlüsselfertig.</span>
               </h1>
 
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-text-muted">
-                Supplemently bringt dir ein komplettes 8-Wochen-Challenge-Programm ins Studio —
+                MoveIn8 bringt dir ein komplettes 8-Wochen-Challenge-Programm ins Studio —
                 Onboarding, Wochenaufgaben, KI-Coach und Check-ins inklusive. Du wählst die
                 Challenge, wir liefern die Plattform.
               </p>
@@ -156,14 +169,14 @@ export default function StudioPartnerPage() {
             {/* Hero-Visual: 3 Challenge-Karten */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:gap-3">
               {[
-                { name: 'Longevity', color: '#225990', active: true },
-                { name: 'Abnehmen', color: '#4f90c1' },
-                { name: 'Rücken', color: '#7fb2d9' },
+                { name: 'Longevity', color: '#f68b35', active: true },
+                { name: 'Abnehmen', color: '#b6b6aa' },
+                { name: 'Rücken', color: '#cfc9bd' },
               ].map((c) => (
                 <div
                   key={c.name}
                   className={`rounded-2xl border p-5 text-center transition ${
-                    c.active ? 'border-accent bg-accent/5 shadow-md' : 'border-outline/50 bg-surface'
+                    c.active ? 'border-[var(--mi-orange)] bg-[var(--mi-orange)]/5 shadow-md' : 'border-outline/50 bg-surface'
                   }`}
                 >
                   <div
@@ -173,9 +186,9 @@ export default function StudioPartnerPage() {
                     {c.name[0]}
                   </div>
                   <p className="text-sm font-semibold text-text">{c.name}</p>
-                  <p className="mt-1 text-xs text-text-muted">8 Wochen</p>
+                  <p className="mt-1 text-xs text-[var(--mi-grey)]">8 Wochen</p>
                   {c.active && (
-                    <span className="mt-3 inline-block rounded-full bg-accent px-2.5 py-0.5 text-[10px] font-semibold text-on-accent">
+                    <span className="mt-3 inline-block rounded-full bg-[var(--mi-orange)] px-2.5 py-0.5 text-[10px] font-semibold text-white">
                       Ausgewählt
                     </span>
                   )}
@@ -218,7 +231,7 @@ export default function StudioPartnerPage() {
               <Kicker>Weniger Rückfragen an dich</Kicker>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
                 Charles beantwortet die Fragen. <br />
-                <span className="text-accent">Rund um die Uhr.</span>
+                <span className="text-[var(--mi-orange)]">Rund um die Uhr.</span>
               </h2>
               <p className="mt-5 leading-relaxed text-text-muted">
                 Ob Frage zur Übung, zum Supplement oder zur aktuellen Wochenaufgabe — der
@@ -233,18 +246,18 @@ export default function StudioPartnerPage() {
             </div>
 
             <div className="rounded-3xl bg-surface p-7 sm:p-8">
-              <div className="mb-5 flex items-center gap-3 rounded-2xl bg-gradient-to-br from-accent to-accent-hover px-4 py-3">
+              <div className="mb-5 flex items-center gap-3 rounded-2xl bg-gradient-to-br from-[var(--mi-orange)] to-[var(--mi-orange-dark)] px-4 py-3">
                 <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2 ring-white/40">
                   <Image src="/Trainer_Icon.png" alt="Charles" fill sizes="40px" className="object-cover object-top" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-on-accent">Charles</p>
-                  <p className="text-xs text-on-accent/80">Dein persönlicher KI-Challenge Coach</p>
+                  <p className="text-sm font-semibold text-white">Charles</p>
+                  <p className="text-xs text-white/80">Dein persönlicher KI-Challenge Coach</p>
                 </div>
               </div>
               <div className="space-y-3">
                 <div className="flex justify-end">
-                  <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-accent px-3.5 py-2.5 text-sm text-on-accent">
+                  <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-[var(--mi-orange)] px-3.5 py-2.5 text-sm text-white">
                     Wie viel Protein pro Mahlzeit?
                   </div>
                 </div>
@@ -266,14 +279,14 @@ export default function StudioPartnerPage() {
           <div className="mx-auto max-w-5xl px-5 py-20 sm:py-28">
             <div className="grid items-center gap-14 lg:grid-cols-2">
               <div className="order-2 rounded-3xl bg-bg p-7 sm:p-8 lg:order-1">
-                <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-text-muted">
+                <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-[var(--mi-grey)]">
                   Automatische Empfehlung in Woche 2
                 </p>
                 <div className="rounded-2xl border border-outline/40 p-4">
                   <p className="text-sm font-semibold text-text">Omega-3 Kapseln</p>
                   <p className="mt-1 text-xs text-text-muted">Passend zur Aufgabe "Gesunde Ernährung"</p>
                   <div className="mt-3 flex items-center justify-between">
-                    <span className="rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent">Code: STUDIO10</span>
+                    <span className="rounded-full bg-[var(--mi-orange)]/10 px-2.5 py-1 text-xs font-medium text-[var(--mi-orange)]">Code: STUDIO10</span>
                     <span className="text-xs text-text-muted">Klick-Tracking inklusive</span>
                   </div>
                 </div>
@@ -310,7 +323,7 @@ export default function StudioPartnerPage() {
           <div className="mt-14 grid grid-cols-1 gap-8 sm:grid-cols-3">
             {STEPS.map((s) => (
               <div key={s.step}>
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-xl font-bold text-on-accent">
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--mi-olive)] text-xl font-bold text-white">
                   {s.step}
                 </div>
                 <h3 className="text-lg font-semibold text-text">{s.title}</h3>
@@ -349,7 +362,7 @@ export default function StudioPartnerPage() {
         <div className="mx-auto max-w-6xl px-5 py-12">
           <div className="flex flex-col items-start justify-between gap-8 sm:flex-row">
             <div className="max-w-sm">
-              <Image src="/supplemently-logo-nobg.png" alt="Supplemently" width={140} height={44} style={{ height: 40, width: 'auto' }} />
+              <Image src="/MoveIN-nobg.png" alt="MoveIn8" width={200} height={100} style={{ height: 44, width: 'auto' }} />
               <p className="mt-4 text-sm leading-relaxed text-text-muted">
                 Das Studio Challenge System — schlüsselfertig für dein Fitnessstudio.
               </p>
@@ -362,7 +375,7 @@ export default function StudioPartnerPage() {
               </a>
             </div>
           </div>
-          <div className="mt-10 border-t border-outline/50 pt-6 text-xs text-text-muted">
+          <div className="mt-10 border-t border-outline/50 pt-6 text-xs text-[var(--mi-grey)]">
             © {new Date().getFullYear()} Alle Rechte vorbehalten.
           </div>
         </div>
