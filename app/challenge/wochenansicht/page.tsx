@@ -170,6 +170,17 @@ export default function WochenansichtPage() {
           )}
         </div>
 
+        <Link
+          href="/challenge/trainingsplan"
+          className="mb-8 flex items-center justify-between rounded-2xl border border-outline/60 bg-surface p-5 transition hover:border-accent/50"
+        >
+          <div>
+            <p className="font-semibold text-text">Dein Trainingsplan</p>
+            <p className="mt-0.5 text-sm text-text-muted">Ca. 60 Min. — angepasst auf dein Level.</p>
+          </div>
+          <span className="text-accent">→</span>
+        </Link>
+
         <EmpfehlungCard />
 
         {/* 8-Wochen Challenge Übersicht */}

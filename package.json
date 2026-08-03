@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "test:match": "tsx scripts/test-matching.ts",
-    "ingest:kb": "tsx scripts/ingest-kb.ts"
+    "ingest:kb": "tsx scripts/ingest-kb.ts",
+    "seed:trainingsplaene": "tsx scripts/seed-trainingsplaene.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
