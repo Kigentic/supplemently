@@ -67,12 +67,12 @@ async function runWithConcurrency<T, R>(items: T[], limit: number, fn: (item: T,
   return results;
 }
 
-async function replaceDocument(
+async function replaceDocumentWithChunks(
   supabase: ReturnType<typeof getServiceClient>,
   title: string,
   sourceType: string,
   challengeTypId: string | null,
-  text: string
+  chunks: string[]
 ) {
   // Vorherige Version löschen (cascade räumt kb_chunks mit auf) — Skript ist
   // damit gefahrlos wiederholbar.
@@ -87,7 +87,6 @@ async function replaceDocument(
     throw new Error(`Konnte Dokument "${title}" nicht anlegen: ${docError?.message}`);
   }
 
-  const chunks = chunkText(text);
   console.log(`  "${title}": ${chunks.length} Chunks`);
 
   for (let i = 0; i < chunks.length; i += EMBED_BATCH_SIZE) {
@@ -104,6 +103,16 @@ async function replaceDocument(
     if (insertError) throw new Error(`Chunk-Insert fehlgeschlagen: ${insertError.message}`);
     console.log(`    ... ${Math.min(i + EMBED_BATCH_SIZE, chunks.length)}/${chunks.length}`);
   }
+}
+
+async function replaceDocument(
+  supabase: ReturnType<typeof getServiceClient>,
+  title: string,
+  sourceType: string,
+  challengeTypId: string | null,
+  text: string
+) {
+  await replaceDocumentWithChunks(supabase, title, sourceType, challengeTypId, chunkText(text));
 }
 
 async function ingestPdf(supabase: ReturnType<typeof getServiceClient>) {
@@ -170,11 +179,41 @@ async function ingestChallengeContent(supabase: ReturnType<typeof getServiceClie
   }
 }
 
+async function ingestUebungsbibliothek(supabase: ReturnType<typeof getServiceClient>) {
+  const { data: uebungen, error } = await supabase
+    .from('uebungsbibliothek')
+    .select('muskelgruppe, name, varianten')
+    .order('sort_order', { ascending: true });
+  if (error) throw new Error(`Konnte Übungsbibliothek nicht laden: ${error.message}`);
+  if (!uebungen || uebungen.length === 0) {
+    console.log('Übungsbibliothek ist leer — überspringe.');
+    return;
+  }
+
+  // Ein Chunk pro Übung (statt Freitext-Splitting) für präzises Retrieval,
+  // z.B. bei Fragen wie "Wie kann ich Kniebeugen sonst noch ausführen?".
+  const chunks = uebungen.map(
+    (u) => `Muskelgruppe: ${u.muskelgruppe}\nÜbung: ${u.name}\nAusführungsvarianten: ${u.varianten}`
+  );
+
+  await replaceDocumentWithChunks(supabase, 'Übungsbibliothek', 'exercise_library', null, chunks);
+}
+
 async function main() {
   const supabase = getServiceClient();
-  console.log('Ingestiere Challenge-Inhalte …');
-  await ingestChallengeContent(supabase);
-  await ingestPdf(supabase);
+  const only = process.argv[2]?.replace(/^--only=/, '');
+
+  if (!only || only === 'challenge') {
+    console.log('Ingestiere Challenge-Inhalte …');
+    await ingestChallengeContent(supabase);
+  }
+  if (!only || only === 'uebungsbibliothek') {
+    console.log('Ingestiere Übungsbibliothek …');
+    await ingestUebungsbibliothek(supabase);
+  }
+  if (!only || only === 'pdf') {
+    await ingestPdf(supabase);
+  }
   console.log('Fertig.');
 }
 
