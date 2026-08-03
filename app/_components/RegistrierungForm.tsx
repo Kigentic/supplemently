@@ -31,8 +31,8 @@ export default function RegistrierungForm() {
     e.preventDefault();
     setError(null);
 
-    if (!form.studioname.trim() || !form.ansprechpartner.trim() || !form.email.trim()) {
-      setError('Bitte Studioname, Kontaktperson und E-Mail ausfüllen.');
+    if (!form.studioname.trim() || !form.ansprechpartner.trim() || !form.email.trim() || !form.telefon.trim()) {
+      setError('Bitte Studioname, Kontaktperson, E-Mail und Handynummer ausfüllen.');
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
@@ -135,7 +135,7 @@ export default function RegistrierungForm() {
         </div>
         <div className="sm:col-span-1">
           <label htmlFor="telefon" className={labelBase}>
-            Handynummer <span className="text-text-muted">(optional)</span>
+            Handynummer <span className="text-accent">*</span>
           </label>
           <input
             id="telefon"
@@ -144,6 +144,7 @@ export default function RegistrierungForm() {
             value={form.telefon}
             onChange={(e) => set('telefon', e.target.value)}
             placeholder="+49 …"
+            required
           />
         </div>
         <div className="sm:col-span-2">

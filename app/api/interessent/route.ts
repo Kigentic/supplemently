@@ -31,6 +31,7 @@ export async function POST(req: Request) {
   if (!ansprechpartner) return NextResponse.json({ error: 'Ansprechpartner ist erforderlich.' }, { status: 400 });
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     return NextResponse.json({ error: 'Bitte eine gültige E-Mail angeben.' }, { status: 400 });
+  if (!telefon) return NextResponse.json({ error: 'Handynummer ist erforderlich.' }, { status: 400 });
 
   const supabase = getServiceClient();
   const { error } = await supabase
