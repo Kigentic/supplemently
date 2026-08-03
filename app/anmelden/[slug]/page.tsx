@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
@@ -70,6 +70,8 @@ function useEmailConfirmation(): ConfirmState {
 
 export default function DurchgangRegistrierungPage() {
   const params = useParams<{ slug: string }>();
+  const searchParams = useSearchParams();
+  const ref = searchParams.get('ref');
   const confirmState = useEmailConfirmation();
   const [info, setInfo] = useState<DurchgangInfo | null>(null);
   const [infoError, setInfoError] = useState<string | null>(null);
@@ -137,6 +139,7 @@ export default function DurchgangRegistrierungPage() {
           handynummer: form.handynummer.trim() || undefined,
           dsgvo_marketing: form.dsgvo_marketing,
           dsgvo_affiliate: form.dsgvo_affiliate,
+          ref: ref || undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));

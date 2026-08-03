@@ -271,6 +271,54 @@ export async function sendNeueRegistrierungEmail({
   if (error) throw new Error(typeof error === 'string' ? error : error.message);
 }
 
+export async function sendFreischaltungEmail({
+  to,
+  vorname,
+  studioName,
+  durchgangName,
+  empfehlungsLink,
+}: {
+  to: string;
+  vorname: string;
+  studioName: string;
+  durchgangName: string;
+  empfehlungsLink: string;
+}) {
+  const body = `
+    <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#707070;">Los geht's, ${escapeHtml(vorname)}! 🎉</h1>
+    <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#4a4a4a;">
+      ${escapeHtml(studioName)} hat dich für <strong>${escapeHtml(durchgangName)}</strong> freigeschaltet.
+      Logg dich ein und leg direkt mit deiner ersten Wochenaufgabe los.
+    </p>
+    <table role="presentation" cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+          <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://supplemently.vercel.app'}/challenge/login" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
+            Jetzt einloggen
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="margin:28px 0 8px;font-size:15px;line-height:1.6;color:#4a4a4a;">
+      Mach das doch mit einer Freundin, einem Nachbarn oder Arbeitskollegen zusammen — gemeinsam
+      motiviert's doppelt so gut. Dein persönlicher Einladungslink:
+    </p>
+    <p style="margin:0;font-size:13px;line-height:1.6;">
+      <a href="${empfehlungsLink}" style="color:#4f90c1;word-break:break-all;">${empfehlungsLink}</a>
+    </p>
+  `;
+
+  const resend = getResend();
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Du bist freigeschaltet — ${durchgangName}`,
+    html: layout(body, studioName),
+  });
+
+  if (error) throw new Error(typeof error === 'string' ? error : error.message);
+}
+
 function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 }

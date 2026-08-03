@@ -18,6 +18,7 @@ interface Body {
   handynummer?: string;
   dsgvo_marketing: boolean;
   dsgvo_affiliate: boolean;
+  ref?: string;
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -30,7 +31,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     return NextResponse.json({ error: 'Ungültiger Request.' }, { status: 400 });
   }
 
-  const { vorname, nachname, email, passwort, handynummer, dsgvo_marketing, dsgvo_affiliate } = body;
+  const { vorname, nachname, email, passwort, handynummer, dsgvo_marketing, dsgvo_affiliate, ref } = body;
 
   if (!vorname?.trim() || !nachname?.trim() || !email?.trim() || !passwort) {
     return NextResponse.json({ error: 'Pflichtfelder fehlen.' }, { status: 400 });
@@ -57,6 +58,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     return NextResponse.json({ error: 'Dieser Durchgang ist nicht (mehr) offen für Anmeldungen.' }, { status: 404 });
   }
   const studio = Array.isArray(challenge.studios) ? challenge.studios[0] : challenge.studios;
+
+  // Empfehlungslink: nur gültig, wenn er auf eine Teilnahme desselben
+  // Durchgangs zeigt (verhindert Missbrauch über Challenge-Grenzen hinweg).
+  let empfohlenVonTeilnahmeId: string | null = null;
+  if (ref) {
+    const { data: referrer } = await supabase
+      .from('challenge_teilnahmen')
+      .select('id')
+      .eq('id', ref)
+      .eq('challenge_id', challenge.id)
+      .maybeSingle();
+    empfohlenVonTeilnahmeId = referrer?.id ?? null;
+  }
 
   // 1. Auth-User anlegen + Bestätigungslink generieren.
   const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
@@ -117,7 +131,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   const { error: teilnahmeError } = await supabase
     .from('challenge_teilnahmen')
     .upsert(
-      { user_id: userId, challenge_id: challenge.id, status: 'pre_registered' },
+      { user_id: userId, challenge_id: challenge.id, status: 'pre_registered', empfohlen_von_teilnahme_id: empfohlenVonTeilnahmeId },
       { onConflict: 'user_id,challenge_id', ignoreDuplicates: false }
     );
   if (teilnahmeError) {

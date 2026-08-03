@@ -5,8 +5,10 @@
 import { NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabaseServer';
 import { getUserFromAuthHeader, getAdminScope, hasAdminAccess } from '@/lib/apiAuth';
+import { sendFreischaltungEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://supplemently.vercel.app';
 
 export async function POST(req: Request, { params }: { params: Promise<{ teilnahmeId: string }> }) {
   const user = await getUserFromAuthHeader(req);
@@ -20,7 +22,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ teilnah
 
   const { data: teilnahme } = await supabase
     .from('challenge_teilnahmen')
-    .select('id, status, challenges ( studio_id )')
+    .select('id, user_id, status, challenges ( studio_id, name, slug, studios ( name ) )')
     .eq('id', teilnahmeId)
     .maybeSingle();
 
@@ -41,6 +43,31 @@ export async function POST(req: Request, { params }: { params: Promise<{ teilnah
   if (updateError) {
     console.error('Freischalten error:', updateError);
     return NextResponse.json({ error: 'Freischalten fehlgeschlagen.' }, { status: 500 });
+  }
+
+  // Willkommensmail mit persönlichem Empfehlungslink — best effort, Freischaltung
+  // ist auch ohne diese Mail gültig.
+  if (challenge?.slug) {
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('vorname, email')
+        .eq('id', teilnahme.user_id)
+        .maybeSingle();
+      const studio = Array.isArray(challenge.studios) ? challenge.studios[0] : challenge.studios;
+
+      if (profile?.email) {
+        await sendFreischaltungEmail({
+          to: profile.email,
+          vorname: profile.vorname ?? 'du',
+          studioName: studio?.name ?? 'dein Studio',
+          durchgangName: challenge.name,
+          empfehlungsLink: `${SITE_URL}/anmelden/${challenge.slug}?ref=${teilnahme.id}`,
+        });
+      }
+    } catch (err) {
+      console.error('Freischaltungs-Mail error:', err);
+    }
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });

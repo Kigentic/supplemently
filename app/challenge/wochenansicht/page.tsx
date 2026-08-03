@@ -7,6 +7,7 @@ import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 import ChallengeWeeksOverview from '@/app/_components/ChallengeWeeksOverview';
 import CoachWidget from '@/app/_components/CoachWidget';
+import EmpfehlungCard from '@/app/_components/EmpfehlungCard';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
 import { getChallengeSchedule, formatUnlockDate } from '@/lib/challengeSchedule';
 import { fetchChallengeWeeks, fetchChallengeTypIdBySlug, LONGEVITY_CHALLENGE_TYP_SLUG, type ChallengeWeek } from '@/lib/challengeWeeks';
@@ -168,6 +169,8 @@ export default function WochenansichtPage() {
             </Link>
           )}
         </div>
+
+        <EmpfehlungCard />
 
         {/* 8-Wochen Challenge Übersicht */}
         <ChallengeWeeksOverview weeks={data.weeks} currentWeek={data.currentWeek} />
