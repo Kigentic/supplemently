@@ -5,6 +5,7 @@
 // die lokal auf die alten Blautöne zurück-overridet).
 import type { ReactNode } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import RegistrierungForm from './_components/RegistrierungForm';
 
 export const metadata = {
@@ -113,10 +114,18 @@ export default function StudioPartnerPage() {
             <a href="#ablauf" className="text-sm font-medium text-text-muted transition hover:text-text">
               So läuft's ab
             </a>
+            <Link href="/challenge/login" className="text-sm font-medium text-text-muted transition hover:text-text">
+              Login
+            </Link>
           </nav>
-          <a href="#anfrage" className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-on-accent transition hover:bg-accent-hover">
-            Partner werden
-          </a>
+          <div className="flex items-center gap-4">
+            <Link href="/challenge/login" className="text-sm font-medium text-text-muted transition hover:text-text sm:hidden">
+              Login
+            </Link>
+            <a href="#anfrage" className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-on-accent transition hover:bg-accent-hover">
+              Partner werden
+            </a>
+          </div>
         </div>
       </header>
 
