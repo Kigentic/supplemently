@@ -3,7 +3,7 @@ import Link from 'next/link';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 
-export const metadata = { title: 'Registrierung eingegangen — Supplemently für Studios' };
+export const metadata = { title: 'Registrierung eingegangen — MoveIn8 für Studios' };
 
 export default function StudioBestaetigungPage() {
   return (

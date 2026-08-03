@@ -68,8 +68,15 @@ function QuoteCard({ initial, color, text }: { initial: string; color: string; t
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-bg">
-      <SiteHeader ctaLabel="Jetzt anmelden" ctaHref="/challenge/registrierung" />
+    <div className="turnkiste-theme min-h-screen bg-bg">
+      <SiteHeader
+        ctaLabel="Jetzt anmelden"
+        ctaHref="/challenge/registrierung"
+        logoSrc="/Logo-turnkiste-weisser-hintergrun.webp"
+        logoAlt="Logo"
+        logoHref="/turnkiste"
+        logoHeight={56}
+      />
 
       <main>
 
@@ -481,7 +488,12 @@ export default function LandingPage() {
 
       </main>
 
-      <SiteFooter />
+      <SiteFooter
+        logoSrc="/Logo-turnkiste-weisser-hintergrun.webp"
+        logoAlt="Logo"
+        logoHeight={96}
+        tagline="Die Longevity Lifestyle Community — individuell auf dich abgestimmt."
+      />
     </div>
   );
 }

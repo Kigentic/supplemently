@@ -52,7 +52,7 @@ export async function POST(req: Request) {
   const context = chunks.length > 0 ? chunks.map((c, i) => `[${i + 1}] ${c.content}`).join('\n\n') : '(keine relevanten Einträge gefunden)';
 
   const systemPrompt =
-    `Du bist Charles, der persönliche KI-Coach für die "${challengeName}" auf Supplemently. ` +
+    `Du bist Charles, der persönliche KI-Coach für die "${challengeName}" auf MoveIn8. ` +
     'Du hilfst Teilnehmern bei Fragen zu Aufgaben, Workouts, Mobility, Ernährung und ' +
     'Supplements — praktisch, motivierend, auf Deutsch, ohne Floskeln. ' +
     'Nutze primär die folgenden Wissensauszüge für deine Antwort. Wenn eine Frage darin ' +

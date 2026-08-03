@@ -7,17 +7,26 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
 
-const HEADER_LOGO = 56;
+const HEADER_LOGO = 84;
 
 export default function SiteHeader({
   ctaHref = '/challenge/registrierung',
   ctaLabel = 'Jetzt anmelden',
   loggedIn: loggedInProp,
+  logoSrc = '/MoveIN-nobg.png',
+  logoAlt = 'MoveIn8',
+  logoHref = '/',
+  logoHeight = HEADER_LOGO,
 }: {
   ctaHref?: string;
   ctaLabel?: string;
   /** Optional: bekannter Login-Status (vermeidet Flackern). Ohne Angabe prüft der Header selbst. */
   loggedIn?: boolean;
+  /** Nur von /turnkiste überschrieben (eigenes Logo/Link/Größe, Seite bleibt unangetastet). */
+  logoSrc?: string;
+  logoAlt?: string;
+  logoHref?: string;
+  logoHeight?: number;
 }) {
   const router = useRouter();
   const [loggedIn, setLoggedIn] = useState(loggedInProp ?? false);
@@ -55,13 +64,13 @@ export default function SiteHeader({
   return (
     <header className="sticky top-0 z-30 border-b border-outline/40 bg-bg/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-        <Link href="/turnkiste" aria-label="Startseite">
+        <Link href={logoHref} aria-label="Startseite">
           <Image
-            src="/Logo-turnkiste-weisser-hintergrun.webp"
-            alt="Logo"
-            width={HEADER_LOGO}
-            height={HEADER_LOGO}
-            style={{ height: HEADER_LOGO, width: 'auto' }}
+            src={logoSrc}
+            alt={logoAlt}
+            width={logoHeight}
+            height={logoHeight}
+            style={{ height: logoHeight, width: 'auto' }}
             priority
           />
         </Link>

@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: 'Supplemently — Das Studio Challenge System',
+  title: 'MoveIn8 — Das Studio Challenge System',
   description:
     'Schlüsselfertige 8-Wochen-Challenges für dein Fitnessstudio: Onboarding, KI-Coach, Check-ins und Supplement-Upsell inklusive.',
 };

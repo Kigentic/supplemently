@@ -7,7 +7,7 @@ type Status = 'idle' | 'submitting' | 'success' | 'error';
 
 const inputBase =
   'w-full rounded-lg border border-outline bg-bg px-4 py-3 text-text placeholder:text-text-muted ' +
-  'outline-none transition focus:border-[var(--mi-orange)] focus:ring-2 focus:ring-[var(--mi-orange)]/30';
+  'outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30';
 
 const labelBase = 'mb-1.5 block text-sm font-medium text-text';
 
@@ -63,7 +63,7 @@ export default function RegistrierungForm() {
   if (status === 'success') {
     return (
       <div className="rounded-2xl bg-surface p-8 text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--mi-orange)] text-2xl text-white">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-2xl text-on-accent">
           ✓
         </div>
         <h3 className="text-2xl font-semibold text-text">Danke!</h3>
@@ -83,7 +83,7 @@ export default function RegistrierungForm() {
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div className="sm:col-span-1">
           <label htmlFor="studioname" className={labelBase}>
-            Studioname <span className="text-[var(--mi-orange)]">*</span>
+            Studioname <span className="text-accent">*</span>
           </label>
           <input
             id="studioname"
@@ -108,7 +108,7 @@ export default function RegistrierungForm() {
         </div>
         <div className="sm:col-span-1">
           <label htmlFor="ansprechpartner" className={labelBase}>
-            Kontaktperson <span className="text-[var(--mi-orange)]">*</span>
+            Kontaktperson <span className="text-accent">*</span>
           </label>
           <input
             id="ansprechpartner"
@@ -121,7 +121,7 @@ export default function RegistrierungForm() {
         </div>
         <div className="sm:col-span-1">
           <label htmlFor="email" className={labelBase}>
-            E-Mail <span className="text-[var(--mi-orange)]">*</span>
+            E-Mail <span className="text-accent">*</span>
           </label>
           <input
             id="email"
@@ -135,7 +135,7 @@ export default function RegistrierungForm() {
         </div>
         <div className="sm:col-span-1">
           <label htmlFor="telefon" className={labelBase}>
-            Handynummer <span className="text-[var(--mi-orange)]">*</span>
+            Handynummer <span className="text-accent">*</span>
           </label>
           <input
             id="telefon"
@@ -171,7 +171,7 @@ export default function RegistrierungForm() {
       <button
         type="submit"
         disabled={status === 'submitting'}
-        className="mt-6 w-full rounded-full bg-[var(--mi-orange)] px-7 py-3.5 text-base font-semibold text-white transition hover:bg-[var(--mi-orange-dark)] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+        className="mt-6 w-full rounded-full bg-accent px-7 py-3.5 text-base font-semibold text-on-accent transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
       >
         {status === 'submitting' ? 'Wird gesendet …' : 'Jetzt Partnerstudio werden'}
       </button>

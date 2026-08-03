@@ -1,18 +1,30 @@
 @import "tailwindcss";
 
-/* Design-System (verbindliche Tokens, helles Theme). */
+/* Design-System (verbindliche Tokens, helles Theme) — MoveIn8-CI.
+   Ausnahme: /turnkiste (Turnkistes eigene B2C-Seite) überschreibt diese
+   Variablen lokal auf die alten Turnkiste-Blautöne, siehe app/turnkiste/page.tsx. */
 @theme {
   --color-bg: #ffffff;
   --color-surface: #f4f7fa;
-  --color-accent: #4f90c1;
-  --color-accent-hover: #225990;
-  --color-accent-dark: #225990;
-  --color-outline: #cdd8e2;
+  --color-accent: #f68b35;
+  --color-accent-hover: #d9701e;
+  --color-accent-dark: #d9701e;
+  --color-olive: #b6b6aa;
+  --color-caption: #dfd8ce;
+  --color-outline: #ded9d0;
   --color-text: #707070;
   --color-text-muted: #959595;
   --color-on-accent: #ffffff;
 
   --font-body: var(--font-inter), system-ui, sans-serif;
+}
+
+/* Turnkiste-B2C-Seite bleibt unangetastet — alte Blautöne lokal gescoped. */
+.turnkiste-theme {
+  --color-accent: #4f90c1;
+  --color-accent-hover: #225990;
+  --color-accent-dark: #225990;
+  --color-outline: #cdd8e2;
 }
 
 html {

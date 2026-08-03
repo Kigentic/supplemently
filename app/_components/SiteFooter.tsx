@@ -1,21 +1,32 @@
 // Gemeinsamer Footer (Landingpage + Fragebogen).
 import Image from 'next/image';
 
-export default function SiteFooter() {
+export default function SiteFooter({
+  logoSrc = '/MoveIN-nobg.png',
+  logoAlt = 'MoveIn8',
+  logoHeight = 96,
+  tagline = 'Das Studio Challenge System — schlüsselfertig für dein Fitnessstudio.',
+}: {
+  /** Nur von /turnkiste überschrieben (eigenes Logo/Tagline, Seite bleibt unangetastet). */
+  logoSrc?: string;
+  logoAlt?: string;
+  logoHeight?: number;
+  tagline?: string;
+}) {
   return (
     <footer className="border-t border-outline/50 bg-bg">
       <div className="mx-auto max-w-6xl px-5 py-12">
         <div className="flex flex-col items-start justify-between gap-8 sm:flex-row">
           <div className="max-w-sm">
             <Image
-              src="/Logo-turnkiste-weisser-hintergrun.webp"
-              alt="Logo"
-              width={96}
-              height={96}
-              style={{ height: 96, width: 'auto' }}
+              src={logoSrc}
+              alt={logoAlt}
+              width={logoHeight}
+              height={logoHeight}
+              style={{ height: logoHeight, width: 'auto' }}
             />
             <p className="mt-4 text-sm leading-relaxed text-text-muted">
-              Die Longevity Lifestyle Community — individuell auf dich abgestimmt.
+              {tagline}
             </p>
           </div>
           <div className="flex flex-col gap-2 text-sm">
