@@ -1,34 +1,31 @@
-// Zuordnung eines Teilnehmers zu seinem Trainingsplan: Geschlecht + gemapptes
-// Trainingslevel (aus dem Onboarding-Fragebogen) + Phase (Woche 1-4 / 5-8).
-// Rotationsvariante ist deterministisch pro User (kein dynamisches
-// Neuberechnen), siehe Konzept in der Session.
+// Zuordnung eines Teilnehmers zu seinem Trainingsplan: Geschlecht + Level
+// (direkt aus dem Onboarding-Fragebogen) + Fokus (Onboarding, im Check-in
+// überschreibbar) → eine Zeile in trainingsplan_zuordnung. Reine
+// Nachschlagetabelle, keine Berechnung — siehe Konzept in der Session.
 
 export type TrainingsplanGeschlecht = 'maennlich' | 'weiblich';
-export type TrainingsplanLevel = 'beginner' | 'fortgeschritten' | 'advanced';
+export type TrainingsplanLevel = 'beginner' | 'leicht_aktiv' | 'regelmaessig' | 'intensiv';
+export type TrainingsplanFokus = 'kein' | 'ruecken' | 'beine_po' | 'bauch_core';
 
 export function mapGeschlecht(geschlecht: string | null | undefined): TrainingsplanGeschlecht {
   return geschlecht === 'weiblich' ? 'weiblich' : 'maennlich';
 }
 
+// Onboarding-Rohwerte ('keine'|'gelegentlich'|'regelmaessig'|'intensiv')
+// entsprechen 1:1 den Trainingsplan-Leveln (nur 'keine' → 'beginner' benannt).
 export function mapTrainingslevel(trainingslevel: string | null | undefined): TrainingsplanLevel {
   switch (trainingslevel) {
-    case 'intensiv':
-      return 'advanced';
     case 'gelegentlich':
+      return 'leicht_aktiv';
     case 'regelmaessig':
-      return 'fortgeschritten';
+      return 'regelmaessig';
+    case 'intensiv':
+      return 'intensiv';
     default:
       return 'beginner';
   }
 }
 
-export function phaseForWeek(currentWeek: number): 1 | 2 {
-  return currentWeek <= 4 ? 1 : 2;
-}
-
-/** Stabile 1|2-Auswahl pro User — kein Zufall, kein Neuberechnen bei jedem Aufruf. */
-export function variantForUser(userId: string): 1 | 2 {
-  let sum = 0;
-  for (let i = 0; i < userId.length; i++) sum += userId.charCodeAt(i);
-  return sum % 2 === 0 ? 1 : 2;
+export function mapFokus(fokus: string | null | undefined): TrainingsplanFokus {
+  return fokus === 'ruecken' || fokus === 'beine_po' || fokus === 'bauch_core' ? fokus : 'kein';
 }

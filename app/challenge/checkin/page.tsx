@@ -12,6 +12,7 @@ import { TrafficLight, ScalePicker, type Ampel } from '@/app/_components/Checkin
 import AnleitungLink from '@/app/_components/AnleitungModal';
 import AffiliateProductCard, { type AffiliateProduct } from '@/app/_components/AffiliateProductCard';
 import CoachWidget from '@/app/_components/CoachWidget';
+import { mapFokus, type TrainingsplanFokus } from '@/lib/trainingsplan';
 
 interface CheckinData {
   teilnahmeId: string;
@@ -19,7 +20,17 @@ interface CheckinData {
   alreadySubmitted: boolean;
   unlocked: boolean;
   unlockDate: Date;
+  trainingsplanAktiv: boolean;
+  trainingsplanFokus: TrainingsplanFokus;
+  geschlechtWeiblich: boolean;
 }
+
+const FOKUS_OPTIONEN: { value: TrainingsplanFokus; label: string; weiblichNur?: boolean }[] = [
+  { value: 'kein', label: 'Kein spezieller Fokus' },
+  { value: 'ruecken', label: 'Rücken & Haltung' },
+  { value: 'beine_po', label: 'Beine & Po', weiblichNur: true },
+  { value: 'bauch_core', label: 'Bauch & Core', weiblichNur: true },
+];
 
 export default function CheckinPage() {
   const router = useRouter();
@@ -31,6 +42,8 @@ export default function CheckinPage() {
   const [wohlbefinden, setWohlbefinden] = useState<number | null>(null);
   const [schwierigkeit, setSchwierigkeit] = useState<number | null>(null);
   const [erfolg, setErfolg] = useState('');
+  const [planKlar, setPlanKlar] = useState<'ja' | 'wechseln' | null>(null);
+  const [neuerFokus, setNeuerFokus] = useState<TrainingsplanFokus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
   const [scoreResult, setScoreResult] = useState<number | null>(null);
@@ -51,7 +64,7 @@ export default function CheckinPage() {
       const [{ data: teilnahme }, { data: profile }] = await Promise.all([
         supabase
           .from('challenge_teilnahmen')
-          .select('id, status, challenges ( start_datum, wochen_anzahl, challenge_typ_id )')
+          .select('id, status, trainingsplan_gewuenscht, trainingsplan_fokus, onboarding_antworten, challenges ( start_datum, wochen_anzahl, challenge_typ_id )')
           .eq('user_id', user.id)
           .order('joined_at', { ascending: false })
           .limit(1)
@@ -90,6 +103,8 @@ export default function CheckinPage() {
 
       if (cancelled) return;
 
+      const antworten = (teilnahme.onboarding_antworten ?? {}) as { geschlecht?: string };
+
       setWeeks(loadedWeeks);
       setData({
         teilnahmeId: teilnahme.id,
@@ -97,6 +112,9 @@ export default function CheckinPage() {
         alreadySubmitted: !!existingCheckin,
         unlocked: isAdmin || schedule.checkinUnlocked,
         unlockDate: schedule.checkinUnlockDate,
+        trainingsplanAktiv: !!teilnahme.trainingsplan_gewuenscht,
+        trainingsplanFokus: mapFokus(teilnahme.trainingsplan_fokus),
+        geschlechtWeiblich: antworten.geschlecht === 'weiblich',
       });
       setLoading(false);
     }
@@ -134,6 +152,19 @@ export default function CheckinPage() {
       setError('Session abgelaufen. Bitte neu einloggen.');
       setStatus('idle');
       return;
+    }
+
+    // Trainingsplan-Wechsel — best effort, blockiert den Check-in nicht.
+    if (data.trainingsplanAktiv && planKlar === 'wechseln' && neuerFokus) {
+      try {
+        await fetch('/api/challenge/trainingsplan-praeferenz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+          body: JSON.stringify({ gewuenscht: true, fokus: neuerFokus }),
+        });
+      } catch {
+        // ignorieren — Check-in soll trotzdem durchgehen
+      }
     }
 
     try {
@@ -301,6 +332,50 @@ export default function CheckinPage() {
             <p className="mb-3 text-xs text-text-muted">1 = kinderleicht · 10 = richtig hart</p>
             <ScalePicker value={schwierigkeit} onChange={setSchwierigkeit} />
           </section>
+
+          {data.trainingsplanAktiv && (
+            <section>
+              <p className="mb-1 text-sm font-semibold text-text">Kommst du mit deinem Trainingsplan klar?</p>
+              <p className="mb-3 text-xs text-text-muted">Kein Stress — du kannst den Fokus jederzeit wechseln.</p>
+              <div className="flex flex-wrap gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => { setPlanKlar('ja'); setNeuerFokus(null); }}
+                  className={`rounded-full border px-4 py-2.5 text-sm font-medium transition ${
+                    planKlar === 'ja' ? 'border-accent bg-accent text-on-accent' : 'border-outline bg-bg text-text hover:border-text'
+                  }`}
+                >
+                  Ja, passt
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPlanKlar('wechseln')}
+                  className={`rounded-full border px-4 py-2.5 text-sm font-medium transition ${
+                    planKlar === 'wechseln' ? 'border-accent bg-accent text-on-accent' : 'border-outline bg-bg text-text hover:border-text'
+                  }`}
+                >
+                  Ich möchte wechseln
+                </button>
+              </div>
+
+              {planKlar === 'wechseln' && (
+                <div className="mt-3 flex flex-wrap gap-2.5">
+                  {FOKUS_OPTIONEN.filter((o) => !o.weiblichNur || data.geschlechtWeiblich).map((o) => (
+                    <button
+                      key={o.value}
+                      type="button"
+                      onClick={() => setNeuerFokus(o.value)}
+                      className={`rounded-full border px-4 py-2.5 text-sm font-medium transition ${
+                        neuerFokus === o.value ? 'border-accent bg-accent text-on-accent' : 'border-outline bg-bg text-text hover:border-text'
+                      }`}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
 
           <section>
             <label htmlFor="erfolg" className="mb-1.5 block text-sm font-semibold text-text">

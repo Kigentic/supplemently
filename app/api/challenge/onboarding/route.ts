@@ -106,10 +106,17 @@ export async function POST(req: Request) {
 
   const teilnahmeId: string = teilnahme.id;
 
-  // 3. Onboarding-Antworten speichern, Status auf aktiv setzen.
+  // 3. Onboarding-Antworten speichern, Status auf aktiv setzen. Trainingsplan-
+  // Wunsch/Fokus zusätzlich in eigenen Spalten (überschreibbar im Check-in,
+  // daher nicht nur im eingefrorenen onboarding_antworten-Snapshot).
   const { error: updateError } = await supabase
     .from('challenge_teilnahmen')
-    .update({ onboarding_antworten: answers, status: 'aktiv' })
+    .update({
+      onboarding_antworten: answers,
+      status: 'aktiv',
+      trainingsplan_gewuenscht: answers.trainingsplan_gewuenscht === 'ja',
+      trainingsplan_fokus: answers.trainingsplan_gewuenscht === 'ja' ? (answers.trainingsplan_fokus ?? 'kein') : null,
+    })
     .eq('id', teilnahmeId);
   if (updateError) {
     console.error('Teilnahme update error:', updateError);

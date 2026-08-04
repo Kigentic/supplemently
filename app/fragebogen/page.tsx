@@ -17,6 +17,8 @@ const initial: FormState = {
   koerperform: '',
   trainingslevel: '',
   trainingsziel: '',
+  trainingsplan_gewuenscht: '',
+  trainingsplan_fokus: '',
   ernaehrungsstil: '',
   restriktionen: [] as string[],
   kochverhalten: '',
@@ -240,7 +242,14 @@ function validateStep(step: number, form: FormState): string | null {
   const gruppe = GRUPPEN[step];
   for (const id of gruppe.frageIds) {
     const frage = FRAGEN_MAP.get(id);
-    if (!frage || frage.optional) continue;
+    if (!frage) continue;
+    // trainingsplan_fokus ist strukturell "optional" (nur sichtbar wenn
+    // gewuenscht === 'ja'), aber dann selbst Pflicht.
+    if (id === 'trainingsplan_fokus') {
+      if (form.trainingsplan_gewuenscht === 'ja' && !form[id]) return 'Bitte einen Fokus für deinen Trainingsplan wählen.';
+      continue;
+    }
+    if (frage.optional) continue;
     if (id === 'restriktionen' || id === 'medikamente') continue;
 
     if (frage.typ === 'number') {
@@ -346,6 +355,8 @@ export default function FragebogenPage() {
       koerperform: form.koerperform,
       trainingslevel: form.trainingslevel,
       trainingsziel: form.trainingsziel,
+      trainingsplan_gewuenscht: form.trainingsplan_gewuenscht,
+      trainingsplan_fokus: form.trainingsplan_gewuenscht === 'ja' ? form.trainingsplan_fokus : undefined,
       ernaehrungsstil: form.ernaehrungsstil,
       restriktionen,
       kochverhalten: form.kochverhalten,
@@ -488,6 +499,12 @@ export default function FragebogenPage() {
             {gruppe.frageIds.map((id, i) => {
               const frage = FRAGEN_MAP.get(id);
               if (!frage) return null;
+              if (id === 'trainingsplan_fokus' && form.trainingsplan_gewuenscht !== 'ja') return null;
+              // Beine & Po / Bauch & Core gibt's aktuell nur für Frauen (kein passender Plan für Männer).
+              const optionen =
+                id === 'trainingsplan_fokus' && form.geschlecht !== 'weiblich'
+                  ? (frage.optionen ?? []).filter((o) => o.value === 'kein' || o.value === 'ruecken')
+                  : frage.optionen;
               return (
                 <QuestionBlock
                   key={id}
@@ -514,7 +531,7 @@ export default function FragebogenPage() {
 
                   {frage.typ === 'single' && (
                     <div className="flex flex-wrap gap-2.5">
-                      {(frage.optionen ?? []).map((opt) => (
+                      {(optionen ?? []).map((opt) => (
                         <OptionPill
                           key={opt.value}
                           label={opt.label}

@@ -18,6 +18,8 @@ export type Heisshunger = 'selten' | 'gelegentlich_suess' | 'gelegentlich_salzig
 export type GelenkProbleme = 'keine' | 'gelegentlich' | 'haeufig' | 'chronisch_arthrose';
 export type Medikament = 'blutdruck' | 'blutzucker' | 'schilddruese' | 'pille' | 'antidepressiva' | 'keine';
 export type Koerperform = 'schlank' | 'normal' | 'untersetzt' | 'fett';
+export type TrainingsplanGewuenscht = 'ja' | 'nein';
+export type TrainingsplanFokus = 'kein' | 'ruecken' | 'beine_po' | 'bauch_core';
 
 export interface Answers {
   // Persönliche Daten
@@ -29,6 +31,8 @@ export interface Answers {
   // Training
   trainingslevel: Trainingslevel;
   trainingsziel: Trainingsziel;
+  trainingsplan_gewuenscht: TrainingsplanGewuenscht;
+  trainingsplan_fokus?: TrainingsplanFokus;
   // Ernährung
   ernaehrungsstil: Ernaehrungsstil;
   restriktionen: Restriktion[];
@@ -139,6 +143,30 @@ export const FRAGEN: Frage[] = [
       { value: 'abnehmen', label: 'Abnehmen / Körperfett' },
       { value: 'gesundheit', label: 'Allgemeine Gesundheit' },
       { value: 'performance', label: 'Performance / Ausdauer' },
+    ],
+  },
+  {
+    id: 'trainingsplan_gewuenscht',
+    frage: 'Möchtest du einen fertigen Trainingsplan für die Challenge?',
+    typ: 'single',
+    optionen: [
+      { value: 'ja', label: 'Ja, gerne' },
+      { value: 'nein', label: 'Nein, mache ich selbst' },
+    ],
+  },
+  {
+    // Optionen sind geschlechtsabhängig — wird in app/fragebogen/page.tsx
+    // dynamisch gefiltert (Frauen: alle 4, Männer: kein/ruecken). Nur
+    // sichtbar/pflicht, wenn trainingsplan_gewuenscht === 'ja'.
+    id: 'trainingsplan_fokus',
+    frage: 'Möchtest du einen speziellen Fokus?',
+    typ: 'single',
+    optional: true,
+    optionen: [
+      { value: 'kein', label: 'Kein spezieller Fokus' },
+      { value: 'ruecken', label: 'Rücken & Haltung' },
+      { value: 'beine_po', label: 'Beine & Po' },
+      { value: 'bauch_core', label: 'Bauch & Core' },
     ],
   },
 
@@ -343,7 +371,7 @@ export const FRAGEN: Frage[] = [
 
 export const GRUPPEN = [
   { id: 'profil',     titel: 'Persönliche Daten',       frageIds: ['geschlecht', 'alter', 'groesse', 'gewicht', 'koerperform'] },
-  { id: 'training',   titel: 'Training & Ziele',         frageIds: ['trainingslevel', 'trainingsziel'] },
+  { id: 'training',   titel: 'Training & Ziele',         frageIds: ['trainingslevel', 'trainingsziel', 'trainingsplan_gewuenscht', 'trainingsplan_fokus'] },
   { id: 'ernaehrung', titel: 'Ernährung',                frageIds: ['ernaehrungsstil', 'restriktionen', 'kochverhalten', 'mahlzeiten_pro_tag', 'auswaerts_essen', 'alkohol', 'raucher'] },
   { id: 'schlaf',     titel: 'Schlaf',                   frageIds: ['schlafdauer', 'aufwachgefuehl', 'schlaf_durchschlafen'] },
   { id: 'stress',     titel: 'Stress & Regeneration',    frageIds: ['stresslevel', 'entspannung', 'gedanken_abschalten'] },
@@ -363,6 +391,8 @@ export function validateAnswers(
   const g: Geschlecht[] = ['männlich', 'weiblich', 'divers'];
   const lvl: Trainingslevel[] = ['keine', 'gelegentlich', 'regelmaessig', 'intensiv'];
   const ziel: Trainingsziel[] = ['muskelaufbau', 'abnehmen', 'gesundheit', 'performance'];
+  const tpGewuenscht: TrainingsplanGewuenscht[] = ['ja', 'nein'];
+  const tpFokus: TrainingsplanFokus[] = ['kein', 'ruecken', 'beine_po', 'bauch_core'];
   const ern: Ernaehrungsstil[] = ['omnivor', 'vegetarisch', 'vegan'];
   const restr: Restriktion[] = ['laktose', 'gluten', 'nuesse', 'keine'];
   const kochv: Kochverhalten[] = ['frisch', 'gemischt', 'fertiggerichte'];
@@ -386,6 +416,10 @@ export function validateAnswers(
     return { ok: false, error: 'Ungültiges Alter (14–120).' };
   if (!inSet(input.trainingslevel, lvl)) return { ok: false, error: 'Ungültiges Trainingslevel.' };
   if (!inSet(input.trainingsziel, ziel)) return { ok: false, error: 'Ungültiges Trainingsziel.' };
+  if (!inSet(input.trainingsplan_gewuenscht, tpGewuenscht))
+    return { ok: false, error: 'Bitte angeben, ob du einen Trainingsplan möchtest.' };
+  if (input.trainingsplan_gewuenscht === 'ja' && !inSet(input.trainingsplan_fokus, tpFokus))
+    return { ok: false, error: 'Bitte einen Fokus für deinen Trainingsplan wählen.' };
   if (!inSet(input.ernaehrungsstil, ern)) return { ok: false, error: 'Ungültiger Ernährungsstil.' };
   if (!inSet(input.kochverhalten, kochv)) return { ok: false, error: 'Ungültiges Kochverhalten.' };
   if (!inSet(input.mahlzeiten_pro_tag, mpt)) return { ok: false, error: 'Ungültige Mahlzeitenanzahl.' };
@@ -436,6 +470,8 @@ export function validateAnswers(
       koerperform,
       trainingslevel: input.trainingslevel,
       trainingsziel: input.trainingsziel,
+      trainingsplan_gewuenscht: input.trainingsplan_gewuenscht,
+      trainingsplan_fokus: input.trainingsplan_gewuenscht === 'ja' ? input.trainingsplan_fokus : undefined,
       ernaehrungsstil: input.ernaehrungsstil,
       restriktionen: restriktionen.length ? restriktionen : ['keine'],
       kochverhalten: input.kochverhalten,
