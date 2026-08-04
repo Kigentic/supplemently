@@ -199,6 +199,25 @@ async function ingestUebungsbibliothek(supabase: ReturnType<typeof getServiceCli
   await replaceDocumentWithChunks(supabase, 'Übungsbibliothek', 'exercise_library', null, chunks);
 }
 
+async function ingestTrainingsplanMarkdown(supabase: ReturnType<typeof getServiceClient>) {
+  const kbDir = path.join(process.cwd(), 'kb');
+  const files = fs.existsSync(kbDir)
+    ? fs.readdirSync(kbDir).filter((f) => /^[MF]\d+_.*\.md$/.test(f))
+    : [];
+
+  if (files.length === 0) {
+    console.log('Keine Trainingsplan-Markdown-Dateien in kb/ gefunden — überspringe.');
+    return;
+  }
+
+  for (const file of files) {
+    const raw = fs.readFileSync(path.join(kbDir, file), 'utf-8');
+    const heading = raw.match(/^#\s+(.+)$/m)?.[1]?.trim();
+    const title = heading ?? file.replace(/\.md$/, '');
+    await replaceDocument(supabase, title, 'trainingsplan_md', null, raw);
+  }
+}
+
 async function main() {
   const supabase = getServiceClient();
   const only = process.argv[2]?.replace(/^--only=/, '');
@@ -210,6 +229,10 @@ async function main() {
   if (!only || only === 'uebungsbibliothek') {
     console.log('Ingestiere Übungsbibliothek …');
     await ingestUebungsbibliothek(supabase);
+  }
+  if (!only || only === 'trainingsplan_md') {
+    console.log('Ingestiere Trainingsplan-Markdown-Dateien …');
+    await ingestTrainingsplanMarkdown(supabase);
   }
   if (!only || only === 'pdf') {
     await ingestPdf(supabase);
