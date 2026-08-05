@@ -63,35 +63,35 @@ export default function SiteHeader({
 
   return (
     <header className="sticky top-0 z-30 border-b border-outline/40 bg-bg/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-        <Link href={logoHref} aria-label="Startseite">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 sm:px-5 sm:py-3">
+        <Link href={logoHref} aria-label="Startseite" className="shrink-0">
           <Image
             src={logoSrc}
             alt={logoAlt}
-            width={logoHeight}
+            width={logoHeight * 2}
             height={logoHeight}
-            style={{ height: logoHeight, width: 'auto' }}
+            style={{ height: `clamp(32px, 8vw, ${logoHeight}px)`, width: 'auto' }}
             priority
           />
         </Link>
         {loggedIn ? (
-          <nav className="flex items-center gap-5">
+          <nav className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-5">
             <Link
               href="/challenge/dashboard"
-              className="text-sm font-medium text-text-muted transition hover:text-text"
+              className="text-xs font-medium text-text-muted transition hover:text-text sm:text-sm"
             >
               Dashboard
             </Link>
             <Link
               href="/challenge/wochenansicht"
-              className="text-sm font-medium text-text-muted transition hover:text-text"
+              className="text-xs font-medium text-text-muted transition hover:text-text sm:text-sm"
             >
               Wochenansicht
             </Link>
             {isAdmin && (
               <Link
                 href="/challenge/admin"
-                className="text-sm font-medium text-text-muted transition hover:text-text"
+                className="text-xs font-medium text-text-muted transition hover:text-text sm:text-sm"
               >
                 Admin
               </Link>
@@ -99,7 +99,7 @@ export default function SiteHeader({
             <button
               type="button"
               onClick={onLogout}
-              className="rounded-full border border-outline px-4 py-2 text-sm font-medium text-text transition hover:border-text"
+              className="rounded-full border border-outline px-3 py-1.5 text-xs font-medium text-text transition hover:border-text sm:px-4 sm:py-2 sm:text-sm"
             >
               Ausloggen
             </button>
@@ -107,7 +107,7 @@ export default function SiteHeader({
         ) : (
           <Link
             href={ctaHref}
-            className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
+            className="shrink-0 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
           >
             {ctaLabel}
           </Link>

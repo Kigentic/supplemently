@@ -21,9 +21,9 @@ export default function SiteFooter({
             <Image
               src={logoSrc}
               alt={logoAlt}
-              width={logoHeight}
+              width={logoHeight * 2}
               height={logoHeight}
-              style={{ height: logoHeight, width: 'auto' }}
+              style={{ height: `clamp(36px, 9vw, ${logoHeight}px)`, width: 'auto' }}
             />
             <p className="mt-4 text-sm leading-relaxed text-text-muted">
               {tagline}

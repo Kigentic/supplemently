@@ -100,10 +100,14 @@ export async function GET(req: Request) {
       const currentWeek = challenge?.start_datum
         ? getChallengeSchedule(challenge.start_datum, challenge.wochen_anzahl ?? 8).currentWeek
         : 1;
-      const gesamtScore = t?.gesamt_score ?? 0;
-      const weeks = t ? await weeksFor(challenge?.challenge_typ_id ?? null) : [];
-      const maxScore = t ? maxGesamtScore(weeks, currentWeek) : 0;
-      const note = noteFuer(gesamtScore, maxScore);
+      // Note/Score nur für Teilnehmer, die tatsächlich freigeschaltet sind und
+      // die Challenge nutzen können — "pre_registered" hat noch gar nicht
+      // angefangen und darf keine (falsche) Bewertung zeigen.
+      const hatAngefangen = t?.status === 'aktiv' || t?.status === 'abgeschlossen';
+      const gesamtScore = hatAngefangen ? (t?.gesamt_score ?? 0) : 0;
+      const weeks = hatAngefangen ? await weeksFor(challenge?.challenge_typ_id ?? null) : [];
+      const maxScore = hatAngefangen ? maxGesamtScore(weeks, currentWeek) : 0;
+      const note = hatAngefangen ? noteFuer(gesamtScore, maxScore) : null;
 
       return {
         id: p.id,
@@ -117,8 +121,8 @@ export async function GET(req: Request) {
         status: t?.status ?? null,
         gesamt_score: gesamtScore,
         max_score: maxScore,
-        note_wert: t ? note.wert : null,
-        note_label: t ? note.label : null,
+        note_wert: note?.wert ?? null,
+        note_label: note?.label ?? null,
       };
     })
   );

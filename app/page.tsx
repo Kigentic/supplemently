@@ -106,7 +106,7 @@ export default function StudioPartnerPage() {
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-outline/40 bg-bg/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-          <Image src="/MoveIN-nobg.png" alt="MoveIn8" width={300} height={150} style={{ height: 66, width: 'auto' }} priority />
+          <Image src="/MoveIN-nobg.png" alt="MoveIn8" width={300} height={150} style={{ height: 'clamp(32px, 8vw, 66px)', width: 'auto' }} priority />
           <nav className="hidden items-center gap-7 sm:flex">
             <a href="#funktionen" className="text-sm font-medium text-text-muted transition hover:text-text">
               Funktionen
@@ -359,7 +359,7 @@ export default function StudioPartnerPage() {
         <div className="mx-auto max-w-6xl px-5 py-12">
           <div className="flex flex-col items-start justify-between gap-8 sm:flex-row">
             <div className="max-w-sm">
-              <Image src="/MoveIN-nobg.png" alt="MoveIn8" width={300} height={150} style={{ height: 66, width: 'auto' }} />
+              <Image src="/MoveIN-nobg.png" alt="MoveIn8" width={300} height={150} style={{ height: 'clamp(32px, 8vw, 66px)', width: 'auto' }} />
               <p className="mt-4 text-sm leading-relaxed text-text-muted">
                 Das Studio Challenge System — schlüsselfertig für dein Fitnessstudio.
               </p>
