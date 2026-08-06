@@ -50,7 +50,7 @@ export async function POST(req: Request) {
   const [{ data: teilnahme, error: teilnahmeError }, { data: profile }] = await Promise.all([
     supabase
       .from('challenge_teilnahmen')
-      .select('id, status, challenges ( start_datum, wochen_anzahl, challenge_typ_id, benoetigt_freischaltung )')
+      .select('id, status, gestartet_at, challenges ( start_datum, wochen_anzahl, challenge_typ_id, benoetigt_freischaltung )')
       .eq('user_id', user.id)
       .order('joined_at', { ascending: false })
       .limit(1)
@@ -84,7 +84,8 @@ export async function POST(req: Request) {
     if (!challenge?.start_datum) {
       return NextResponse.json({ error: 'Keine aktive Challenge gefunden.' }, { status: 404 });
     }
-    const schedule = getChallengeSchedule(challenge.start_datum, challenge.wochen_anzahl ?? 8);
+    const startAnchor = teilnahme.gestartet_at ?? challenge.start_datum;
+    const schedule = getChallengeSchedule(startAnchor, challenge.wochen_anzahl ?? 8);
     if (woche !== schedule.currentWeek) {
       return NextResponse.json({ error: 'Diese Woche ist gerade nicht dran.' }, { status: 403 });
     }

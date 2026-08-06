@@ -27,8 +27,8 @@ export async function GET(req: Request) {
     .from('challenge_teilnahmen')
     .select(
       scope.isMasterAdmin
-        ? 'id, user_id, status, gesamt_score, joined_at, challenges ( name, start_datum, wochen_anzahl, challenge_typ_id )'
-        : 'id, user_id, status, gesamt_score, joined_at, challenges!inner ( name, start_datum, wochen_anzahl, challenge_typ_id, studio_id )'
+        ? 'id, user_id, status, gesamt_score, joined_at, gestartet_at, challenges ( name, start_datum, wochen_anzahl, challenge_typ_id )'
+        : 'id, user_id, status, gesamt_score, joined_at, gestartet_at, challenges!inner ( name, start_datum, wochen_anzahl, challenge_typ_id, studio_id )'
     );
   const { data: teilnahmen, error: teilnahmenError } = scope.isMasterAdmin
     ? await teilnahmenQuery
@@ -97,8 +97,9 @@ export async function GET(req: Request) {
       const t = teilnahmeByUser.get(p.id);
       const challenge = Array.isArray(t?.challenges) ? t?.challenges[0] : t?.challenges;
 
-      const currentWeek = challenge?.start_datum
-        ? getChallengeSchedule(challenge.start_datum, challenge.wochen_anzahl ?? 8).currentWeek
+      const startAnchor = t?.gestartet_at ?? challenge?.start_datum;
+      const currentWeek = startAnchor
+        ? getChallengeSchedule(startAnchor, challenge?.wochen_anzahl ?? 8).currentWeek
         : 1;
       // Note/Score nur für Teilnehmer, die tatsächlich freigeschaltet sind und
       // die Challenge nutzen können — "pre_registered" hat noch gar nicht

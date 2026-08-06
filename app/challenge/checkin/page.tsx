@@ -64,7 +64,7 @@ export default function CheckinPage() {
       const [{ data: teilnahme }, { data: profile }] = await Promise.all([
         supabase
           .from('challenge_teilnahmen')
-          .select('id, status, trainingsplan_gewuenscht, trainingsplan_fokus, onboarding_antworten, challenges ( start_datum, wochen_anzahl, challenge_typ_id )')
+          .select('id, status, trainingsplan_gewuenscht, trainingsplan_fokus, onboarding_antworten, gestartet_at, challenges ( start_datum, wochen_anzahl, challenge_typ_id )')
           .eq('user_id', user.id)
           .order('joined_at', { ascending: false })
           .limit(1)
@@ -78,7 +78,7 @@ export default function CheckinPage() {
         router.push('/fragebogen');
         return;
       }
-      if (teilnahme.status === 'pre_registered') {
+      if (teilnahme.status === 'pre_registered' || !teilnahme.onboarding_antworten) {
         router.push('/fragebogen');
         return;
       }
@@ -86,8 +86,9 @@ export default function CheckinPage() {
       const isAdmin = !!profile?.ist_admin;
       const challenge = Array.isArray(teilnahme.challenges) ? teilnahme.challenges[0] : teilnahme.challenges;
       const wochenAnzahl = challenge?.wochen_anzahl ?? 8;
-      const schedule = challenge?.start_datum
-        ? getChallengeSchedule(challenge.start_datum, wochenAnzahl)
+      const startAnchor = teilnahme.gestartet_at ?? challenge?.start_datum;
+      const schedule = startAnchor
+        ? getChallengeSchedule(startAnchor, wochenAnzahl)
         : { currentWeek: 1, checkinUnlocked: false, checkinUnlockDate: new Date() };
       const currentWeek = schedule.currentWeek;
 

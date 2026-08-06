@@ -114,6 +114,10 @@ export async function POST(req: Request) {
     .update({
       onboarding_antworten: answers,
       status: 'aktiv',
+      // Anker für die individuelle Wochenzählung (getChallengeSchedule) —
+      // Woche 1 beginnt für dieses Mitglied ab jetzt, nicht am globalen
+      // Kohorten-Start.
+      gestartet_at: new Date().toISOString(),
       trainingsplan_gewuenscht: answers.trainingsplan_gewuenscht === 'ja',
       trainingsplan_fokus: answers.trainingsplan_gewuenscht === 'ja' ? (answers.trainingsplan_fokus ?? 'kein') : null,
     })

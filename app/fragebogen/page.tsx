@@ -280,6 +280,7 @@ export default function FragebogenPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [disclaimerChecked, setDisclaimerChecked] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
+  const [phase, setPhase] = useState<'fragen' | 'promo'>('fragen');
 
   useEffect(() => {
     getBrowserClient()
@@ -327,6 +328,19 @@ export default function FragebogenPage() {
     setDirection(-1);
     setAnimKey((k) => k + 1);
     setStep((s) => s - 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function goToPromo() {
+    const err = validateStep(step, form);
+    if (err) { setStepError(err); return; }
+    if (!disclaimerChecked) {
+      setSubmitError('Bitte bestätige den Hinweis zur ärztlichen Beratung.');
+      return;
+    }
+    setStepError(null);
+    setSubmitError(null);
+    setPhase('promo');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -408,7 +422,7 @@ export default function FragebogenPage() {
         setSubmitting(false);
         return;
       }
-      router.push('/challenge/empfehlung');
+      router.push('/challenge/wochenansicht');
       return;
     }
 
@@ -462,18 +476,64 @@ export default function FragebogenPage() {
         {/* Headline */}
         <div className="mb-10 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-            Persönlicher Check
+            {phase === 'fragen' ? 'Persönlicher Check' : 'Extra-Tipp'}
           </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
-            Dein individueller Nährstoff-Check
+            {phase === 'fragen' ? 'Dein individueller Nährstoff-Check' : 'Bezahlt von deiner Krankenkasse'}
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-text-muted">
-            Kurze Fragen zu Alltag, Ernährung und Training — am Ende erhältst du eine klare
-            Empfehlung, was für dich wirklich sinnvoll ist.
+            {phase === 'fragen'
+              ? 'Kurze Fragen zu Alltag, Ernährung und Training — am Ende erhältst du eine klare Empfehlung, was für dich wirklich sinnvoll ist.'
+              : 'Bevor es losgeht: ein zertifiziertes Ernährungsprogramm, das die meisten gesetzlichen Krankenkassen komplett übernehmen.'}
           </p>
         </div>
 
+        {phase === 'promo' && (
+          <div className="rounded-2xl bg-surface p-6 text-center sm:p-8">
+            <h2 className="text-xl font-semibold text-text">Dein Ernährungsprogramm</h2>
+            <p className="mt-1 text-sm text-text-muted">powered by Upfit — zertifiziertes §20-SGB-V-Präventionsprogramm</p>
+            <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-text-muted">
+              Individuelle Ernährungspläne mit über 16.000 Rezepten, abgestimmt auf dein Ziel
+              (Abnehmen, Muskelaufbau, Definition). Die meisten Krankenkassen erstatten die Kosten
+              zu 100 % — ohne Zusatzkosten für dich.
+            </p>
+            <a
+              href="https://dein-abnehmprogramm.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 inline-block rounded-full bg-accent px-7 py-3 text-base font-semibold text-on-accent transition hover:bg-accent-hover"
+            >
+              Jetzt kostenlos prüfen →
+            </a>
+
+            {submitError && (
+              <p role="alert" className="mt-5 text-sm text-red-600">
+                {submitError}
+              </p>
+            )}
+
+            <div className="mt-8 flex items-center justify-center gap-4">
+              <button
+                type="button"
+                onClick={() => setPhase('fragen')}
+                className="rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text hover:bg-outline/20"
+              >
+                ← Zurück
+              </button>
+              <button
+                type="button"
+                onClick={onSubmit}
+                disabled={submitting}
+                className="rounded-full bg-accent px-7 py-3 text-base font-semibold text-on-accent transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {submitting ? 'Wird abgeschlossen …' : 'Onboarding abschließen'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Card */}
+        {phase === 'fragen' && (
         <div className="rounded-2xl bg-surface p-6 sm:p-8">
           {/* Progress */}
           <div className="mb-8">
@@ -626,11 +686,10 @@ export default function FragebogenPage() {
             {isLast ? (
               <button
                 type="button"
-                onClick={onSubmit}
-                disabled={submitting}
-                className="rounded-full bg-accent px-7 py-3 text-base font-semibold text-on-accent transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-70"
+                onClick={goToPromo}
+                className="rounded-full bg-accent px-7 py-3 text-base font-semibold text-on-accent transition hover:bg-accent-hover"
               >
-                {submitting ? 'Wird berechnet …' : 'Empfehlung berechnen'}
+                Weiter →
               </button>
             ) : (
               <button
@@ -643,6 +702,7 @@ export default function FragebogenPage() {
             )}
           </div>
         </div>
+        )}
       </main>
 
       <SiteFooter />

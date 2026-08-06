@@ -49,7 +49,7 @@ export default function WochenansichtPage() {
         supabase.from('profiles').select('vorname, ist_admin').eq('id', user.id).maybeSingle(),
         supabase
           .from('challenge_teilnahmen')
-          .select('id, joined_at, challenges ( name, start_datum, wochen_anzahl, challenge_typ_id )')
+          .select('id, joined_at, status, onboarding_antworten, gestartet_at, challenges ( name, start_datum, wochen_anzahl, challenge_typ_id )')
           .eq('user_id', user.id)
           .order('joined_at', { ascending: false })
           .limit(1)
@@ -58,12 +58,20 @@ export default function WochenansichtPage() {
 
       if (cancelled) return;
 
+      // Onboarding (Fragebogen) noch nicht ausgefüllt — erst dahin schicken,
+      // bevor die Wochenansicht gezeigt wird.
+      if (teilnahme && !teilnahme.onboarding_antworten) {
+        router.push('/fragebogen');
+        return;
+      }
+
       const isAdmin = !!profile?.ist_admin;
       const challenge = Array.isArray(teilnahme?.challenges) ? teilnahme?.challenges[0] : teilnahme?.challenges;
       const wochenAnzahl = challenge?.wochen_anzahl ?? 8;
+      const startAnchor = teilnahme?.gestartet_at ?? challenge?.start_datum;
 
-      const schedule = challenge?.start_datum
-        ? getChallengeSchedule(challenge.start_datum, wochenAnzahl)
+      const schedule = startAnchor
+        ? getChallengeSchedule(startAnchor, wochenAnzahl)
         : { currentWeek: 1, checkinUnlocked: false, checkinUnlockDate: new Date() };
       const currentWeek = schedule.currentWeek;
 

@@ -71,7 +71,7 @@ export default function TrainingsplanPage() {
 
     const { data: teilnahme } = (await supabase
       .from('challenge_teilnahmen')
-      .select('trainingsplan_gewuenscht, trainingsplan_fokus, onboarding_antworten, challenges ( start_datum, wochen_anzahl )')
+      .select('trainingsplan_gewuenscht, trainingsplan_fokus, onboarding_antworten, gestartet_at, challenges ( start_datum, wochen_anzahl )')
       .eq('user_id', user.id)
       .order('joined_at', { ascending: false })
       .limit(1)
@@ -93,7 +93,8 @@ export default function TrainingsplanPage() {
     const fokus = mapFokus(teilnahme.trainingsplan_fokus);
 
     const wochenAnzahl = challenge?.wochen_anzahl ?? 8;
-    const currentWeek = challenge?.start_datum ? getChallengeSchedule(challenge.start_datum, wochenAnzahl).currentWeek : 1;
+    const startAnchor = teilnahme?.gestartet_at ?? challenge?.start_datum;
+    const currentWeek = startAnchor ? getChallengeSchedule(startAnchor, wochenAnzahl).currentWeek : 1;
 
     const { data: zuordnung } = (await supabase
       .from('trainingsplan_zuordnung')
