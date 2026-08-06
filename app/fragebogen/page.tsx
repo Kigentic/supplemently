@@ -498,12 +498,12 @@ export default function FragebogenPage() {
               zu 100 % — ohne Zusatzkosten für dich.
             </p>
             <a
-              href="https://dein-abnehmprogramm.com/"
+              href="https://dein-abnehmprogramm.com/ernaehrungsplan-erstellen/?init_section=p"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-6 inline-block rounded-full bg-accent px-7 py-3 text-base font-semibold text-on-accent transition hover:bg-accent-hover"
             >
-              Jetzt kostenlos prüfen →
+              Hier gehts zur App →
             </a>
 
             {submitError && (
