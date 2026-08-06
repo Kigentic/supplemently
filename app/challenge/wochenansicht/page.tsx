@@ -180,11 +180,22 @@ export default function WochenansichtPage() {
 
         <Link
           href="/challenge/trainingsplan"
-          className="mb-8 flex items-center justify-between rounded-2xl border border-outline/60 bg-surface p-5 transition hover:border-accent/50"
+          className="mb-4 flex items-center justify-between rounded-2xl border border-outline/60 bg-surface p-5 transition hover:border-accent/50"
         >
           <div>
             <p className="font-semibold text-text">Dein Trainingsplan</p>
             <p className="mt-0.5 text-sm text-text-muted">Ca. 60 Min. — angepasst auf dein Level.</p>
+          </div>
+          <span className="text-accent">→</span>
+        </Link>
+
+        <Link
+          href="/challenge/supplemente"
+          className="mb-8 flex items-center justify-between rounded-2xl border border-outline/60 bg-surface p-5 transition hover:border-accent/50"
+        >
+          <div>
+            <p className="font-semibold text-text">Deine Supplement-Empfehlung</p>
+            <p className="mt-0.5 text-sm text-text-muted">Personalisiert aus deinem Onboarding-Fragebogen.</p>
           </div>
           <span className="text-accent">→</span>
         </Link>
