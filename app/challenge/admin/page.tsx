@@ -95,6 +95,7 @@ export default function AdminPage() {
   const [breakdown, setBreakdown] = useState<CheckinBreakdown[] | null>(null);
   const [breakdownLoading, setBreakdownLoading] = useState(false);
   const [freischaltenLoading, setFreischaltenLoading] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const [breakdownError, setBreakdownError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -189,6 +190,30 @@ export default function AdminPage() {
       }
     } finally {
       setFreischaltenLoading(null);
+    }
+  }
+
+  async function onDelete(u: AdminUser) {
+    if (!accessToken) return;
+    const confirmed = window.confirm(
+      `${u.vorname} ${u.nachname} (${u.email}) wirklich unwiderruflich löschen? Alle Challenge-Daten (Teilnahme, Check-ins, Score) gehen dabei verloren.`
+    );
+    if (!confirmed) return;
+
+    setDeleteLoading(u.id);
+    try {
+      const res = await fetch(`/api/admin/users/${u.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(json?.error || 'Löschen fehlgeschlagen.');
+        return;
+      }
+      setUsers((prev) => prev?.filter((x) => x.id !== u.id) ?? prev);
+    } finally {
+      setDeleteLoading(null);
     }
   }
 
@@ -322,6 +347,16 @@ export default function AdminPage() {
                               className="whitespace-nowrap text-xs font-medium text-accent hover:underline"
                             >
                               {expandedUserId === u.id ? 'Schließen ▴' : 'Aufgaben ▾'}
+                            </button>
+                          )}
+                          {scope !== 'studio' && !u.ist_admin && (
+                            <button
+                              type="button"
+                              onClick={() => onDelete(u)}
+                              disabled={deleteLoading === u.id}
+                              className="whitespace-nowrap rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:border-red-400 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {deleteLoading === u.id ? 'Wird gelöscht …' : 'Löschen'}
                             </button>
                           )}
                         </div>
