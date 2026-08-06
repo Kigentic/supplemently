@@ -21,14 +21,25 @@ function ChevronIcon({ open, color }: { open: boolean; color: string }) {
   );
 }
 
+function LockIcon({ color }: { color: string }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden="true">
+      <rect x="5" y="11" width="14" height="9" rx="2" stroke={color} strokeWidth="2" />
+      <path d="M8 11V7a4 4 0 1 1 8 0v4" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function WeekTile({
   week,
   isCurrent,
+  locked,
   open,
   onToggle,
 }: {
   week: ChallengeWeek;
   isCurrent: boolean;
+  locked: boolean;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -39,14 +50,16 @@ function WeekTile({
     <div
       className={`flex h-[390px] flex-col overflow-hidden rounded-xl border-[0.5px] border-outline bg-bg ${
         isCurrent ? 'ring-2 ring-accent ring-offset-2 ring-offset-bg' : ''
-      }`}
+      } ${locked ? 'opacity-60' : ''}`}
     >
-      {/* Farbige Leiste — klickbar, klappt die Karte auf/zu */}
+      {/* Farbige Leiste — klickbar, klappt die Karte auf/zu (gesperrt für künftige Wochen) */}
       <button
         type="button"
         onClick={onToggle}
+        disabled={locked}
         aria-expanded={open}
-        className="flex w-full shrink-0 items-center gap-2 px-3 py-2.5 text-left"
+        aria-disabled={locked}
+        className={`flex w-full shrink-0 items-center gap-2 px-3 py-2.5 text-left ${locked ? 'cursor-not-allowed' : ''}`}
         style={{ backgroundColor: week.color }}
       >
         <Icon size={16} stroke={1.75} color={week.textColor} aria-hidden="true" />
@@ -56,10 +69,15 @@ function WeekTile({
         <span className="min-w-0 flex-1 truncate text-[12px] font-medium" style={{ color: week.textColor }}>
           {week.theme}
         </span>
-        <ChevronIcon open={open} color={week.textColor} />
+        {locked ? <LockIcon color={week.textColor} /> : <ChevronIcon open={open} color={week.textColor} />}
       </button>
 
-      {/* Inhalt bleibt immer im Layout reserviert — nur bei geöffneter Karte sichtbar. */}
+      {/* Inhalt bleibt immer im Layout reserviert — nur bei geöffneter, freigeschalteter Karte sichtbar. */}
+      {locked ? (
+        <div className="flex flex-1 items-center justify-center px-3.5 py-3 text-center text-[12px] text-text-muted">
+          Wird ab Woche {week.num} freigeschaltet.
+        </div>
+      ) : (
       <div
         aria-hidden={!open}
         className={`flex-1 overflow-y-auto px-3.5 py-3 ${open ? '' : 'invisible'}`}
@@ -111,11 +129,21 @@ function WeekTile({
           Warum diese Aufgaben? →
         </Link>
       </div>
+      )}
     </div>
   );
 }
 
-export default function ChallengeWeeksOverview({ weeks, currentWeek }: { weeks: ChallengeWeek[]; currentWeek?: number }) {
+export default function ChallengeWeeksOverview({
+  weeks,
+  currentWeek,
+  unlockAll = false,
+}: {
+  weeks: ChallengeWeek[];
+  currentWeek?: number;
+  /** Masteradmin/Studio-Admin darf zu Test-/Vorschauzwecken alle Wochen sehen. */
+  unlockAll?: boolean;
+}) {
   const [openWeeks, setOpenWeeks] = useState<Set<number>>(() => new Set(currentWeek ? [currentWeek] : []));
 
   function toggle(num: number) {
@@ -137,6 +165,7 @@ export default function ChallengeWeeksOverview({ weeks, currentWeek }: { weeks: 
             key={week.num}
             week={week}
             isCurrent={week.num === currentWeek}
+            locked={!unlockAll && currentWeek != null && week.num > currentWeek}
             open={openWeeks.has(week.num)}
             onToggle={() => toggle(week.num)}
           />

@@ -192,7 +192,7 @@ export default function WochenansichtPage() {
         <EmpfehlungCard />
 
         {/* 8-Wochen Challenge Übersicht */}
-        <ChallengeWeeksOverview weeks={data.weeks} currentWeek={data.currentWeek} />
+        <ChallengeWeeksOverview weeks={data.weeks} currentWeek={data.currentWeek} unlockAll={data.isAdmin} />
       </main>
 
       <SiteFooter />
