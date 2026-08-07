@@ -13,6 +13,17 @@ import { getBrowserClient } from '@/lib/supabaseBrowser';
 import { getChallengeSchedule } from '@/lib/challengeSchedule';
 import { mapGeschlecht, mapTrainingslevel, mapFokus, type TrainingsplanFokus } from '@/lib/trainingsplan';
 
+// "15", "10-12", "12 je Seite" sind ohne Einheit missverständlich (steht
+// nackt zwischen "X Sätze" und "Ys Pause") — Zeitangaben ("30 Sek.") sind
+// dagegen bereits selbsterklärend und bleiben unverändert.
+function formatWiederholungen(raw: string | null): string | null {
+  if (!raw) return null;
+  if (/sek|min/i.test(raw)) return raw;
+  const jeSeite = raw.match(/^(.*)\s+(je Seite)$/i);
+  if (jeSeite) return `${jeSeite[1]} Wdh. je Seite`;
+  return `${raw} Wdh.`;
+}
+
 interface Phase {
   nummer: number;
   wochen_von: number;
@@ -288,7 +299,7 @@ export default function TrainingsplanPage() {
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <p className="font-semibold text-text">{u.name}</p>
                     <p className="text-sm text-text-muted">
-                      {[u.saetze ? `${u.saetze} Sätze` : null, u.wiederholungen, u.pause_sekunden ? `${u.pause_sekunden}s Pause` : null]
+                      {[u.saetze ? `${u.saetze} Sätze` : null, formatWiederholungen(u.wiederholungen), u.pause_sekunden ? `${u.pause_sekunden}s Pause` : null]
                         .filter(Boolean)
                         .join(' · ')}
                     </p>
