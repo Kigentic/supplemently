@@ -18,6 +18,7 @@ const initial: FormState = {
   trainingslevel: '',
   trainingsziel: '',
   trainingsplan_gewuenscht: '',
+  trainingsplan_ort: '',
   trainingsplan_fokus: '',
   ernaehrungsstil: '',
   restriktionen: [] as string[],
@@ -243,8 +244,12 @@ function validateStep(step: number, form: FormState): string | null {
   for (const id of gruppe.frageIds) {
     const frage = FRAGEN_MAP.get(id);
     if (!frage) continue;
-    // trainingsplan_fokus ist strukturell "optional" (nur sichtbar wenn
-    // gewuenscht === 'ja'), aber dann selbst Pflicht.
+    // trainingsplan_ort/trainingsplan_fokus sind strukturell "optional"
+    // (nur sichtbar wenn gewuenscht === 'ja'), aber dann selbst Pflicht.
+    if (id === 'trainingsplan_ort') {
+      if (form.trainingsplan_gewuenscht === 'ja' && !form[id]) return 'Bitte angeben, ob du im Studio oder zuhause trainierst.';
+      continue;
+    }
     if (id === 'trainingsplan_fokus') {
       if (form.trainingsplan_gewuenscht === 'ja' && !form[id]) return 'Bitte einen Fokus für deinen Trainingsplan wählen.';
       continue;
@@ -370,6 +375,7 @@ export default function FragebogenPage() {
       trainingslevel: form.trainingslevel,
       trainingsziel: form.trainingsziel,
       trainingsplan_gewuenscht: form.trainingsplan_gewuenscht,
+      trainingsplan_ort: form.trainingsplan_gewuenscht === 'ja' ? form.trainingsplan_ort : undefined,
       trainingsplan_fokus: form.trainingsplan_gewuenscht === 'ja' ? form.trainingsplan_fokus : undefined,
       ernaehrungsstil: form.ernaehrungsstil,
       restriktionen,
@@ -559,11 +565,12 @@ export default function FragebogenPage() {
             {gruppe.frageIds.map((id, i) => {
               const frage = FRAGEN_MAP.get(id);
               if (!frage) return null;
+              if (id === 'trainingsplan_ort' && form.trainingsplan_gewuenscht !== 'ja') return null;
               if (id === 'trainingsplan_fokus' && form.trainingsplan_gewuenscht !== 'ja') return null;
               // Beine & Po / Bauch & Core gibt's aktuell nur für Frauen (kein passender Plan für Männer).
               const optionen =
                 id === 'trainingsplan_fokus' && form.geschlecht !== 'weiblich'
-                  ? (frage.optionen ?? []).filter((o) => o.value === 'kein' || o.value === 'ruecken')
+                  ? (frage.optionen ?? []).filter((o) => o.value === 'kein' || o.value === 'ruecken' || o.value === 'fatburn')
                   : frage.optionen;
               return (
                 <QuestionBlock

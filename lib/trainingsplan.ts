@@ -5,7 +5,12 @@
 
 export type TrainingsplanGeschlecht = 'maennlich' | 'weiblich';
 export type TrainingsplanLevel = 'beginner' | 'leicht_aktiv' | 'regelmaessig' | 'intensiv';
-export type TrainingsplanFokus = 'kein' | 'ruecken' | 'beine_po' | 'bauch_core';
+export type TrainingsplanFokus = 'kein' | 'ruecken' | 'beine_po' | 'bauch_core' | 'fatburn';
+export type TrainingsplanOrt = 'studio' | 'zuhause';
+
+export function mapOrt(ort: string | null | undefined): TrainingsplanOrt {
+  return ort === 'zuhause' ? 'zuhause' : 'studio';
+}
 
 export function mapGeschlecht(geschlecht: string | null | undefined): TrainingsplanGeschlecht {
   return geschlecht === 'weiblich' ? 'weiblich' : 'maennlich';
@@ -27,5 +32,5 @@ export function mapTrainingslevel(trainingslevel: string | null | undefined): Tr
 }
 
 export function mapFokus(fokus: string | null | undefined): TrainingsplanFokus {
-  return fokus === 'ruecken' || fokus === 'beine_po' || fokus === 'bauch_core' ? fokus : 'kein';
+  return fokus === 'ruecken' || fokus === 'beine_po' || fokus === 'bauch_core' || fokus === 'fatburn' ? fokus : 'kein';
 }

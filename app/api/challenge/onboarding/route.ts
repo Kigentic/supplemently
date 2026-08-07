@@ -119,6 +119,7 @@ export async function POST(req: Request) {
       // Kohorten-Start.
       gestartet_at: new Date().toISOString(),
       trainingsplan_gewuenscht: answers.trainingsplan_gewuenscht === 'ja',
+      trainingsplan_ort: answers.trainingsplan_gewuenscht === 'ja' ? (answers.trainingsplan_ort ?? 'studio') : null,
       trainingsplan_fokus: answers.trainingsplan_gewuenscht === 'ja' ? (answers.trainingsplan_fokus ?? 'kein') : null,
     })
     .eq('id', teilnahmeId);

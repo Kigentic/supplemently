@@ -11,7 +11,7 @@ import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
 import { getChallengeSchedule } from '@/lib/challengeSchedule';
-import { mapGeschlecht, mapTrainingslevel, mapFokus, type TrainingsplanFokus } from '@/lib/trainingsplan';
+import { mapGeschlecht, mapTrainingslevel, mapFokus, mapOrt, type TrainingsplanFokus, type TrainingsplanOrt } from '@/lib/trainingsplan';
 
 // "15", "10-12", "12 je Seite" sind ohne Einheit missverständlich (steht
 // nackt zwischen "X Sätze" und "Ys Pause") — Zeitangaben ("30 Sek.") sind
@@ -59,6 +59,12 @@ const FOKUS_OPTIONEN: { value: TrainingsplanFokus; label: string; weiblichNur?: 
   { value: 'ruecken', label: 'Rücken & Haltung' },
   { value: 'beine_po', label: 'Beine & Po', weiblichNur: true },
   { value: 'bauch_core', label: 'Bauch & Core', weiblichNur: true },
+  { value: 'fatburn', label: 'Fatburn' },
+];
+
+const ORT_OPTIONEN: { value: TrainingsplanOrt; label: string }[] = [
+  { value: 'studio', label: 'Im Studio' },
+  { value: 'zuhause', label: 'Zuhause' },
 ];
 
 export default function TrainingsplanPage() {
@@ -66,6 +72,8 @@ export default function TrainingsplanPage() {
   const [data, setData] = useState<PlanData | null>(null);
   const [gewuenscht, setGewuenscht] = useState<boolean | null>(null);
   const [geschlechtWeiblich, setGeschlechtWeiblich] = useState(false);
+  const [ortAktuell, setOrtAktuell] = useState<TrainingsplanOrt>('studio');
+  const [fokusAktuell, setFokusAktuell] = useState<TrainingsplanFokus>('kein');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingFokus, setSavingFokus] = useState(false);
@@ -82,7 +90,7 @@ export default function TrainingsplanPage() {
 
     const { data: teilnahme } = (await supabase
       .from('challenge_teilnahmen')
-      .select('trainingsplan_gewuenscht, trainingsplan_fokus, onboarding_antworten, gestartet_at, challenges ( start_datum, wochen_anzahl )')
+      .select('trainingsplan_gewuenscht, trainingsplan_fokus, trainingsplan_ort, onboarding_antworten, gestartet_at, challenges ( start_datum, wochen_anzahl )')
       .eq('user_id', user.id)
       .order('joined_at', { ascending: false })
       .limit(1)
@@ -102,6 +110,9 @@ export default function TrainingsplanPage() {
 
     const level = mapTrainingslevel(antworten.trainingslevel);
     const fokus = mapFokus(teilnahme.trainingsplan_fokus);
+    const ort = mapOrt(teilnahme.trainingsplan_ort);
+    setOrtAktuell(ort);
+    setFokusAktuell(fokus);
 
     const wochenAnzahl = challenge?.wochen_anzahl ?? 8;
     const startAnchor = teilnahme?.gestartet_at ?? challenge?.start_datum;
@@ -110,14 +121,16 @@ export default function TrainingsplanPage() {
     const { data: zuordnung } = (await supabase
       .from('trainingsplan_zuordnung')
       .select('trainingsplan_id')
-      .match({ geschlecht, level, fokus })
+      .match({ geschlecht, level, fokus, ort })
       .maybeSingle()) as { data: { trainingsplan_id: string } | null };
 
-    // Fallback, falls die spezifische Fokus-Kombination (noch) keinen Plan hat.
+    // Fallback, falls die spezifische Fokus-Kombination (noch) keinen Plan hat
+    // (z.B. Ort=Studio + Fokus=Fatburn bei Frauen) — der "kein Fokus"-Plan für
+    // Geschlecht/Level/Ort existiert immer.
     const zuordnungFallback =
       zuordnung ??
       ((
-        await supabase.from('trainingsplan_zuordnung').select('trainingsplan_id').match({ geschlecht, level, fokus: 'kein' }).maybeSingle()
+        await supabase.from('trainingsplan_zuordnung').select('trainingsplan_id').match({ geschlecht, level, fokus: 'kein', ort }).maybeSingle()
       ).data as { trainingsplan_id: string } | null);
 
     if (!zuordnungFallback) {
@@ -164,7 +177,7 @@ export default function TrainingsplanPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
-  async function savePraeferenz(gewuenschtNeu: boolean, fokusNeu?: TrainingsplanFokus) {
+  async function savePraeferenz(gewuenschtNeu: boolean, fokusNeu?: TrainingsplanFokus, ortNeu?: TrainingsplanOrt) {
     setSavingFokus(true);
     const supabase = getBrowserClient();
     const { data: sessionData } = await supabase.auth.getSession();
@@ -176,7 +189,7 @@ export default function TrainingsplanPage() {
     await fetch('/api/challenge/trainingsplan-praeferenz', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ gewuenscht: gewuenschtNeu, fokus: fokusNeu }),
+      body: JSON.stringify({ gewuenscht: gewuenschtNeu, fokus: fokusNeu, ort: ortNeu }),
     });
     setSavingFokus(false);
     setShowFokusPicker(false);
@@ -261,12 +274,28 @@ export default function TrainingsplanPage() {
               ← Zurück zur Wochenansicht
             </Link>
             <button type="button" onClick={() => setShowFokusPicker((v) => !v)} className="text-sm text-text-muted hover:underline">
-              Fokus ändern
+              Fokus/Ort ändern
             </button>
           </div>
 
           {showFokusPicker && (
             <div className="mt-4 rounded-xl border border-outline/50 bg-surface p-4">
+              <p className="mb-3 text-sm font-medium text-text">Trainingsort:</p>
+              <div className="mb-4 flex flex-wrap gap-2">
+                {ORT_OPTIONEN.map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    disabled={savingFokus}
+                    onClick={() => savePraeferenz(true, fokusAktuell, o.value)}
+                    className={`rounded-full border px-4 py-2 text-sm font-medium transition disabled:opacity-60 ${
+                      ortAktuell === o.value ? 'border-accent bg-accent/10 text-accent' : 'border-outline bg-bg text-text hover:border-accent'
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
               <p className="mb-3 text-sm font-medium text-text">Anderen Fokus wählen:</p>
               <div className="flex flex-wrap gap-2">
                 {sichtbareFokusOptionen.map((o) => (
@@ -274,7 +303,7 @@ export default function TrainingsplanPage() {
                     key={o.value}
                     type="button"
                     disabled={savingFokus}
-                    onClick={() => savePraeferenz(true, o.value)}
+                    onClick={() => savePraeferenz(true, o.value, ortAktuell)}
                     className="rounded-full border border-outline bg-bg px-4 py-2 text-sm font-medium text-text transition hover:border-accent disabled:opacity-60"
                   >
                     {o.label}

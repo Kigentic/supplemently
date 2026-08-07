@@ -19,7 +19,8 @@ export type GelenkProbleme = 'keine' | 'gelegentlich' | 'haeufig' | 'chronisch_a
 export type Medikament = 'blutdruck' | 'blutzucker' | 'schilddruese' | 'pille' | 'antidepressiva' | 'keine';
 export type Koerperform = 'schlank' | 'normal' | 'untersetzt' | 'fett';
 export type TrainingsplanGewuenscht = 'ja' | 'nein';
-export type TrainingsplanFokus = 'kein' | 'ruecken' | 'beine_po' | 'bauch_core';
+export type TrainingsplanOrt = 'studio' | 'zuhause';
+export type TrainingsplanFokus = 'kein' | 'ruecken' | 'beine_po' | 'bauch_core' | 'fatburn';
 
 export interface Answers {
   // Persönliche Daten
@@ -32,6 +33,7 @@ export interface Answers {
   trainingslevel: Trainingslevel;
   trainingsziel: Trainingsziel;
   trainingsplan_gewuenscht: TrainingsplanGewuenscht;
+  trainingsplan_ort?: TrainingsplanOrt;
   trainingsplan_fokus?: TrainingsplanFokus;
   // Ernährung
   ernaehrungsstil: Ernaehrungsstil;
@@ -155,8 +157,20 @@ export const FRAGEN: Frage[] = [
     ],
   },
   {
+    // Nur sichtbar/pflicht, wenn trainingsplan_gewuenscht === 'ja'. Bestimmt,
+    // ob Studio- oder Homeworkout-Pläne zur Auswahl stehen (trainingsplan_zuordnung.ort).
+    id: 'trainingsplan_ort',
+    frage: 'Trainierst du im Studio oder zuhause?',
+    typ: 'single',
+    optional: true,
+    optionen: [
+      { value: 'studio', label: 'Im Studio' },
+      { value: 'zuhause', label: 'Zuhause' },
+    ],
+  },
+  {
     // Optionen sind geschlechtsabhängig — wird in app/fragebogen/page.tsx
-    // dynamisch gefiltert (Frauen: alle 4, Männer: kein/ruecken). Nur
+    // dynamisch gefiltert (Frauen: alle 5, Männer: kein/ruecken/fatburn). Nur
     // sichtbar/pflicht, wenn trainingsplan_gewuenscht === 'ja'.
     id: 'trainingsplan_fokus',
     frage: 'Möchtest du einen speziellen Fokus?',
@@ -167,6 +181,7 @@ export const FRAGEN: Frage[] = [
       { value: 'ruecken', label: 'Rücken & Haltung' },
       { value: 'beine_po', label: 'Beine & Po' },
       { value: 'bauch_core', label: 'Bauch & Core' },
+      { value: 'fatburn', label: 'Fatburn' },
     ],
   },
 
@@ -371,7 +386,7 @@ export const FRAGEN: Frage[] = [
 
 export const GRUPPEN = [
   { id: 'profil',     titel: 'Persönliche Daten',       frageIds: ['geschlecht', 'alter', 'groesse', 'gewicht', 'koerperform'] },
-  { id: 'training',   titel: 'Training & Ziele',         frageIds: ['trainingslevel', 'trainingsziel', 'trainingsplan_gewuenscht', 'trainingsplan_fokus'] },
+  { id: 'training',   titel: 'Training & Ziele',         frageIds: ['trainingslevel', 'trainingsziel', 'trainingsplan_gewuenscht', 'trainingsplan_ort', 'trainingsplan_fokus'] },
   { id: 'ernaehrung', titel: 'Ernährung',                frageIds: ['ernaehrungsstil', 'restriktionen', 'kochverhalten', 'mahlzeiten_pro_tag', 'auswaerts_essen', 'alkohol', 'raucher'] },
   { id: 'schlaf',     titel: 'Schlaf',                   frageIds: ['schlafdauer', 'aufwachgefuehl', 'schlaf_durchschlafen'] },
   { id: 'stress',     titel: 'Stress & Regeneration',    frageIds: ['stresslevel', 'entspannung', 'gedanken_abschalten'] },
@@ -392,7 +407,8 @@ export function validateAnswers(
   const lvl: Trainingslevel[] = ['keine', 'gelegentlich', 'regelmaessig', 'intensiv'];
   const ziel: Trainingsziel[] = ['muskelaufbau', 'abnehmen', 'gesundheit', 'performance'];
   const tpGewuenscht: TrainingsplanGewuenscht[] = ['ja', 'nein'];
-  const tpFokus: TrainingsplanFokus[] = ['kein', 'ruecken', 'beine_po', 'bauch_core'];
+  const tpOrt: TrainingsplanOrt[] = ['studio', 'zuhause'];
+  const tpFokus: TrainingsplanFokus[] = ['kein', 'ruecken', 'beine_po', 'bauch_core', 'fatburn'];
   const ern: Ernaehrungsstil[] = ['omnivor', 'vegetarisch', 'vegan'];
   const restr: Restriktion[] = ['laktose', 'gluten', 'nuesse', 'keine'];
   const kochv: Kochverhalten[] = ['frisch', 'gemischt', 'fertiggerichte'];
@@ -418,6 +434,8 @@ export function validateAnswers(
   if (!inSet(input.trainingsziel, ziel)) return { ok: false, error: 'Ungültiges Trainingsziel.' };
   if (!inSet(input.trainingsplan_gewuenscht, tpGewuenscht))
     return { ok: false, error: 'Bitte angeben, ob du einen Trainingsplan möchtest.' };
+  if (input.trainingsplan_gewuenscht === 'ja' && !inSet(input.trainingsplan_ort, tpOrt))
+    return { ok: false, error: 'Bitte angeben, ob du im Studio oder zuhause trainierst.' };
   if (input.trainingsplan_gewuenscht === 'ja' && !inSet(input.trainingsplan_fokus, tpFokus))
     return { ok: false, error: 'Bitte einen Fokus für deinen Trainingsplan wählen.' };
   if (!inSet(input.ernaehrungsstil, ern)) return { ok: false, error: 'Ungültiger Ernährungsstil.' };
