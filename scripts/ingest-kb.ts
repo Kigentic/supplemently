@@ -202,7 +202,7 @@ async function ingestUebungsbibliothek(supabase: ReturnType<typeof getServiceCli
 async function ingestTrainingsplanMarkdown(supabase: ReturnType<typeof getServiceClient>) {
   const kbDir = path.join(process.cwd(), 'kb');
   const files = fs.existsSync(kbDir)
-    ? fs.readdirSync(kbDir).filter((f) => /^[MF]\d+_.*\.md$/.test(f))
+    ? fs.readdirSync(kbDir).filter((f) => /^H?[MF]\d+_.*\.md$/.test(f))
     : [];
 
   if (files.length === 0) {
