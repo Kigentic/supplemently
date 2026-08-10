@@ -67,6 +67,7 @@ function CheckinPageInner() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
   const [scoreResult, setScoreResult] = useState<number | null>(null);
+  const [scoreDelta, setScoreDelta] = useState<number | null>(null);
   const [affiliateEmpfehlungen, setAffiliateEmpfehlungen] = useState<AffiliateProduct[]>([]);
 
   useEffect(() => {
@@ -218,6 +219,7 @@ function CheckinPageInner() {
         return;
       }
       setScoreResult(json.score_woche ?? null);
+      setScoreDelta(json.score_delta ?? null);
       setAffiliateEmpfehlungen(json.affiliate_empfehlungen ?? []);
       setStatus('success');
     } catch {
@@ -281,6 +283,33 @@ function CheckinPageInner() {
               ? `Du hast ${scoreResult} Punkte für diese Woche gesammelt.`
               : 'Dein Check-in für diese Woche ist bereits gespeichert.'}
           </p>
+
+          {scoreDelta !== null && (
+            <div
+              className={`mt-8 rounded-2xl border p-5 text-left ${
+                scoreDelta > 0
+                  ? 'border-emerald-300/60 bg-emerald-50'
+                  : scoreDelta < 0
+                    ? 'border-amber-300/60 bg-amber-50'
+                    : 'border-outline/60 bg-surface'
+              }`}
+            >
+              <p className={`font-semibold ${scoreDelta > 0 ? 'text-emerald-900' : scoreDelta < 0 ? 'text-amber-900' : 'text-text'}`}>
+                {scoreDelta > 0
+                  ? `🔥 +${scoreDelta} Punkte gegenüber letzter Woche`
+                  : scoreDelta < 0
+                    ? `${scoreDelta} Punkte gegenüber letzter Woche`
+                    : 'Genauso stark wie letzte Woche'}
+              </p>
+              <p className={`mt-0.5 text-sm ${scoreDelta > 0 ? 'text-emerald-800' : scoreDelta < 0 ? 'text-amber-800' : 'text-text-muted'}`}>
+                {scoreDelta > 0
+                  ? 'Weiter so — du wirst besser.'
+                  : scoreDelta < 0
+                    ? 'Nächste Woche geht wieder bergauf.'
+                    : 'Konstanz zahlt sich aus.'}
+              </p>
+            </div>
+          )}
 
           {affiliateEmpfehlungen.length > 0 && (
             <div className="mt-10 space-y-4 text-left">

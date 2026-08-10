@@ -149,6 +149,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Check-in konnte nicht gespeichert werden.' }, { status: 500 });
   }
 
+  // Motivations-Vergleich: Score der letzten Woche mit vorhandenem Check-in
+  // (nicht zwingend woche-1 — durchs Nachholen können Lücken bestehen).
+  const { data: vorherigerCheckin } = await supabase
+    .from('wochencheckins')
+    .select('woche, score_woche')
+    .eq('teilnahme_id', teilnahme.id)
+    .lt('woche', woche)
+    .order('woche', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const previousScoreWoche = vorherigerCheckin?.score_woche ?? null;
+  const scoreDelta = previousScoreWoche !== null ? scoreWoche - previousScoreWoche : null;
+
   // Gesamt-Score der Teilnahme neu berechnen (Summe aller Wochen-Scores + Badges).
   const { error: scoreError } = await supabase.rpc('update_gesamt_score', { p_teilnahme_id: teilnahme.id });
   if (scoreError) {
@@ -194,7 +208,13 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json(
-    { ok: true, score_woche: scoreWoche, affiliate_empfehlungen: affiliateEmpfehlungen },
+    {
+      ok: true,
+      score_woche: scoreWoche,
+      previous_score_woche: previousScoreWoche,
+      score_delta: scoreDelta,
+      affiliate_empfehlungen: affiliateEmpfehlungen,
+    },
     { status: 200 }
   );
 }
