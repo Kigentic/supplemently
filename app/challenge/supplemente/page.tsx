@@ -12,10 +12,19 @@ import { getBrowserClient } from '@/lib/supabaseBrowser';
 import type { MatchResult } from '@/lib/matching';
 import type { Answers } from '@/lib/questions';
 
+interface ProzisDeal {
+  partner_name: string;
+  produkt_name: string;
+  beschreibung: string | null;
+  url: string;
+  rabattcode: string | null;
+}
+
 export default function SupplementePage() {
   const router = useRouter();
   const [ergebnis, setErgebnis] = useState<MatchResult | null>(null);
   const [antworten, setAntworten] = useState<Answers | null>(null);
+  const [prozis, setProzis] = useState<ProzisDeal | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -45,6 +54,7 @@ export default function SupplementePage() {
         const json = await res.json();
         setErgebnis(json.ergebnis);
         setAntworten(json.antworten);
+        setProzis(json.prozis ?? null);
       }
       setLoading(false);
     }
@@ -74,6 +84,10 @@ export default function SupplementePage() {
       <SiteHeader loggedIn />
 
       <main className="mx-auto max-w-2xl px-5 py-16 sm:py-20">
+        <Link href="/challenge/wochenansicht" className="mb-5 inline-block text-sm font-medium text-accent hover:underline">
+          ← Zurück zur Wochenansicht
+        </Link>
+
         <div className="mb-10">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
             Deine Auswertung
@@ -96,6 +110,26 @@ export default function SupplementePage() {
             </ul>
           )}
         </div>
+
+        {prozis && (
+          <div className="mb-10 rounded-2xl border border-accent/30 bg-accent/5 p-5">
+            <p className="font-semibold text-text">{prozis.produkt_name}</p>
+            <p className="mt-1 text-sm text-text-muted">{prozis.beschreibung}</p>
+            {prozis.rabattcode && (
+              <p className="mt-3 text-sm text-text">
+                Code: <span className="rounded bg-accent/15 px-2 py-0.5 font-mono font-semibold text-accent">{prozis.rabattcode}</span>
+              </p>
+            )}
+            <a
+              href={prozis.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-block rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
+            >
+              Zu {prozis.partner_name} →
+            </a>
+          </div>
+        )}
 
         {ergebnis ? (
           <>

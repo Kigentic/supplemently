@@ -31,6 +31,7 @@ export default function SiteHeader({
   const router = useRouter();
   const [loggedIn, setLoggedIn] = useState(loggedInProp ?? false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isStudioAdmin, setIsStudioAdmin] = useState(false);
 
   useEffect(() => {
     if (loggedInProp !== undefined) return;
@@ -42,6 +43,7 @@ export default function SiteHeader({
   useEffect(() => {
     if (!loggedIn) {
       setIsAdmin(false);
+      setIsStudioAdmin(false);
       return;
     }
     const supabase = getBrowserClient();
@@ -53,6 +55,13 @@ export default function SiteHeader({
         .eq('id', data.user.id)
         .maybeSingle()
         .then(({ data: profile }) => setIsAdmin(!!(profile as { ist_admin: boolean } | null)?.ist_admin));
+      supabase
+        .from('studio_admins')
+        .select('studio_id')
+        .eq('user_id', data.user.id)
+        .limit(1)
+        .maybeSingle()
+        .then(({ data: row }) => setIsStudioAdmin(!!row));
     });
   }, [loggedIn]);
 
@@ -76,12 +85,14 @@ export default function SiteHeader({
         </Link>
         {loggedIn ? (
           <nav className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-5">
-            <Link
-              href="/challenge/dashboard"
-              className="text-xs font-medium text-text-muted transition hover:text-text sm:text-sm"
-            >
-              Dashboard
-            </Link>
+            {isStudioAdmin && (
+              <Link
+                href="/challenge/dashboard"
+                className="text-xs font-medium text-text-muted transition hover:text-text sm:text-sm"
+              >
+                Dashboard
+              </Link>
+            )}
             <Link
               href="/challenge/wochenansicht"
               className="text-xs font-medium text-text-muted transition hover:text-text sm:text-sm"

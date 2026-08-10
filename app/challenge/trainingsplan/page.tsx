@@ -246,6 +246,9 @@ export default function TrainingsplanPage() {
       <SiteHeader loggedIn />
 
       <main className="mx-auto max-w-2xl px-5 py-16 sm:py-20">
+        <Link href="/challenge/wochenansicht" className="mb-5 inline-block text-sm font-medium text-accent hover:underline">
+          ← Zurück zur Wochenansicht
+        </Link>
         <div className="mb-10">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
             {aktuellePhase ? `Phase ${aktuellePhase.nummer} · Woche ${aktuellePhase.wochen_von}–${aktuellePhase.wochen_bis}` : 'Trainingsplan'}
@@ -269,10 +272,7 @@ export default function TrainingsplanPage() {
               )}
             </>
           )}
-          <div className="mt-4 flex flex-wrap items-center gap-4">
-            <Link href="/challenge/wochenansicht" className="text-sm text-accent hover:underline">
-              ← Zurück zur Wochenansicht
-            </Link>
+          <div className="mt-4">
             <button type="button" onClick={() => setShowFokusPicker((v) => !v)} className="text-sm text-text-muted hover:underline">
               Fokus/Ort ändern
             </button>

@@ -24,6 +24,7 @@ interface WochenansichtData {
   checkinDone: boolean;
   checkinUnlocked: boolean;
   checkinUnlockDate: Date;
+  missedWeeks: number[];
   isAdmin: boolean;
   weeks: ChallengeWeek[];
 }
@@ -76,14 +77,16 @@ export default function WochenansichtPage() {
       const currentWeek = schedule.currentWeek;
 
       let checkinDone = false;
+      let missedWeeks: number[] = [];
       if (teilnahme?.id) {
-        const { data: checkin } = await supabase
+        const { data: checkins } = await supabase
           .from('wochencheckins')
-          .select('id')
+          .select('woche')
           .eq('teilnahme_id', teilnahme.id)
-          .eq('woche', currentWeek)
-          .maybeSingle();
-        checkinDone = !!checkin;
+          .lte('woche', currentWeek);
+        const erledigt = new Set((checkins ?? []).map((c: { woche: number }) => c.woche));
+        checkinDone = erledigt.has(currentWeek);
+        missedWeeks = Array.from({ length: currentWeek - 1 }, (_, i) => i + 1).filter((w) => !erledigt.has(w));
       }
 
       const challengeTypId = challenge?.challenge_typ_id ?? (await fetchChallengeTypIdBySlug(supabase, LONGEVITY_CHALLENGE_TYP_SLUG));
@@ -99,6 +102,7 @@ export default function WochenansichtPage() {
         checkinDone,
         checkinUnlocked: isAdmin || schedule.checkinUnlocked,
         checkinUnlockDate: schedule.checkinUnlockDate,
+        missedWeeks,
         isAdmin,
         weeks,
       });
@@ -141,6 +145,31 @@ export default function WochenansichtPage() {
             Hier ist deine Challenge-Übersicht — Woche {data.currentWeek} von {data.wochenAnzahl}.
           </p>
         </div>
+
+        {/* Verpasste Check-ins nachholen */}
+        {data.missedWeeks.length > 0 && (
+          <div className="mb-4 rounded-2xl border border-amber-300/60 bg-amber-50 p-5">
+            <p className="font-semibold text-amber-900">
+              {data.missedWeeks.length === 1
+                ? 'Ein Check-in wartet noch auf dich'
+                : `${data.missedWeeks.length} Check-ins warten noch auf dich`}
+            </p>
+            <p className="mt-0.5 text-sm text-amber-800">
+              Kein Stress — die kannst du jederzeit nachholen.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {data.missedWeeks.map((w) => (
+                <Link
+                  key={w}
+                  href={`/challenge/checkin?woche=${w}`}
+                  className="rounded-full bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-700"
+                >
+                  Woche {w} nachholen
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Check-in-CTA */}
         <div

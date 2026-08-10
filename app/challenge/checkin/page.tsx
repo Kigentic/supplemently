@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
@@ -16,7 +16,8 @@ import { mapFokus, type TrainingsplanFokus } from '@/lib/trainingsplan';
 
 interface CheckinData {
   teilnahmeId: string;
-  currentWeek: number;
+  woche: number;
+  isCatchUp: boolean;
   alreadySubmitted: boolean;
   unlocked: boolean;
   unlockDate: Date;
@@ -33,7 +34,26 @@ const FOKUS_OPTIONEN: { value: TrainingsplanFokus; label: string; weiblichNur?: 
 ];
 
 export default function CheckinPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-bg">
+          <SiteHeader loggedIn />
+          <main className="mx-auto max-w-2xl px-5 py-24 text-center">
+            <p className="text-text-muted">Check-in wird geladen …</p>
+          </main>
+          <SiteFooter />
+        </div>
+      }
+    >
+      <CheckinPageInner />
+    </Suspense>
+  );
+}
+
+function CheckinPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [data, setData] = useState<CheckinData | null>(null);
   const [loading, setLoading] = useState(true);
   const [weeks, setWeeks] = useState<ChallengeWeek[]>([]);
@@ -92,11 +112,21 @@ export default function CheckinPage() {
         : { currentWeek: 1, checkinUnlocked: false, checkinUnlockDate: new Date() };
       const currentWeek = schedule.currentWeek;
 
+      // ?woche= erlaubt das Nachholen verpasster Wochen (Link aus der
+      // Wochenansicht) — alles zwischen 1 und der aktuellen Woche ist gültig,
+      // sonst Fallback auf die laufende Woche.
+      const requestedWoche = Number(searchParams.get('woche'));
+      const woche =
+        Number.isInteger(requestedWoche) && requestedWoche >= 1 && requestedWoche <= currentWeek
+          ? requestedWoche
+          : currentWeek;
+      const isCatchUp = woche < currentWeek;
+
       const { data: existingCheckin } = await supabase
         .from('wochencheckins')
         .select('id')
         .eq('teilnahme_id', teilnahme.id)
-        .eq('woche', currentWeek)
+        .eq('woche', woche)
         .maybeSingle();
 
       const challengeTypId = challenge?.challenge_typ_id ?? (await fetchChallengeTypIdBySlug(supabase, LONGEVITY_CHALLENGE_TYP_SLUG));
@@ -109,9 +139,10 @@ export default function CheckinPage() {
       setWeeks(loadedWeeks);
       setData({
         teilnahmeId: teilnahme.id,
-        currentWeek,
+        woche,
+        isCatchUp,
         alreadySubmitted: !!existingCheckin,
-        unlocked: isAdmin || schedule.checkinUnlocked,
+        unlocked: isAdmin || isCatchUp || schedule.checkinUnlocked,
         unlockDate: schedule.checkinUnlockDate,
         trainingsplanAktiv: !!teilnahme.trainingsplan_gewuenscht,
         trainingsplanFokus: mapFokus(teilnahme.trainingsplan_fokus),
@@ -124,9 +155,9 @@ export default function CheckinPage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, searchParams]);
 
-  const weekGroups = data ? habitsUpTo(weeks, data.currentWeek) : [];
+  const weekGroups = data ? habitsUpTo(weeks, data.woche) : [];
   const allHabitKeys = weekGroups.flatMap((g) => g.items.map((i) => i.key));
   const allAnswered = allHabitKeys.length > 0 && allHabitKeys.every((k) => habitStatus[k]);
 
@@ -173,7 +204,7 @@ export default function CheckinPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
         body: JSON.stringify({
-          woche: data.currentWeek,
+          woche: data.woche,
           habit_status: habitStatus,
           wohlbefinden,
           schwierigkeit,
@@ -219,7 +250,7 @@ export default function CheckinPage() {
             Check-in noch nicht offen.
           </h1>
           <p className="mt-4 text-base leading-relaxed text-text-muted">
-            Der Check-in für Woche {data.currentWeek} ist ab {formatUnlockDate(data.unlockDate)} verfügbar.
+            Der Check-in für Woche {data.woche} ist ab {formatUnlockDate(data.unlockDate)} verfügbar.
             Bis dahin: fleißig die Gewohnheiten dieser Woche umsetzen.
           </p>
           <Link
@@ -243,7 +274,7 @@ export default function CheckinPage() {
             ✓
           </div>
           <h1 className="text-3xl font-semibold tracking-tight text-text sm:text-4xl">
-            Check-in für Woche {data.currentWeek} ist drin.
+            Check-in für Woche {data.woche} ist drin.
           </h1>
           <p className="mt-4 text-base leading-relaxed text-text-muted">
             {scoreResult !== null
@@ -282,7 +313,7 @@ export default function CheckinPage() {
             Wochen-Check-in
           </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
-            Wie lief Woche {data.currentWeek}?
+            Wie lief Woche {data.woche}?
           </h1>
           <p className="mt-3 text-base leading-relaxed text-text-muted">
             Für jede Gewohnheit: komplett umgesetzt, teilweise, oder gar nicht. Ehrlich sein bringt mehr als schön färben.
@@ -308,7 +339,7 @@ export default function CheckinPage() {
                       <p className="text-sm text-text">{item.text}</p>
                       {item.anleitungVarianten && (
                         <div className="mt-1">
-                          <AnleitungLink varianten={item.anleitungVarianten} contextWeek={data.currentWeek} />
+                          <AnleitungLink varianten={item.anleitungVarianten} contextWeek={data.woche} />
                         </div>
                       )}
                     </div>

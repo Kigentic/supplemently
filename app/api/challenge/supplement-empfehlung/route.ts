@@ -35,8 +35,17 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Empfehlung konnte nicht geladen werden.' }, { status: 500 });
   }
 
+  // Prozis-Rabattcode direkt bei der Supplement-Empfehlung anzeigen — genau
+  // der Moment, in dem er relevant ist.
+  const { data: prozis } = await supabase
+    .from('affiliate_links')
+    .select('partner_name, produkt_name, beschreibung, url, rabattcode')
+    .eq('partner_name', 'Prozis')
+    .eq('ist_aktiv', true)
+    .maybeSingle();
+
   return NextResponse.json(
-    { ergebnis: empfehlung?.match_result ?? null, antworten: teilnahme.onboarding_antworten ?? null },
+    { ergebnis: empfehlung?.match_result ?? null, antworten: teilnahme.onboarding_antworten ?? null, prozis: prozis ?? null },
     { status: 200 }
   );
 }

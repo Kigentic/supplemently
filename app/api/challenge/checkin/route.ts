@@ -86,10 +86,13 @@ export async function POST(req: Request) {
     }
     const startAnchor = teilnahme.gestartet_at ?? challenge.start_datum;
     const schedule = getChallengeSchedule(startAnchor, challenge.wochen_anzahl ?? 8);
-    if (woche !== schedule.currentWeek) {
-      return NextResponse.json({ error: 'Diese Woche ist gerade nicht dran.' }, { status: 403 });
+    // Vergangene Wochen dürfen jederzeit nachgeholt werden (kein Unlock-Gate
+    // nötig — deren Sonntag ist ohnehin schon vorbei). Nur die aktuell
+    // laufende Woche braucht das Sonntags-Gate; künftige Wochen sind gesperrt.
+    if (woche > schedule.currentWeek) {
+      return NextResponse.json({ error: 'Diese Woche ist noch nicht dran.' }, { status: 403 });
     }
-    if (!schedule.checkinUnlocked) {
+    if (woche === schedule.currentWeek && !schedule.checkinUnlocked) {
       return NextResponse.json({ error: 'Der Check-in für diese Woche ist noch nicht freigeschaltet.' }, { status: 403 });
     }
   }
