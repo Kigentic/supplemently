@@ -347,6 +347,13 @@ function CheckinPageInner() {
           <p className="mt-3 text-base leading-relaxed text-text-muted">
             Für jede Gewohnheit: komplett umgesetzt, teilweise, oder gar nicht. Ehrlich sein bringt mehr als schön färben.
           </p>
+          {data.woche > 1 && (
+            <p className="mt-3 rounded-lg bg-surface px-3.5 py-2.5 text-sm text-text-muted">
+              <span className="font-medium text-text">Wichtig:</span> Gewohnheiten aus früheren Wochen laufen weiter
+              — du bewertest unten also nicht nur die neuen Aufgaben dieser Woche, sondern auch, wie konsequent du
+              die alten diese Woche umgesetzt hast. Deine bereits abgeschickten Check-ins ändern sich dadurch nicht.
+            </p>
+          )}
         </div>
 
         <div className="space-y-8">
@@ -360,6 +367,13 @@ function CheckinPageInner() {
                   {week.num}
                 </span>
                 <span className="text-sm font-semibold text-text">{week.theme}</span>
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                    week.num === data.woche ? 'bg-accent/10 text-accent' : 'bg-outline/20 text-text-muted'
+                  }`}
+                >
+                  {week.num === data.woche ? 'Neu diese Woche' : `Läuft weiter · seit Woche ${week.num}`}
+                </span>
               </div>
               <div className="space-y-3 rounded-2xl bg-surface p-5">
                 {items.map((item) => (
