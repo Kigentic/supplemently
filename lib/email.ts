@@ -319,6 +319,90 @@ export async function sendFreischaltungEmail({
   if (error) throw new Error(typeof error === 'string' ? error : error.message);
 }
 
+export async function sendCheckinReminderEmail({
+  to,
+  vorname,
+  woche,
+  studioName,
+  durchgangName,
+}: {
+  to: string;
+  vorname: string;
+  woche: number;
+  studioName: string;
+  durchgangName: string;
+}) {
+  const checkinLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://supplemently.vercel.app'}/challenge/checkin?woche=${woche}`;
+  const body = `
+    <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#707070;">Dein Check-in ist offen, ${escapeHtml(vorname)} 📋</h1>
+    <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#4a4a4a;">
+      Woche ${woche} von ${escapeHtml(durchgangName)} ist rum — Zeit für deinen Wochen-Check-in.
+      Ampeln setzen, kurz Feedback geben, fertig. Dauert 2 Minuten.
+    </p>
+    <table role="presentation" cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+          <a href="${checkinLink}" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
+            Jetzt Check-in machen
+          </a>
+        </td>
+      </tr>
+    </table>
+  `;
+
+  const resend = getResend();
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Check-in für Woche ${woche} ist offen`,
+    html: layout(body, studioName),
+  });
+
+  if (error) throw new Error(typeof error === 'string' ? error : error.message);
+}
+
+export async function sendCheckinReminderEmail2({
+  to,
+  vorname,
+  woche,
+  studioName,
+  durchgangName,
+}: {
+  to: string;
+  vorname: string;
+  woche: number;
+  studioName: string;
+  durchgangName: string;
+}) {
+  const checkinLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://supplemently.vercel.app'}/challenge/checkin?woche=${woche}`;
+  const body = `
+    <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#707070;">Noch nicht zu spät, ${escapeHtml(vorname)} 👀</h1>
+    <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#4a4a4a;">
+      Dein Check-in für Woche ${woche} von ${escapeHtml(durchgangName)} wartet noch. Kein Stress — du kannst
+      ihn jederzeit nachholen, auch wenn die Woche schon weitergelaufen ist.
+    </p>
+    <table role="presentation" cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+          <a href="${checkinLink}" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
+            Jetzt nachholen
+          </a>
+        </td>
+      </tr>
+    </table>
+  `;
+
+  const resend = getResend();
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Woche ${woche} — dein Check-in wartet noch`,
+    html: layout(body, studioName),
+  });
+
+  if (error) throw new Error(typeof error === 'string' ? error : error.message);
+}
+
 function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 }
