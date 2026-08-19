@@ -131,9 +131,9 @@ export default function WochenansichtPage() {
     <div className="min-h-screen bg-bg">
       <SiteHeader loggedIn />
 
-      <main className="mx-auto max-w-2xl px-5 py-16 sm:py-20">
+      <main className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
         {/* Begrüßung */}
-        <div className="mb-10">
+        <div className="mb-10 max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
             {data.challengeName ?? 'Longevity Lifestyle Challenge'}
             {data.isAdmin && <span className="ml-2 rounded-full bg-text/10 px-2 py-0.5 text-[10px] font-semibold normal-case tracking-normal text-text-muted">Masteradmin</span>}
@@ -171,67 +171,69 @@ export default function WochenansichtPage() {
           </div>
         )}
 
-        {/* Check-in-CTA */}
-        <div
-          className={`mb-8 flex flex-col items-start justify-between gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center ${
-            data.checkinDone
-              ? 'border-outline/60 bg-surface'
-              : data.checkinUnlocked
-                ? 'border-accent/30 bg-accent/10'
-                : 'border-outline/60 bg-surface'
-          }`}
-        >
-          <div>
-            <p className="font-semibold text-text">
-              {data.checkinDone
-                ? `Check-in für Woche ${data.currentWeek} erledigt ✓`
+        {/* Kompaktes 2x2-Raster: Check-in, Trainingsplan, Supplements, Freunde einladen */}
+        <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div
+            className={`flex h-full flex-col justify-between gap-4 rounded-2xl border p-5 ${
+              data.checkinDone
+                ? 'border-outline/60 bg-surface'
                 : data.checkinUnlocked
-                  ? `Wochen-Check-in für Woche ${data.currentWeek} steht an`
-                  : `Check-in für Woche ${data.currentWeek} noch nicht offen`}
-            </p>
-            <p className="mt-0.5 text-sm text-text-muted">
-              {data.checkinDone
-                ? "Am Wochenende geht's mit der nächsten Woche weiter."
-                : data.checkinUnlocked
-                  ? 'Ampel setzen für deine Gewohnheiten und kurz Feedback geben — dauert 2 Minuten.'
-                  : `Verfügbar ab ${formatUnlockDate(data.checkinUnlockDate)}.`}
-            </p>
+                  ? 'border-accent/30 bg-accent/10'
+                  : 'border-outline/60 bg-surface'
+            }`}
+          >
+            <div>
+              <p className="font-semibold text-text">
+                {data.checkinDone
+                  ? `Check-in für Woche ${data.currentWeek} erledigt ✓`
+                  : data.checkinUnlocked
+                    ? `Wochen-Check-in für Woche ${data.currentWeek} steht an`
+                    : `Check-in für Woche ${data.currentWeek} noch nicht offen`}
+              </p>
+              <p className="mt-0.5 text-sm text-text-muted">
+                {data.checkinDone
+                  ? "Am Wochenende geht's mit der nächsten Woche weiter."
+                  : data.checkinUnlocked
+                    ? 'Ampel setzen für deine Gewohnheiten und kurz Feedback geben — dauert 2 Minuten.'
+                    : `Verfügbar ab ${formatUnlockDate(data.checkinUnlockDate)}.`}
+              </p>
+            </div>
+            {!data.checkinDone && data.checkinUnlocked && (
+              <Link
+                href="/challenge/checkin"
+                className="self-start rounded-full bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
+              >
+                Jetzt Check-in machen
+              </Link>
+            )}
           </div>
-          {!data.checkinDone && data.checkinUnlocked && (
-            <Link
-              href="/challenge/checkin"
-              className="shrink-0 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
-            >
-              Jetzt Check-in machen
-            </Link>
-          )}
+
+          <Link
+            href="/challenge/trainingsplan"
+            className="flex h-full items-center justify-between rounded-2xl border border-outline/60 bg-surface p-5 transition hover:border-accent/50"
+          >
+            <div>
+              <p className="font-semibold text-text">Dein Trainingsplan</p>
+              <p className="mt-0.5 text-sm text-text-muted">Ca. 60 Min. — angepasst auf dein Level.</p>
+            </div>
+            <span className="text-accent">→</span>
+          </Link>
+
+          <Link
+            href="/challenge/supplemente"
+            className="flex h-full items-center justify-between rounded-2xl border border-outline/60 bg-surface p-5 transition hover:border-accent/50"
+          >
+            <div>
+              <p className="font-semibold text-text">Deine Supplement-Empfehlung</p>
+              <p className="mt-0.5 text-sm text-text-muted">Personalisiert aus deinem Onboarding-Fragebogen.</p>
+            </div>
+            <span className="text-accent">→</span>
+          </Link>
+
+          <EmpfehlungCard />
         </div>
 
-        <Link
-          href="/challenge/trainingsplan"
-          className="mb-4 flex items-center justify-between rounded-2xl border border-outline/60 bg-surface p-5 transition hover:border-accent/50"
-        >
-          <div>
-            <p className="font-semibold text-text">Dein Trainingsplan</p>
-            <p className="mt-0.5 text-sm text-text-muted">Ca. 60 Min. — angepasst auf dein Level.</p>
-          </div>
-          <span className="text-accent">→</span>
-        </Link>
-
-        <Link
-          href="/challenge/supplemente"
-          className="mb-8 flex items-center justify-between rounded-2xl border border-outline/60 bg-surface p-5 transition hover:border-accent/50"
-        >
-          <div>
-            <p className="font-semibold text-text">Deine Supplement-Empfehlung</p>
-            <p className="mt-0.5 text-sm text-text-muted">Personalisiert aus deinem Onboarding-Fragebogen.</p>
-          </div>
-          <span className="text-accent">→</span>
-        </Link>
-
-        <EmpfehlungCard />
-
-        {/* 8-Wochen Challenge Übersicht */}
+        {/* 8-Wochen Challenge Übersicht — volle Breite */}
         <ChallengeWeeksOverview weeks={data.weeks} currentWeek={data.currentWeek} unlockAll={data.isAdmin} />
       </main>
 

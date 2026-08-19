@@ -159,7 +159,7 @@ export default function ChallengeWeeksOverview({
     <section aria-label="8-Wochen Challenge Übersicht">
       <h2 className="mb-4 text-lg font-semibold text-text">Dein Challenge Plan</h2>
 
-      <div className="grid grid-cols-2 items-start gap-3">
+      <div className="grid grid-cols-2 items-start gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {weeks.map((week) => (
           <WeekTile
             key={week.num}

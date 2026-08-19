@@ -44,7 +44,7 @@ export default function EmpfehlungCard() {
   }
 
   return (
-    <div className="mb-8 rounded-2xl border border-outline/60 bg-surface p-5">
+    <div className="h-full rounded-2xl border border-outline/60 bg-surface p-5">
       <p className="font-semibold text-text">Lade Freunde ein</p>
       <p className="mt-1 text-sm text-text-muted">
         Mach die Challenge mit einer Freundin, einem Nachbarn oder Arbeitskollegen zusammen —
