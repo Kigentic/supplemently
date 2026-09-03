@@ -17,6 +17,7 @@ export default function SiteHeader({
   logoAlt = 'MoveIn8',
   logoHref = '/',
   logoHeight = HEADER_LOGO,
+  showNavLinks = true,
 }: {
   ctaHref?: string;
   ctaLabel?: string;
@@ -27,6 +28,8 @@ export default function SiteHeader({
   logoAlt?: string;
   logoHref?: string;
   logoHeight?: number;
+  /** Startseite/Teilnehmer-Registrierung-Links — auf /turnkiste deaktiviert (Seite bleibt unangetastet). */
+  showNavLinks?: boolean;
 }) {
   const router = useRouter();
   const [loggedIn, setLoggedIn] = useState(loggedInProp ?? false);
@@ -85,6 +88,19 @@ export default function SiteHeader({
         </Link>
         {loggedIn ? (
           <nav className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-5">
+            {showNavLinks && (
+              <>
+                <Link href="/" className="text-xs font-medium text-text-muted transition hover:text-text sm:text-sm">
+                  Startseite
+                </Link>
+                <Link
+                  href="/challenge/registrierung"
+                  className="text-xs font-medium text-text-muted transition hover:text-text sm:text-sm"
+                >
+                  Teilnehmer-Registrierung
+                </Link>
+              </>
+            )}
             {isStudioAdmin && (
               <Link
                 href="/challenge/dashboard"
@@ -116,12 +132,27 @@ export default function SiteHeader({
             </button>
           </nav>
         ) : (
-          <Link
-            href={ctaHref}
-            className="shrink-0 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
-          >
-            {ctaLabel}
-          </Link>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:gap-5">
+            {showNavLinks && (
+              <>
+                <Link href="/" className="text-xs font-medium text-text-muted transition hover:text-text sm:text-sm">
+                  Startseite
+                </Link>
+                <Link
+                  href="/challenge/registrierung"
+                  className="text-xs font-medium text-text-muted transition hover:text-text sm:text-sm"
+                >
+                  Teilnehmer-Registrierung
+                </Link>
+              </>
+            )}
+            <Link
+              href={ctaHref}
+              className="shrink-0 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
+            >
+              {ctaLabel}
+            </Link>
+          </div>
         )}
       </div>
     </header>

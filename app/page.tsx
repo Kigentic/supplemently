@@ -117,6 +117,9 @@ export default function StudioPartnerPage() {
             <Link href="/challenge/login" className="text-sm font-medium text-text-muted transition hover:text-text">
               Login
             </Link>
+            <Link href="/challenge/registrierung" className="text-sm font-medium text-text-muted transition hover:text-text">
+              Teilnehmer-Registrierung
+            </Link>
           </nav>
           <div className="flex items-center gap-4">
             <Link href="/challenge/login" className="text-sm font-medium text-text-muted transition hover:text-text sm:hidden">

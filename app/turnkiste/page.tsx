@@ -76,6 +76,7 @@ export default function LandingPage() {
         logoAlt="Logo"
         logoHref="/turnkiste"
         logoHeight={56}
+        showNavLinks={false}
       />
 
       <main>
