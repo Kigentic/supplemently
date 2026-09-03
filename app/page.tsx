@@ -367,9 +367,6 @@ export default function StudioPartnerPage() {
             <div className="flex flex-col gap-2 text-sm">
               <a href="/impressum" className="text-text-muted transition hover:text-text">Impressum</a>
               <a href="/datenschutz" className="text-text-muted transition hover:text-text">Datenschutz</a>
-              <a href="mailto:hallo@kigentic.de" className="text-text-muted transition hover:text-text">
-                hallo@kigentic.de
-              </a>
             </div>
           </div>
           <div className="mt-10 border-t border-outline/50 pt-6 text-xs text-caption">
