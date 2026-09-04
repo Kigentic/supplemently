@@ -134,8 +134,8 @@ export default function RegistrierungPage() {
     if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return 'Gültige E-Mail-Adresse angeben.';
     if (form.passwort.length < 8) return 'Passwort muss mindestens 8 Zeichen haben.';
     if (form.passwort !== form.passwort_wdh) return 'Passwörter stimmen nicht überein.';
-    if (!form.dsgvo_marketing) return 'Einwilligung für E-Mail-Kommunikation ist erforderlich.';
-    if (!form.dsgvo_affiliate) return 'Einwilligung für personalisierte Empfehlungen ist erforderlich.';
+    if (!form.dsgvo_marketing) return 'Bitte die Teilnahmebedingungen akzeptieren.';
+    if (!form.dsgvo_affiliate) return 'Bitte die Datenschutzbestimmungen akzeptieren.';
     return null;
   }
 
@@ -331,7 +331,7 @@ export default function RegistrierungPage() {
             </div>
           </section>
 
-          {/* DSGVO */}
+          {/* Einwilligungen */}
           <section>
             <h2 className="mb-5 text-sm font-semibold uppercase tracking-widest text-text-muted">
               Einwilligungen
@@ -355,7 +355,9 @@ export default function RegistrierungPage() {
                   </div>
                 </div>
                 <p className="text-sm text-text-muted">
-                  Ich bin einverstanden, wöchentliche Challenge-E-Mails (Aufgaben, Check-in-Erinnerungen, Auswertungen) zu erhalten. <span className="text-accent">*</span>
+                  Ich akzeptiere die{' '}
+                  <Link href="/teilnahmebedingungen" className="underline hover:text-text" target="_blank">Teilnahmebedingungen</Link>.{' '}
+                  <span className="text-accent">*</span>
                 </p>
               </label>
               <label className="flex cursor-pointer items-start gap-3">
@@ -376,12 +378,12 @@ export default function RegistrierungPage() {
                   </div>
                 </div>
                 <p className="text-sm text-text-muted">
-                  Ich bin einverstanden, personalisierte Produkt- und Supplement-Empfehlungen (inkl. Affiliate-Links) basierend auf meinen Fragebogen-Antworten zu erhalten. <span className="text-accent">*</span>
+                  Ich akzeptiere die{' '}
+                  <Link href="/datenschutz" className="underline hover:text-text" target="_blank">Datenschutzbestimmungen</Link>.{' '}
+                  <span className="text-accent">*</span>
                 </p>
               </label>
               <p className="text-xs text-text-muted">
-                Mit der Anmeldung akzeptierst du unsere{' '}
-                <Link href="/datenschutz" className="underline hover:text-text">Datenschutzerklärung</Link>.
                 Einwilligungen können jederzeit per E-Mail widerrufen werden.
               </p>
             </div>
