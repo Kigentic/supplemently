@@ -7,6 +7,7 @@ import type { ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import RegistrierungForm from './_components/RegistrierungForm';
+import MobileMenu from './_components/MobileMenu';
 
 export const metadata = {
   title: 'MoveIn8 — Das Studio Challenge System',
@@ -121,13 +122,18 @@ export default function StudioPartnerPage() {
               Teilnehmer-Registrierung
             </Link>
           </nav>
-          <div className="flex items-center gap-4">
-            <Link href="/challenge/login" className="text-sm font-medium text-text-muted transition hover:text-text sm:hidden">
-              Login
-            </Link>
+          <div className="flex items-center gap-3">
             <a href="#anfrage" className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-on-accent transition hover:bg-accent-hover">
               Partner werden
             </a>
+            <MobileMenu
+              links={[
+                { href: '#funktionen', label: 'Funktionen' },
+                { href: '#ablauf', label: "So läuft's ab" },
+                { href: '/challenge/login', label: 'Login' },
+                { href: '/challenge/registrierung', label: 'Teilnehmer-Registrierung' },
+              ]}
+            />
           </div>
         </div>
       </header>
