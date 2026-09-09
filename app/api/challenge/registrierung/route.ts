@@ -1,7 +1,7 @@
 // API: Challenge-Registrierung — erstellt Auth-User + Profil + Teilnahme
 import { NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabaseServer';
-import { sendConfirmationEmail } from '@/lib/email';
+import { sendConfirmationEmail, sendNeueRegistrierungEmail, ADMIN_NOTIFICATION_EMAIL } from '@/lib/email';
 import { getStudioIdBySlug, TURNKISTE_STUDIO_SLUG } from '@/lib/studio';
 
 // Feste Produktions-URL statt req.nextUrl.origin — sonst landen
@@ -102,7 +102,7 @@ export async function POST(req: Request) {
   const { data: challenge } = turnkisteId
     ? await supabase
         .from('challenges')
-        .select('id')
+        .select('id, name')
         .eq('ist_offen', true)
         .eq('studio_id', turnkisteId)
         .order('start_datum', { ascending: true })
@@ -123,6 +123,19 @@ export async function POST(req: Request) {
       .single();
 
     referral_code = teilnahme?.referral_code ?? null;
+  }
+
+  // 6. Platform-Admin per Mail benachrichtigen (best effort).
+  try {
+    await sendNeueRegistrierungEmail({
+      to: ADMIN_NOTIFICATION_EMAIL,
+      studioName: 'Turnkiste',
+      durchgangName: challenge?.name ?? 'Turnkiste',
+      teilnehmerName: `${vorname.trim()} ${nachname.trim()}`,
+      teilnehmerEmail: email.trim().toLowerCase(),
+    });
+  } catch (err) {
+    console.error('Admin-Benachrichtigung error:', err);
   }
 
   return NextResponse.json({ ok: true, referral_code }, { status: 201 });

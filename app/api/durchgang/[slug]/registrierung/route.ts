@@ -6,7 +6,7 @@
 // siehe GAMEPLAN_B2B_CHALLENGE_PLATFORM.md).
 import { NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabaseServer';
-import { sendDurchgangConfirmationEmail, sendNeueRegistrierungEmail } from '@/lib/email';
+import { sendDurchgangConfirmationEmail, sendNeueRegistrierungEmail, ADMIN_NOTIFICATION_EMAIL } from '@/lib/email';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://supplemently.vercel.app';
 
@@ -139,8 +139,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     return NextResponse.json({ error: 'Teilnahme konnte nicht angelegt werden.' }, { status: 500 });
   }
 
-  // 5. Studio per Mail benachrichtigen (best effort — Registrierung ist auch
-  //    ohne diese Mail gültig).
+  // 5. Studio + Platform-Admin per Mail benachrichtigen (best effort —
+  //    Registrierung ist auch ohne diese Mails gültig).
   if (studio?.kontakt_email) {
     try {
       await sendNeueRegistrierungEmail({
@@ -153,6 +153,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     } catch (err) {
       console.error('Studio-Benachrichtigung error:', err);
     }
+  }
+  try {
+    await sendNeueRegistrierungEmail({
+      to: ADMIN_NOTIFICATION_EMAIL,
+      studioName: studio?.name ?? 'Unbekanntes Studio',
+      durchgangName: challenge.name,
+      teilnehmerName: `${vorname.trim()} ${nachname.trim()}`,
+      teilnehmerEmail: email.trim().toLowerCase(),
+    });
+  } catch (err) {
+    console.error('Admin-Benachrichtigung error:', err);
   }
 
   return NextResponse.json({ ok: true }, { status: 201 });
