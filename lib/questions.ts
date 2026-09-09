@@ -489,6 +489,7 @@ export function validateAnswers(
       trainingslevel: input.trainingslevel,
       trainingsziel: input.trainingsziel,
       trainingsplan_gewuenscht: input.trainingsplan_gewuenscht,
+      trainingsplan_ort: input.trainingsplan_gewuenscht === 'ja' ? input.trainingsplan_ort : undefined,
       trainingsplan_fokus: input.trainingsplan_gewuenscht === 'ja' ? input.trainingsplan_fokus : undefined,
       ernaehrungsstil: input.ernaehrungsstil,
       restriktionen: restriktionen.length ? restriktionen : ['keine'],
