@@ -1,8 +1,11 @@
 // Challenge-Pass: öffentliche Bestätigungsseite nach Registrierung — Ticket-
-// Gefühl statt Formular-Quittung (siehe Roadmap Phase D). QR-Code führt
-// direkt zur Studio-Check-in-Ansicht (app/challenge/admin/pass), die den
-// Zugang per Klick aktiviert. Nur unkritische Daten (Vorname, Challenge,
-// Studio, Reservierungsstatus) — keine Gesundheitsdaten auf dieser Seite.
+// Gefühl statt Formular-Quittung (siehe Roadmap Phase D). Neutraler Pfad,
+// weil alle drei Challenge-Landingpages (Longevity/Abnehmen/Rücken) hier
+// landen — die Seite selbst zieht Challenge-/Studioname dynamisch aus der
+// DB. QR-Code führt direkt zur Studio-Check-in-Ansicht
+// (app/challenge/admin/pass), die den Zugang per Klick aktiviert. Nur
+// unkritische Daten (Vorname, Challenge, Studio, Reservierungsstatus) —
+// keine Gesundheitsdaten auf dieser Seite.
 import QRCode from 'qrcode';
 import Link from 'next/link';
 import SiteHeader from '@/app/_components/SiteHeader';
@@ -48,7 +51,7 @@ async function loadPass(teilnahmeId: string) {
     status: teilnahme.status as string,
     reserviertBis,
     vorname: profile?.vorname ?? null,
-    challengeName: challenge?.name ?? 'Longevity Challenge',
+    challengeName: challenge?.name ?? 'deiner Challenge',
     studioName: studio?.name ?? 'dein Studio',
   };
 }
@@ -90,7 +93,7 @@ export default async function ChallengePassPage({ params }: { params: Promise<{ 
           <p className="mt-4 text-base leading-relaxed text-text-muted">
             {bereitsAktiv
               ? 'Deine Teilnahme ist aktiv — du kannst direkt starten.'
-              : 'Dein Platz für die Longevity Challenge ist vorreserviert. Zeig diesen Pass im Studio vor, um deine Teilnahme zu aktivieren.'}
+              : `Dein Platz für die ${pass.challengeName} ist vorreserviert. Zeig diesen Pass im Studio vor, um deine Teilnahme zu aktivieren.`}
           </p>
         </div>
 

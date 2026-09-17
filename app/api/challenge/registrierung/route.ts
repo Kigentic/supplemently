@@ -21,6 +21,10 @@ interface Body {
   // /longevity-challenge/plan) — Antworten kommen direkt hier mit statt über
   // einen zweiten, auth-pflichtigen Request an /api/challenge/onboarding.
   antworten?: unknown;
+  // Welche Turnkiste-Challenge (Longevity/Abnehmen/Rücken — mehrere können
+  // gleichzeitig offen sein). Ohne Angabe: älteste offene Challenge
+  // (Altverhalten, deckt bestehende Aufrufer ab).
+  challengeSlug?: string;
 }
 
 export async function POST(req: Request) {
@@ -31,7 +35,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Ungültiger Request.' }, { status: 400 });
   }
 
-  const { vorname, nachname, email, passwort, handynummer, dsgvo_marketing, dsgvo_affiliate, antworten } = body;
+  const { vorname, nachname, email, passwort, handynummer, dsgvo_marketing, dsgvo_affiliate, antworten, challengeSlug } = body;
 
   // Validierung
   if (!vorname?.trim() || !nachname?.trim() || !email?.trim() || !passwort) {
@@ -102,18 +106,20 @@ export async function POST(req: Request) {
 
   // 4. Aktive/offene Challenge suchen — bewusst auf Turnkiste beschränkt, damit
   //    ein neuer Challenge-Durchgang eines anderen Studios hier nicht versehentlich
-  //    mitgezählt wird (dieser B2C-Flow ist nur für Turnkiste gedacht).
+  //    mitgezählt wird (dieser B2C-Flow ist nur für Turnkiste gedacht). Mit
+  //    challengeSlug wird gezielt EINE der mehreren parallel offenen
+  //    Challenges (Longevity/Abnehmen/Rücken) angesprochen — ohne Angabe
+  //    greift der alte Fallback (älteste offene), für Altaufrufer.
   const turnkisteId = await getStudioIdBySlug(supabase, TURNKISTE_STUDIO_SLUG);
-  const { data: challenge } = turnkisteId
-    ? await supabase
-        .from('challenges')
-        .select('id, name')
-        .eq('ist_offen', true)
-        .eq('studio_id', turnkisteId)
-        .order('start_datum', { ascending: true })
-        .limit(1)
-        .maybeSingle()
-    : { data: null };
+  let challengeQuery = turnkisteId
+    ? supabase.from('challenges').select('id, name').eq('ist_offen', true).eq('studio_id', turnkisteId)
+    : null;
+  if (challengeQuery && challengeSlug) {
+    challengeQuery = challengeQuery.eq('slug', challengeSlug);
+  } else if (challengeQuery) {
+    challengeQuery = challengeQuery.order('start_datum', { ascending: true });
+  }
+  const { data: challenge } = challengeQuery ? await challengeQuery.limit(1).maybeSingle() : { data: null };
 
   // 5. Teilnahme anlegen (falls Challenge vorhanden)
   let referral_code: string | null = null;

@@ -1,9 +1,10 @@
-// API: Öffentlicher Charles-Chat auf der Longevity-Landingpage — Phase C des
-// Value-Equation-Funnels (siehe Roadmap). Kein Login, daher andere Rolle als
-// /api/coach/chat: statt Support für bestehende Teilnehmer geht es um
-// Qualifizierung, Einwandbehandlung und Vertrauen VOR der Anmeldung. Nutzt
-// dieselbe Wissensdatenbank (lib/kb.ts), zusätzlich die Longevity-Challenge-
-// Inhalte, damit Fragen wie "was passiert in Woche 3?" beantwortbar sind.
+// API: Öffentlicher Charles-Chat auf den B2C-Landingpages (Longevity/
+// Abnehmen/Rücken) — Phase C des Value-Equation-Funnels (siehe Roadmap).
+// Kein Login, daher andere Rolle als /api/coach/chat: statt Support für
+// bestehende Teilnehmer geht es um Qualifizierung, Einwandbehandlung und
+// Vertrauen VOR der Anmeldung. Nutzt dieselbe Wissensdatenbank (lib/kb.ts),
+// zusätzlich die Inhalte der jeweiligen Challenge (challengeSlug), damit
+// Fragen wie "was passiert in Woche 3?" beantwortbar sind.
 import { NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabaseServer';
 import { getOpenAIClient, CHAT_MODEL, withShortRateLimitRetry } from '@/lib/openai';
@@ -46,6 +47,8 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const message = typeof body?.message === 'string' ? body.message.trim() : '';
   const history: ChatMessage[] = Array.isArray(body?.history) ? body.history.slice(-MAX_HISTORY) : [];
+  const challengeSlug = typeof body?.challengeSlug === 'string' ? body.challengeSlug : 'challenge-1';
+  const challengeName = typeof body?.challengeName === 'string' ? body.challengeName : 'Longevity Lifestyle Challenge';
 
   if (!message) return NextResponse.json({ error: 'Nachricht fehlt.' }, { status: 400 });
   if (message.length > MAX_MESSAGE_LEN) {
@@ -54,19 +57,26 @@ export async function POST(req: Request) {
 
   const supabase = getServiceClient();
 
-  // Longevity-Challenge-Typ ermitteln, damit die Wochen-/Aufgaben-Inhalte
-  // (nicht nur Supplement-Wissen) mit ins Retrieval einfließen.
+  // Challenge-Typ der konkreten Landingpage ermitteln, damit die Wochen-/
+  // Aufgaben-Inhalte (nicht nur Supplement-Wissen) mit ins Retrieval
+  // einfließen. Fällt auf die älteste offene Turnkiste-Challenge zurück,
+  // falls der Slug nicht (mehr) existiert.
   let challengeTypId: string | null = null;
   const turnkisteId = await getStudioIdBySlug(supabase, TURNKISTE_STUDIO_SLUG);
   if (turnkisteId) {
-    const { data: challenge } = await supabase
-      .from('challenges')
-      .select('challenge_typ_id')
-      .eq('ist_offen', true)
-      .eq('studio_id', turnkisteId)
-      .order('start_datum', { ascending: true })
-      .limit(1)
-      .maybeSingle();
+    let challengeQuery = supabase.from('challenges').select('challenge_typ_id').eq('ist_offen', true).eq('studio_id', turnkisteId).eq('slug', challengeSlug);
+    let { data: challenge } = await challengeQuery.maybeSingle();
+    if (!challenge) {
+      const fallback = await supabase
+        .from('challenges')
+        .select('challenge_typ_id')
+        .eq('ist_offen', true)
+        .eq('studio_id', turnkisteId)
+        .order('start_datum', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      challenge = fallback.data;
+    }
     challengeTypId = challenge?.challenge_typ_id ?? null;
   }
 
@@ -74,17 +84,17 @@ export async function POST(req: Request) {
   const context = chunks.length > 0 ? chunks.map((c, i) => `[${i + 1}] ${c.content}`).join('\n\n') : '(keine relevanten Einträge gefunden)';
 
   const systemPrompt =
-    'Du bist Charles, der KI-Berater für die Longevity Lifestyle Challenge von MoveIn8 auf der ' +
+    `Du bist Charles, der KI-Berater für die ${challengeName} von MoveIn8 auf der ` +
     'öffentlichen Landingpage. Dein Gegenüber ist noch NICHT angemeldet — deine Aufgabe ist, ' +
-    'Fragen zu beantworten, Unsicherheiten auszuräumen und bei Bedarf zur Anmeldung ' +
-    '(/longevity-challenge/plan) zu ermutigen, OHNE aufdringlich zu wirken. ' +
+    'Fragen zu beantworten, Unsicherheiten auszuräumen und bei Bedarf zur Anmeldung zu ' +
+    'ermutigen, OHNE aufdringlich zu wirken. ' +
     'Kernfakten zum Programm: 8 Wochen, 299 € einmalig (kein Abo), individueller Trainings- und ' +
     'Supplement-Plan nach kurzem Fragebogen, §20-zertifizierte Ernährungs-App inklusive ' +
     '(Kosten bei vielen Krankenkassen bis 150 €/Jahr erstattungsfähig), wöchentliche Aufgaben ' +
     'und Check-ins mit Score, Community/Buddy-System. Anmeldung reserviert nur den Platz — ' +
     'Zahlung und Start passieren erst im Studio, wenn der Challenge-Pass dort gescannt wird. ' +
     'Nutze primär die folgenden Wissensauszüge für inhaltliche Fragen (Training, Ernährung, ' +
-    'Supplements, Longevity). Wenn eine Frage darin nicht beantwortet wird, sag das ehrlich statt ' +
+    'Supplements). Wenn eine Frage darin nicht beantwortet wird, sag das ehrlich statt ' +
     'zu raten. Antworte kurz und konkret (max. ~120 Wörter), auf Deutsch, ohne Floskeln, keine ' +
     'Diagnosen, kein Ersatz für ärztlichen Rat. Reiner Klartext ohne Markdown.\n\nWissensauszüge:\n' +
     context;

@@ -13,7 +13,18 @@ interface Message {
   content: string;
 }
 
-export default function PresalesCoachWidget() {
+export default function PresalesCoachWidget({
+  challengeSlug = 'challenge-1',
+  challengeName = 'Longevity Lifestyle Challenge',
+  planHref = '/longevity-challenge/plan',
+}: {
+  /** Slug in `challenges.slug` — steuert, welche Challenge-Inhalte für die Wissenssuche geladen werden. */
+  challengeSlug?: string;
+  /** Anzeigename, den Charles in seinen Antworten nennt. */
+  challengeName?: string;
+  /** Ziel des "Jetzt Challenge-Plan erstellen"-Links im Panel. */
+  planHref?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -39,7 +50,7 @@ export default function PresalesCoachWidget() {
       const res = await fetch('/api/coach/presales', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: nextMessages.slice(0, -1).slice(-6) }),
+        body: JSON.stringify({ message: text, history: nextMessages.slice(0, -1).slice(-6), challengeSlug, challengeName }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -72,7 +83,7 @@ export default function PresalesCoachWidget() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-base font-semibold text-on-accent">Charles</p>
-              <p className="truncate text-xs text-on-accent/80">Frag mich zur Longevity Challenge</p>
+              <p className="truncate text-xs text-on-accent/80">Frag mich zur {challengeName}</p>
             </div>
             <button
               type="button"
@@ -91,7 +102,7 @@ export default function PresalesCoachWidget() {
                   <Image src="/Trainer_Icon.png" alt="Charles" fill sizes="32px" className="object-cover object-top" />
                 </div>
                 <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-bg px-3.5 py-2.5 text-sm text-text shadow-sm">
-                  Hey 👋 Ich bin Charles. Frag mich alles zur Longevity Challenge — Ablauf, Preis,
+                  Hey 👋 Ich bin Charles. Frag mich alles zur {challengeName} — Ablauf, Preis,
                   Training, Ernährung, was auch immer dich noch unsicher macht.
                 </div>
               </div>
@@ -131,7 +142,7 @@ export default function PresalesCoachWidget() {
 
           <div className="border-t border-outline/40 bg-bg p-3">
             <Link
-              href="/longevity-challenge/plan"
+              href={planHref}
               className="mb-2 block rounded-full bg-accent/10 px-4 py-2 text-center text-xs font-semibold text-accent transition hover:bg-accent/20"
             >
               Überzeugt? Jetzt Challenge-Plan erstellen →
