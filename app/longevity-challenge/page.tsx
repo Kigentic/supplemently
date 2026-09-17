@@ -8,6 +8,7 @@ import Image from 'next/image';
 import SiteHeader from '../_components/SiteHeader';
 import SiteFooter from '../_components/SiteFooter';
 import { OrbitGraphic, StatBar, ProgressRing, PillarHub, WeekTimeline, ShieldHeartIcon } from '../_components/Illustrations';
+import PresalesCoachWidget from '../_components/PresalesCoachWidget';
 
 export const metadata = {
   title: 'Longevity Lifestyle Challenge — 8 Wochen zu deinem besseren Ich',
@@ -73,8 +74,8 @@ export default function LongevityChallengePage() {
   return (
     <div className="min-h-screen bg-bg">
       <SiteHeader
-        ctaLabel="Jetzt anmelden"
-        ctaHref="/challenge/registrierung"
+        ctaLabel="Challenge-Plan erstellen"
+        ctaHref="/longevity-challenge/plan"
         logoHref="/longevity-challenge"
         showNavLinks={false}
       />
@@ -106,17 +107,17 @@ export default function LongevityChallengePage() {
               </p>
 
               <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row">
-                <Link href="/challenge/registrierung" className={btnPrimary + ' w-full text-center sm:w-auto'}>
-                  Jetzt kostenlos anmelden
+                <Link href="/longevity-challenge/plan" className={btnPrimary + ' w-full text-center sm:w-auto'}>
+                  Erstelle deinen Challenge-Plan
                 </Link>
-                <a href="#mechanismus" className={btnSecondary + ' w-full text-center sm:w-auto'}>
-                  Wie es funktioniert
+                <a href="#preis" className={btnSecondary + ' w-full text-center sm:w-auto'}>
+                  Was kostet's?
                 </a>
               </div>
 
               <div className="mt-7 flex flex-wrap items-center gap-2">
-                <TrustPill>Kostenloser Einstieg</TrustPill>
                 <TrustPill>In 2 Minuten personalisiert</TrustPill>
+                <TrustPill>Kein Abo — ein Programm, ein Ergebnis</TrustPill>
                 <TrustPill>Mit §20-zertifizierter Ernährungs-App</TrustPill>
               </div>
             </div>
@@ -436,11 +437,48 @@ export default function LongevityChallengePage() {
           </div>
         </section>
 
-        {/* ═══ 10. PREISE ═══════════════════════════════════════════════════════ */}
+        {/* ═══ 9b. WAS KOSTET'S ════════════════════════════════════════════════ */}
+        <section id="preis" className="mx-auto max-w-4xl scroll-mt-20 px-5 py-20 sm:py-28">
+          <div className="mx-auto max-w-2xl text-center">
+            <Kicker>Investition, keine Rate</Kicker>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
+              Ein Programm. Ein Preis. Ein Ergebnis.
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-text-muted">
+              Kein Abo, das du wieder kündigen musst. Du zahlst einmalig für 8 Wochen mit
+              vollständiger Betreuung — nicht für Zutritt zu einem Raum mit Geräten.
+            </p>
+          </div>
+
+          <div className="mx-auto mt-12 max-w-md rounded-3xl border-2 border-accent/30 bg-surface p-8 text-center">
+            <p className="text-sm font-semibold uppercase tracking-widest text-text-muted">Longevity Lifestyle Challenge</p>
+            <p className="mt-3 text-5xl font-bold tracking-tight text-text">
+              299&nbsp;€ <span className="text-lg font-medium text-text-muted">einmalig</span>
+            </p>
+            <p className="mt-2 text-sm text-text-muted">für 8 Wochen — kein Abo, keine Folgekosten</p>
+
+            <ul className="mt-7 space-y-2.5 text-left">
+              <Check>Individueller Trainings- und Supplement-Plan</Check>
+              <Check>§20-zertifizierte Ernährungs-App inklusive</Check>
+              <Check>KI-Coach Charles — 24/7 erreichbar</Check>
+              <Check>Wöchentliche Aufgaben, Ziele &amp; Check-ins mit Score</Check>
+              <Check>Community &amp; Buddy-System</Check>
+            </ul>
+
+            <Link href="/longevity-challenge/plan" className={btnPrimary + ' mt-8 block w-full text-center'}>
+              Jetzt Platz reservieren →
+            </Link>
+            <p className="mt-3 text-xs text-text-muted">
+              Reservierung unverbindlich — Zahlung &amp; Start erst bei deiner Aktivierung im Studio.
+            </p>
+          </div>
+        </section>
+
+        {/* ═══ 10. GEWINNSPIEL ══════════════════════════════════════════════════ */}
         <section className="bg-surface">
           <div className="mx-auto max-w-5xl px-5 py-20 sm:py-28">
             <div className="mx-auto max-w-2xl text-center">
-              <Kicker>Preise</Kicker>
+              <Kicker>On top</Kicker>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
                 Mitmachen lohnt sich. Gewinnen auch.
               </h2>
@@ -510,16 +548,16 @@ export default function LongevityChallengePage() {
               <span className="text-accent">8 Wochen bis dahin.</span>
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-text-muted">
-              Melde dich an und bekomme sofort deinen personalisierten Supplement-Stack —
-              noch bevor die Challenge startet.
+              Erstelle deinen Plan und reserviere deinen Platz — aktiviert wird er, sobald du
+              im Studio vorbeikommst.
             </p>
 
             <div className="mt-10 flex flex-col items-center gap-4">
-              <Link href="/challenge/registrierung" className={btnPrimary + ' px-10 py-5 text-lg'}>
-                Jetzt kostenlos anmelden →
+              <Link href="/longevity-challenge/plan" className={btnPrimary + ' px-10 py-5 text-lg'}>
+                Erstelle deinen Challenge-Plan →
               </Link>
               <p className="text-sm text-text-muted">
-                Ernährungs-App §20-zertifiziert · Kosten bis zu 150 € erstattungsfähig
+                299 € einmalig · Ernährungs-App §20-zertifiziert · Kosten bis zu 150 € erstattungsfähig
               </p>
             </div>
 
@@ -527,7 +565,8 @@ export default function LongevityChallengePage() {
               {[
                 ['Muss ich sportlich sein?', 'Nein. Das Programm passt sich deinem aktuellen Fitnesslevel an. Anfänger sind ausdrücklich willkommen.'],
                 ['Wie viel Zeit brauche ich?', '30–60 Minuten pro Woche für Check-in und Planung. Die Aufgaben integrierst du in deinen Alltag.'],
-                ['Was kostet die Challenge?', 'Der Einstieg ist kostenlos. Optional: 9,90 € Einmalbeitrag für die Challenge. Die enthaltene §20-zertifizierte Ernährungs-App kann separat über deine Krankenkasse erstattet werden.'],
+                ['Was kostet die Challenge?', '299 € einmalig für die vollen 8 Wochen — kein Abo. Die enthaltene §20-zertifizierte Ernährungs-App kann zusätzlich separat über deine Krankenkasse erstattet werden.'],
+                ['Was passiert nach der Anmeldung?', 'Du bekommst sofort deinen Challenge-Pass mit QR-Code — dein Platz ist reserviert. Zahlung und Start laufen im Studio: dort wird der Pass gescannt und deine Teilnahme aktiviert.'],
                 ['Was passiert nach 8 Wochen?', 'Du bekommst deine komplette Auswertung, deinen langfristigen Stack und kannst in die nächste Runde der Community starten.'],
               ].map(([q, a]) => (
                 <div key={q} className="rounded-xl border border-outline/40 bg-bg p-5">
@@ -542,6 +581,7 @@ export default function LongevityChallengePage() {
       </main>
 
       <SiteFooter tagline="Die Longevity Lifestyle Community — individuell auf dich abgestimmt." />
+      <PresalesCoachWidget />
     </div>
   );
 }

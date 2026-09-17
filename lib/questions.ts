@@ -512,3 +512,42 @@ export function validateAnswers(
     },
   };
 }
+
+// Validiert eine Fragebogen-Gruppe (einen Wizard-Schritt) gegen den
+// aktuellen Formularzustand — geteilt zwischen dem eingeloggten Fragebogen
+// (app/fragebogen/page.tsx) und dem Gast-Pre-Onboarding auf der Longevity-
+// Landingpage (app/longevity-challenge/plan/page.tsx). `form` ist bewusst
+// `Record<string, any>` statt `Answers`, weil Wizard-Formulare Zwischenwerte
+// (leere Strings, noch nicht validierte Zahlen als Strings) halten.
+export function validateFragebogenStep(step: number, form: Record<string, any>): string | null {
+  const gruppe = GRUPPEN[step];
+  for (const id of gruppe.frageIds) {
+    const frage = FRAGEN_MAP.get(id);
+    if (!frage) continue;
+    // trainingsplan_ort/trainingsplan_fokus sind strukturell "optional"
+    // (nur sichtbar wenn gewuenscht === 'ja'), aber dann selbst Pflicht.
+    if (id === 'trainingsplan_ort') {
+      if (form.trainingsplan_gewuenscht === 'ja' && !form[id]) return 'Bitte angeben, ob du im Studio oder zuhause trainierst.';
+      continue;
+    }
+    if (id === 'trainingsplan_fokus') {
+      if (form.trainingsplan_gewuenscht === 'ja' && !form[id]) return 'Bitte einen Fokus für deinen Trainingsplan wählen.';
+      continue;
+    }
+    if (frage.optional) continue;
+    if (id === 'restriktionen' || id === 'medikamente') continue;
+
+    if (frage.typ === 'number') {
+      if (!form[id] && form[id] !== 0) return `Bitte "${frage.frage}" ausfüllen.`;
+      const v = Number(form[id]);
+      if (isNaN(v)) return `Bitte eine gültige Zahl eingeben.`;
+      if (frage.min !== undefined && v < frage.min) return `Wert muss mindestens ${frage.min} sein.`;
+      if (frage.max !== undefined && v > frage.max) return `Wert darf höchstens ${frage.max} sein.`;
+    } else if (frage.typ === 'single') {
+      if (!form[id]) return `Bitte bei "${frage.frage}" eine Antwort wählen.`;
+    } else if (frage.typ === 'body_type') {
+      if (!form[id]) return 'Bitte deine Körperform auswählen.';
+    }
+  }
+  return null;
+}

@@ -256,6 +256,12 @@ export default function AdminPage() {
               </Link>
             )}
             <Link
+              href="/challenge/admin/pass"
+              className="inline-block rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text"
+            >
+              Challenge-Pass aktivieren →
+            </Link>
+            <Link
               href="/challenge/admin/affiliate-stats"
               className="inline-block rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text"
             >

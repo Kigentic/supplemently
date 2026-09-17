@@ -22,7 +22,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ teilnah
 
   const { data: teilnahme } = await supabase
     .from('challenge_teilnahmen')
-    .select('id, user_id, status, challenges ( studio_id, name, slug, studios ( name ) )')
+    .select('id, user_id, status, gestartet_at, challenges ( studio_id, name, slug, studios ( name ) )')
     .eq('id', teilnahmeId)
     .maybeSingle();
 
@@ -37,7 +37,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ teilnah
 
   const { error: updateError } = await supabase
     .from('challenge_teilnahmen')
-    .update({ status: 'aktiv' })
+    .update({
+      status: 'aktiv',
+      // Wochenzählungs-Anker: falls der Fragebogen schon vor der
+      // Freischaltung ausgefüllt wurde (Value-Equation-Funnel), stand
+      // gestartet_at noch nicht — Woche 1 beginnt dann erst jetzt, beim
+      // Studio-Check-in.
+      ...(teilnahme.gestartet_at ? {} : { gestartet_at: new Date().toISOString() }),
+    })
     .eq('id', teilnahmeId);
 
   if (updateError) {
