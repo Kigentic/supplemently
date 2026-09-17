@@ -27,6 +27,22 @@
   --color-outline: #cdd8e2;
 }
 
+/* Longevity-Challenge — dunkles Theme (zerma-fit.de als Referenz), nur auf
+   /longevity-challenge gescoped. Alle Komponenten sind bereits token-basiert
+   (bg-bg/bg-surface/text-text/text-text-muted/border-outline), deshalb reicht
+   die lokale Var-Überschreibung, ohne Komponenten/Header/Footer anzufassen. */
+.longevity-dark-theme {
+  --color-bg: #0a0a0b;
+  --color-surface: #131315;
+  --color-accent: #f68b35;
+  --color-accent-hover: #d9701e;
+  --color-accent-dark: #d9701e;
+  --color-outline: rgba(255, 255, 255, 0.14);
+  --color-text: #ffffff;
+  --color-text-muted: rgba(255, 255, 255, 0.65);
+  --color-on-accent: #ffffff;
+}
+
 html {
   scroll-behavior: smooth;
 }

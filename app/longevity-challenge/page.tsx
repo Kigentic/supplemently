@@ -61,7 +61,7 @@ function QuoteCard({ initial, color, text }: { initial: string; color: string; t
 
 export default function LongevityChallengePage() {
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="longevity-dark-theme min-h-screen bg-bg">
       <SiteHeader
         ctaLabel="Challenge-Plan erstellen"
         ctaHref="/longevity-challenge/plan"
@@ -259,32 +259,48 @@ export default function LongevityChallengePage() {
             </h2>
           </div>
 
-          <div className="mt-14 grid grid-cols-1 gap-8 sm:grid-cols-3">
-            {[
-              {
-                step: '01',
-                title: 'Anmelden & Profil erstellen',
-                text: 'Registrieren, Fragebogen zu Training, Ernährung, Schlaf und Lifestyle beantworten. Du bekommst sofort deinen individuellen Supplement-Stack.',
-              },
-              {
-                step: '02',
-                title: 'Jede Woche neue Aufgaben',
-                text: 'Montags kommen deine Aufgaben in 5 Bereichen. Freitags checkst du ein: was geschafft, wie geht\'s dir. Dein Score wird aktualisiert.',
-              },
-              {
-                step: '03',
-                title: 'Nach 8 Wochen auswerten',
-                text: 'Komplette Transformation sichtbar — Energie, Schlaf, Training, Körpergefühl. Die Top 3 gewinnen Preise. Du gewinnst auf jeden Fall.',
-              },
-            ].map((s) => (
-              <div key={s.step}>
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-xl font-bold text-on-accent">
-                  {s.step}
+          <div className="mt-14 grid items-center gap-10 lg:grid-cols-2">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-3xl sm:aspect-[4/3]">
+              <Image
+                src="/gym2_ai.webp"
+                alt="Training in der Longevity Lifestyle Challenge"
+                fill
+                sizes="(min-width: 1024px) 40vw, 100vw"
+                className="object-cover"
+              />
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{ background: 'linear-gradient(0deg, rgba(10,10,11,0.55) 0%, transparent 45%)' }}
+              />
+            </div>
+
+            <div className="space-y-8">
+              {[
+                {
+                  step: '01',
+                  title: 'Anmelden & Profil erstellen',
+                  text: 'Registrieren, Fragebogen zu Training, Ernährung, Schlaf und Lifestyle beantworten. Du bekommst sofort deinen individuellen Supplement-Stack.',
+                },
+                {
+                  step: '02',
+                  title: 'Jede Woche neue Aufgaben',
+                  text: 'Montags kommen deine Aufgaben in 5 Bereichen. Freitags checkst du ein: was geschafft, wie geht\'s dir. Dein Score wird aktualisiert.',
+                },
+                {
+                  step: '03',
+                  title: 'Nach 8 Wochen auswerten',
+                  text: 'Komplette Transformation sichtbar — Energie, Schlaf, Training, Körpergefühl. Die Top 3 gewinnen Preise. Du gewinnst auf jeden Fall.',
+                },
+              ].map((s) => (
+                <div key={s.step} className="flex gap-5">
+                  <span className="shrink-0 text-4xl font-extrabold leading-none text-accent/30">{s.step}</span>
+                  <div>
+                    <h3 className="text-lg font-semibold text-text">{s.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-text-muted">{s.text}</p>
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold text-text">{s.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-text-muted">{s.text}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
