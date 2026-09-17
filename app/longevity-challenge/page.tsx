@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import SiteHeader from '../_components/SiteHeader';
 import SiteFooter from '../_components/SiteFooter';
-import { OrbitGraphic, StatBar, ProgressRing, PillarHub, WeekTimeline, ShieldHeartIcon } from '../_components/Illustrations';
+import { StatBar, ProgressRing, PillarHub, WeekTimeline, ShieldHeartIcon } from '../_components/Illustrations';
 import PresalesCoachWidget from '../_components/PresalesCoachWidget';
 
 export const metadata = {
@@ -37,17 +37,6 @@ function Check({ children }: { children: ReactNode }) {
       </svg>
       {children}
     </li>
-  );
-}
-
-function TrustPill({ children }: { children: ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-outline bg-bg px-3.5 py-1.5 text-sm text-text-muted">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="shrink-0">
-        <path d="M20 6 9 17l-5-5" stroke="var(--color-accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-      {children}
-    </span>
   );
 }
 
@@ -83,24 +72,47 @@ export default function LongevityChallengePage() {
       <main>
 
         {/* ═══ 1. HERO ═══════════════════════════════════════════════════════ */}
-        <section className="relative overflow-hidden">
+        <section className="relative isolate overflow-hidden bg-[#0a0a0b]">
+          {/* Foto-Hintergrund */}
+          <div
+            className="absolute inset-0 bg-cover"
+            style={{ backgroundImage: "url('/Hero.webp')", backgroundPosition: 'center right' }}
+          />
+          {/* Verlauf: links dunkel für Textlesbarkeit, rechts gibt er das Foto frei */}
           <div
             className="pointer-events-none absolute inset-0"
-            style={{ background: 'radial-gradient(65% 55% at 15% 0%, rgba(246,139,53,0.16) 0%, transparent 65%)' }}
+            style={{
+              background:
+                'linear-gradient(90deg, #0a0a0b 0%, rgba(10,10,11,0.94) 28%, rgba(10,10,11,0.7) 50%, rgba(10,10,11,0.28) 72%, rgba(10,10,11,0) 92%)',
+            }}
           />
-          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pb-16 pt-16 sm:pt-24 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
-            <div>
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5">
+          {/* Orangener Glow */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{ background: 'radial-gradient(55% 55% at 18% 30%, rgba(246,139,53,0.3) 0%, transparent 70%)' }}
+          />
+          {/* Film-Grain */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.15] mix-blend-overlay"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+            }}
+          />
+
+          <div className="relative mx-auto flex min-h-[82vh] max-w-6xl items-center px-5 pb-20 pt-24 sm:min-h-[85vh]">
+            <div className="max-w-2xl">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 backdrop-blur-sm">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
                 <span className="text-sm font-medium text-accent">Community startet bald</span>
               </div>
 
-              <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-text sm:text-5xl lg:text-6xl">
+              <h1 className="text-5xl font-extrabold leading-[0.98] tracking-tight text-white sm:text-6xl lg:text-7xl">
                 In 8 Wochen zu <span className="text-accent">deinem</span> längeren,
                 besseren Leben.
               </h1>
 
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-text-muted">
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/70">
                 Die Longevity Lifestyle Challenge: Training, Ernährung und Supplements —
                 individuell auf dich berechnet, nicht auf den Durchschnitt. Mit KI-Coach und
                 klarem Wochenplan.
@@ -110,20 +122,40 @@ export default function LongevityChallengePage() {
                 <Link href="/longevity-challenge/plan" className={btnPrimary + ' w-full text-center sm:w-auto'}>
                   Erstelle deinen Challenge-Plan
                 </Link>
-                <a href="#preis" className={btnSecondary + ' w-full text-center sm:w-auto'}>
+                <a
+                  href="#preis"
+                  className="w-full rounded-full border border-white/25 bg-white/5 px-8 py-4 text-center text-base font-medium text-white backdrop-blur-sm transition hover:border-white/50 hover:bg-white/10 sm:w-auto"
+                >
                   Was kostet's?
                 </a>
               </div>
 
               <div className="mt-7 flex flex-wrap items-center gap-2">
-                <TrustPill>In 2 Minuten personalisiert</TrustPill>
-                <TrustPill>Kein Abo — ein Programm, ein Ergebnis</TrustPill>
-                <TrustPill>Optional: §20-zertifizierte Ernährungs-App</TrustPill>
+                {['In 2 Minuten personalisiert', 'Kein Abo — ein Programm, ein Ergebnis', 'Optional: §20-zertifizierte Ernährungs-App'].map((t) => (
+                  <span
+                    key={t}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-sm text-white/70 backdrop-blur-sm"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                      <path d="M20 6 9 17l-5-5" stroke="var(--color-accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    {t}
+                  </span>
+                ))}
               </div>
             </div>
-
-            <OrbitGraphic />
           </div>
+
+          {/* Scroll-Indikator */}
+          <a
+            href="#mechanismus"
+            aria-label="Nach unten scrollen"
+            className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 sm:block"
+          >
+            <div className="flex h-9 w-6 items-start justify-center rounded-full border border-white/30 p-1.5">
+              <span className="h-1.5 w-1 animate-bounce rounded-full bg-white/70" />
+            </div>
+          </a>
         </section>
 
         {/* ═══ 2. PAIN — "Kennst du das?" ════════════════════════════════════ */}
