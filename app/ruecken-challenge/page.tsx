@@ -180,7 +180,7 @@ export default function RueckenChallengePage() {
                   <span className="text-accent">Ein anderer Rücken.</span>
                 </h2>
                 <p className="mt-5 leading-relaxed text-text-muted">
-                  Du startest mit einer Baseline — Schmerzlevel, Beweglichkeit, Haltung, Fitness.
+                  Du startest mit einer Baseline — Beweglichkeit, Haltung, Kraft, Fitness.
                   Jede Woche trackst du dein Befinden. Am Ende siehst du schwarz auf weiß, was
                   sich verändert hat. Nicht gefühlt. Gemessen.
                 </p>
@@ -196,7 +196,7 @@ export default function RueckenChallengePage() {
                   Typische Entwicklung nach 8 Wochen
                 </p>
                 <div className="space-y-5">
-                  <StatBar label="Schmerzfreiheit" from={3} to={8} />
+                  <StatBar label="Rückenkraft" from={3} to={8} />
                   <StatBar label="Beweglichkeit" from={4} to={8} />
                   <StatBar label="Haltung im Alltag" from={4} to={9} />
                   <StatBar label="Trainingskonsistenz" from={3} to={7} />
@@ -233,7 +233,7 @@ export default function RueckenChallengePage() {
               {
                 step: '03',
                 title: 'Nach 8 Wochen auswerten',
-                text: 'Komplette Transformation sichtbar — Schmerzlevel, Beweglichkeit, Haltung, Körpergefühl. Die Top 3 gewinnen Preise. Du gewinnst auf jeden Fall.',
+                text: 'Komplette Transformation sichtbar — Kraft, Beweglichkeit, Haltung, Körpergefühl. Die Top 3 gewinnen Preise. Du gewinnst auf jeden Fall.',
               },
             ].map((s) => (
               <div key={s.step}>
@@ -499,16 +499,16 @@ export default function RueckenChallengePage() {
               Ein starker Rücken ist kein Zufall. Es ist Training.
             </h2>
             <p className="mt-4 text-base leading-relaxed text-text-muted">
-              Wer Rumpfstabilität, Mobility und Haltung strukturiert trainiert, reduziert
-              wiederkehrende Rückenschmerzen nachweislich. Nicht durch Schonung. Durch Bewegung.
+              Wer Rumpfstabilität, Mobility und Haltung strukturiert trainiert, baut spürbar
+              mehr Kraft und Beweglichkeit auf. Nicht durch Schonung. Durch Bewegung.
             </p>
           </div>
 
           <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { pct: 76, zahl: '−41%', label: 'Schmerzintensität', text: 'bei regelmäßigem, gezieltem Rückentraining' },
+              { pct: 76, zahl: '+37%', label: 'Rückenkraft', text: 'bei regelmäßigem, gezieltem Krafttraining' },
               { pct: 69, zahl: '+34%', label: 'Rumpfstabilität', text: 'durch progressives Core- und Mobility-Training' },
-              { pct: 63, zahl: '−28%', label: 'Verspannungen', text: 'bei Kombination aus Bewegung + Stressmanagement' },
+              { pct: 63, zahl: '×2.1', label: 'Trainingsroutine', text: 'gegenüber unstrukturiertem Training ohne Plan' },
               { pct: 88, zahl: '×2.3', label: 'Beweglichkeit', text: 'nach 8 Wochen strukturiertem Mobility-Programm' },
             ].map((s) => (
               <div key={s.label} className="flex flex-col items-center rounded-2xl bg-surface p-6 text-center">
