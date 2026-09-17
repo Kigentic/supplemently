@@ -24,7 +24,7 @@ function layout(bodyHtml: string, brandLabel = 'Longevity Lifestyle Challenge') 
         <td align="center">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:20px;overflow:hidden;">
             <tr>
-              <td style="background:linear-gradient(135deg,#4f90c1,#225990);padding:32px 40px;text-align:center;">
+              <td style="background:linear-gradient(135deg,#f68b35,#d9701e);padding:32px 40px;text-align:center;">
                 <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:0.02em;">${escapeHtml(brandLabel)}</span>
               </td>
             </tr>
@@ -65,7 +65,7 @@ export async function sendConfirmationEmail({
     </p>
     <table role="presentation" cellpadding="0" cellspacing="0">
       <tr>
-        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+        <td style="border-radius:999px;background:linear-gradient(135deg,#f68b35,#d9701e);">
           <a href="${confirmLink}" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
             E-Mail bestätigen
           </a>
@@ -74,7 +74,7 @@ export async function sendConfirmationEmail({
     </table>
     <p style="margin:28px 0 0;font-size:13px;line-height:1.6;color:#959595;">
       Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:<br/>
-      <a href="${confirmLink}" style="color:#4f90c1;word-break:break-all;">${confirmLink}</a>
+      <a href="${confirmLink}" style="color:#f68b35;word-break:break-all;">${confirmLink}</a>
     </p>
     <p style="margin:20px 0 0;font-size:13px;line-height:1.6;color:#959595;">
       Der Link ist 24 Stunden gültig. Wenn du dich nicht angemeldet hast, kannst du diese Mail ignorieren.
@@ -108,7 +108,7 @@ export async function sendPasswordResetEmail({
     </p>
     <table role="presentation" cellpadding="0" cellspacing="0">
       <tr>
-        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+        <td style="border-radius:999px;background:linear-gradient(135deg,#f68b35,#d9701e);">
           <a href="${resetLink}" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
             Neues Passwort setzen
           </a>
@@ -117,7 +117,7 @@ export async function sendPasswordResetEmail({
     </table>
     <p style="margin:28px 0 0;font-size:13px;line-height:1.6;color:#959595;">
       Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:<br/>
-      <a href="${resetLink}" style="color:#4f90c1;word-break:break-all;">${resetLink}</a>
+      <a href="${resetLink}" style="color:#f68b35;word-break:break-all;">${resetLink}</a>
     </p>
     <p style="margin:20px 0 0;font-size:13px;line-height:1.6;color:#959595;">
       Der Link ist 1 Stunde gültig. Wenn du das nicht warst, kannst du diese Mail ignorieren — dein Passwort bleibt unverändert.
@@ -154,7 +154,7 @@ export async function sendStudioConfirmationEmail({
     </p>
     <table role="presentation" cellpadding="0" cellspacing="0">
       <tr>
-        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+        <td style="border-radius:999px;background:linear-gradient(135deg,#f68b35,#d9701e);">
           <a href="${confirmLink}" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
             E-Mail bestätigen
           </a>
@@ -163,7 +163,7 @@ export async function sendStudioConfirmationEmail({
     </table>
     <p style="margin:28px 0 0;font-size:13px;line-height:1.6;color:#959595;">
       Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:<br/>
-      <a href="${confirmLink}" style="color:#4f90c1;word-break:break-all;">${confirmLink}</a>
+      <a href="${confirmLink}" style="color:#f68b35;word-break:break-all;">${confirmLink}</a>
     </p>
     <p style="margin:20px 0 0;font-size:13px;line-height:1.6;color:#959595;">
       Der Link ist 24 Stunden gültig. Wenn du das nicht warst, kannst du diese Mail ignorieren.
@@ -203,7 +203,7 @@ export async function sendDurchgangConfirmationEmail({
     </p>
     <table role="presentation" cellpadding="0" cellspacing="0">
       <tr>
-        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+        <td style="border-radius:999px;background:linear-gradient(135deg,#f68b35,#d9701e);">
           <a href="${confirmLink}" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
             E-Mail bestätigen
           </a>
@@ -212,7 +212,7 @@ export async function sendDurchgangConfirmationEmail({
     </table>
     <p style="margin:28px 0 0;font-size:13px;line-height:1.6;color:#959595;">
       Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:<br/>
-      <a href="${confirmLink}" style="color:#4f90c1;word-break:break-all;">${confirmLink}</a>
+      <a href="${confirmLink}" style="color:#f68b35;word-break:break-all;">${confirmLink}</a>
     </p>
     <p style="margin:20px 0 0;font-size:13px;line-height:1.6;color:#959595;">
       Der Link ist 24 Stunden gültig. Wenn du dich nicht angemeldet hast, kannst du diese Mail ignorieren.
@@ -255,7 +255,7 @@ export async function sendNeueRegistrierungEmail({
     </p>
     <table role="presentation" cellpadding="0" cellspacing="0">
       <tr>
-        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+        <td style="border-radius:999px;background:linear-gradient(135deg,#f68b35,#d9701e);">
           <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://supplemently.vercel.app'}/challenge/admin" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
             Zum Studio-Bereich
           </a>
@@ -296,7 +296,7 @@ export async function sendFreischaltungEmail({
     </p>
     <table role="presentation" cellpadding="0" cellspacing="0">
       <tr>
-        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+        <td style="border-radius:999px;background:linear-gradient(135deg,#f68b35,#d9701e);">
           <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://supplemently.vercel.app'}/challenge/login" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
             Jetzt einloggen
           </a>
@@ -308,7 +308,7 @@ export async function sendFreischaltungEmail({
       motiviert's doppelt so gut. Dein persönlicher Einladungslink:
     </p>
     <p style="margin:0;font-size:13px;line-height:1.6;">
-      <a href="${empfehlungsLink}" style="color:#4f90c1;word-break:break-all;">${empfehlungsLink}</a>
+      <a href="${empfehlungsLink}" style="color:#f68b35;word-break:break-all;">${empfehlungsLink}</a>
     </p>
   `;
 
@@ -345,7 +345,7 @@ export async function sendCheckinReminderEmail({
     </p>
     <table role="presentation" cellpadding="0" cellspacing="0">
       <tr>
-        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+        <td style="border-radius:999px;background:linear-gradient(135deg,#f68b35,#d9701e);">
           <a href="${checkinLink}" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
             Jetzt Check-in machen
           </a>
@@ -387,7 +387,7 @@ export async function sendCheckinReminderEmail2({
     </p>
     <table role="presentation" cellpadding="0" cellspacing="0">
       <tr>
-        <td style="border-radius:999px;background:linear-gradient(135deg,#4f90c1,#225990);">
+        <td style="border-radius:999px;background:linear-gradient(135deg,#f68b35,#d9701e);">
           <a href="${checkinLink}" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
             Jetzt nachholen
           </a>

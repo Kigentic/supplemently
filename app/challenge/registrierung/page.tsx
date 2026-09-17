@@ -99,12 +99,10 @@ function ConfirmedScreen({ vorname }: { vorname: string | null }) {
         E-Mail bestätigt{vorname ? `, ${vorname}` : ''}!
       </h1>
       <p className="mt-4 text-base leading-relaxed text-text-muted">
-        Dein Account ist aktiv. Als Nächstes füllst du den Fragebogen aus — danach bekommst du
-        sofort deinen personalisierten Supplement-Stack.
+        Dein Platz ist reserviert. Wir benachrichtigen dich per E-Mail, sobald dein Zugang
+        freigeschaltet ist — das passiert, sobald deine Anmeldung im Studio vor Ort
+        abgeschlossen wurde.
       </p>
-      <Link href="/fragebogen" className="mt-8 inline-block rounded-full bg-accent px-8 py-4 text-base font-semibold text-on-accent transition hover:bg-accent-hover">
-        Jetzt Fragebogen ausfüllen
-      </Link>
     </main>
   );
 }
