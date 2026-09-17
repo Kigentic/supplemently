@@ -5,9 +5,13 @@ import { getOpenAIClient, EMBEDDING_MODEL, withRateLimitRetry, SHORT_BACKOFF_STE
 
 const MAX_WORDS_PER_CHUNK = 400;
 const OVERLAP_WORDS = 60;
+const NULL_BYTE = String.fromCharCode(0);
 
 export function chunkText(text: string): string[] {
-  const words = text.split(/\s+/).filter(Boolean);
+  // Postgres text-Spalten lehnen Nullbytes ab ("unsupported Unicode escape
+  // sequence") — PDF-Textextraktion streut die gelegentlich ein.
+  const sanitized = text.split(NULL_BYTE).join('');
+  const words = sanitized.split(/\s+/).filter(Boolean);
   if (words.length === 0) return [];
 
   const chunks: string[] = [];

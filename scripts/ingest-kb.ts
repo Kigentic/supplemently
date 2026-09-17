@@ -1,5 +1,5 @@
 // Einmal- bzw. Re-Ingestion-Skript für die KI-Coach-Wissensdatenbank.
-// Läuft die Supplement-PDF (global) und die Challenge-Inhalte pro
+// Läuft die Wissens-PDFs (global) und die Challenge-Inhalte pro
 // Challenge-Typ (Habits/Anleitungen/Übungen) durch, chunked, embedded
 // (OpenAI text-embedding-3-small) und schreibt in kb_documents/kb_chunks.
 // Aufruf: npm run ingest:kb
@@ -10,7 +10,14 @@ import { getServiceClient } from '../lib/supabaseServer';
 import { chunkText, embedTexts } from '../lib/kb';
 import { getOpenAIClient, CHAT_MODEL, withRateLimitRetry } from '../lib/openai';
 
-const PDF_PATH = path.join(process.cwd(), 'kb', 'The Supplement Bible.pdf');
+// Jede globale Wissens-PDF unter kb/. `ocr: true` nur für PDFs mit
+// Kopierschutz (Fließtext als Bild eingebettet, z.B. "The Supplement
+// Bible") — alle anderen haben normalen, direkt extrahierbaren Text.
+const PDFS: { file: string; title: string; ocr?: boolean }[] = [
+  { file: 'The Supplement Bible.pdf', title: 'The Supplement Bible', ocr: true },
+  { file: 'HPN_Smart-Eating_A4.pdf', title: 'Smart Eating — Ernährung ohne Geheimwissen' },
+  { file: 'HPN_How-to-be-healthy_A4.pdf', title: 'How to be healthy — Die paar Dinge, die wirklich etwas ändern' },
+];
 const EMBED_BATCH_SIZE = 100;
 const OCR_CONCURRENCY = 1;
 
@@ -115,13 +122,13 @@ async function replaceDocument(
   await replaceDocumentWithChunks(supabase, title, sourceType, challengeTypId, chunkText(text));
 }
 
-async function ingestPdf(supabase: ReturnType<typeof getServiceClient>) {
-  if (!fs.existsSync(PDF_PATH)) {
-    console.log(`Keine PDF unter ${PDF_PATH} gefunden — überspringe Supplement-Wissen.`);
-    return;
-  }
-  console.log('Lese Supplement-PDF (Vision-OCR, Text ist als Bild eingebettet) …');
-  const buffer = fs.readFileSync(PDF_PATH);
+async function ingestPdfsOcr(
+  supabase: ReturnType<typeof getServiceClient>,
+  pdfPath: string,
+  title: string
+) {
+  console.log('  Vision-OCR (Text ist als Bild eingebettet) …');
+  const buffer = fs.readFileSync(pdfPath);
   const parser = new PDFParse({ data: buffer });
   const info = await parser.getInfo();
   const totalPages = info.total;
@@ -143,7 +150,36 @@ async function ingestPdf(supabase: ReturnType<typeof getServiceClient>) {
   await parser.destroy();
 
   const fullText = pageTexts.filter(Boolean).join('\n\n');
-  await replaceDocument(supabase, 'The Supplement Bible', 'pdf', null, fullText);
+  await replaceDocument(supabase, title, 'pdf', null, fullText);
+}
+
+async function ingestPdfText(
+  supabase: ReturnType<typeof getServiceClient>,
+  pdfPath: string,
+  title: string
+) {
+  console.log('  Extrahiere Text direkt (kein Kopierschutz) …');
+  const buffer = fs.readFileSync(pdfPath);
+  const parser = new PDFParse({ data: buffer });
+  const result = await parser.getText();
+  await parser.destroy();
+  await replaceDocument(supabase, title, 'pdf', null, result.text);
+}
+
+async function ingestPdfs(supabase: ReturnType<typeof getServiceClient>) {
+  for (const pdf of PDFS) {
+    const pdfPath = path.join(process.cwd(), 'kb', pdf.file);
+    if (!fs.existsSync(pdfPath)) {
+      console.log(`Keine PDF unter ${pdfPath} gefunden — überspringe "${pdf.title}".`);
+      continue;
+    }
+    console.log(`Lese "${pdf.title}" …`);
+    if (pdf.ocr) {
+      await ingestPdfsOcr(supabase, pdfPath, pdf.title);
+    } else {
+      await ingestPdfText(supabase, pdfPath, pdf.title);
+    }
+  }
 }
 
 async function ingestChallengeContent(supabase: ReturnType<typeof getServiceClient>) {
@@ -235,7 +271,7 @@ async function main() {
     await ingestTrainingsplanMarkdown(supabase);
   }
   if (!only || only === 'pdf') {
-    await ingestPdf(supabase);
+    await ingestPdfs(supabase);
   }
   console.log('Fertig.');
 }
