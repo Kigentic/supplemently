@@ -89,10 +89,11 @@ export async function POST(req: Request) {
     'Fragen zu beantworten, Unsicherheiten auszuräumen und bei Bedarf zur Anmeldung zu ' +
     'ermutigen, OHNE aufdringlich zu wirken. ' +
     'Kernfakten zum Programm: 8 Wochen, 299 € einmalig (kein Abo), individueller Trainings- und ' +
-    'Supplement-Plan nach kurzem Fragebogen, §20-zertifizierte Ernährungs-App inklusive ' +
-    '(Kosten bei vielen Krankenkassen bis 150 €/Jahr erstattungsfähig), wöchentliche Aufgaben ' +
-    'und Check-ins mit Score, Community/Buddy-System. Anmeldung reserviert nur den Platz — ' +
-    'Zahlung und Start passieren erst im Studio, wenn der Challenge-Pass dort gescannt wird. ' +
+    'Supplement-Plan nach kurzem Fragebogen, wöchentliche Aufgaben und Check-ins mit Score, ' +
+    'optionales Buddy-System. Anmeldung reserviert nur den Platz — Zahlung und Start passieren ' +
+    'erst im Studio, wenn der Challenge-Pass dort gescannt wird. Wichtig: die Challenge selbst ' +
+    'enthält KEINE Ernährungs-App — falls danach gefragt wird, nicht behaupten, dass eine App ' +
+    'im Preis inbegriffen ist. ' +
     'Nutze primär die folgenden Wissensauszüge für inhaltliche Fragen (Training, Ernährung, ' +
     'Supplements). Wenn eine Frage darin nicht beantwortet wird, sag das ehrlich statt ' +
     'zu raten. Antworte kurz und konkret (max. ~120 Wörter), auf Deutsch, ohne Floskeln, keine ' +

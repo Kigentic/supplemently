@@ -12,7 +12,7 @@ import PresalesCoachWidget from '../_components/PresalesCoachWidget';
 export const metadata = {
   title: 'Abnehmen Challenge — 8 Wochen zu deinem Wohlfühlgewicht',
   description:
-    'Die Abnehmen Challenge von MoveIn8: Training, Ernährung, Supplements und KI-Coaching individuell auf dich abgestimmt — nachhaltig statt Diät-Chaos. 8 Wochen, echte Community, messbare Ergebnisse.',
+    'Die Abnehmen Challenge von MoveIn8: Training, Ernährung, Supplements und KI-Coaching individuell auf dich abgestimmt — nachhaltig statt Diät-Chaos. 8 Wochen, klarer Plan, messbare Ergebnisse.',
 };
 
 const btnPrimary =
@@ -92,8 +92,8 @@ export default function AbnehmenChallengePage() {
 
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-text-muted">
                 Die Abnehmen Challenge: Training, Ernährung und Supplements — individuell auf
-                dich berechnet, nicht auf eine generische Diät. Mit KI-Coach, Wochenplan und
-                echter Community, die mitzieht.
+                dich berechnet, nicht auf eine generische Diät. Mit KI-Coach und klarem
+                Wochenplan.
               </p>
 
               <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row">
@@ -108,7 +108,7 @@ export default function AbnehmenChallengePage() {
               <div className="mt-7 flex flex-wrap items-center gap-2">
                 <TrustPill>In 2 Minuten personalisiert</TrustPill>
                 <TrustPill>Kein Abo — ein Programm, ein Ergebnis</TrustPill>
-                <TrustPill>Mit §20-zertifizierter Ernährungs-App</TrustPill>
+                <TrustPill>Optional: §20-zertifizierte Ernährungs-App</TrustPill>
               </div>
             </div>
 
@@ -400,17 +400,17 @@ export default function AbnehmenChallengePage() {
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10">
                 <ShieldHeartIcon />
               </div>
-              <h3 className="text-xl font-semibold text-text">Bis zu 150 € für deine Ernährungs-App</h3>
+              <h3 className="text-xl font-semibold text-text">Bis zu 150 € für eine Ernährungs-App</h3>
               <p className="mt-3 leading-relaxed text-text-muted">
-                In der Challenge enthalten ist eine §20-zertifizierte Ernährungs-App. Deren
-                Kosten erstatten viele gesetzliche Krankenkassen bis zu 150 € pro Jahr —
-                ganz offiziell, weil die App als Präventionsangebot anerkannt ist.
+                Optional und separat von der Challenge verfügbar: eine §20-zertifizierte
+                Ernährungs-App. Deren Kosten erstatten viele gesetzliche Krankenkassen bis zu
+                150 € pro Jahr — ganz offiziell, weil die App als Präventionsangebot anerkannt ist.
               </p>
               <p className="mt-3 text-sm text-text-muted">
-                Wichtig zu wissen: zertifiziert ist die Ernährungs-App, nicht die Challenge
-                selbst. Die Challenge ist unser eigenes Programm, in das die App eingebunden
-                ist. Für die App-Kosten reichst du die Teilnahmebestätigung einfach bei
-                deiner Kasse ein — die Unterlagen dafür stellen wir dir bereit.
+                Wichtig zu wissen: zertifiziert ist die Ernährungs-App, nicht die Challenge —
+                sie ist nicht im Challenge-Preis enthalten, sondern ein eigenständiges Angebot.
+                Für die App-Kosten reichst du die Teilnahmebestätigung einfach bei deiner Kasse
+                ein — die Unterlagen dafür stellen wir dir bereit.
               </p>
               <div className="mt-5 flex flex-wrap gap-2">
                 {['TK', 'AOK', 'Barmer', 'DAK', 'IKK'].map((k) => (
@@ -446,10 +446,9 @@ export default function AbnehmenChallengePage() {
 
             <ul className="mt-7 space-y-2.5 text-left">
               <Check>Individueller Trainings- und Supplement-Plan</Check>
-              <Check>§20-zertifizierte Ernährungs-App inklusive</Check>
               <Check>KI-Coach Charles — 24/7 erreichbar</Check>
               <Check>Wöchentliche Aufgaben, Ziele &amp; Check-ins mit Score</Check>
-              <Check>Community &amp; Buddy-System</Check>
+              <Check>Optionales Buddy-System</Check>
             </ul>
 
             <Link href="/abnehmen-challenge/plan" className={btnPrimary + ' mt-8 block w-full text-center'}>
@@ -544,7 +543,7 @@ export default function AbnehmenChallengePage() {
                 Erstelle deinen Challenge-Plan →
               </Link>
               <p className="text-sm text-text-muted">
-                299 € einmalig · Ernährungs-App §20-zertifiziert · Kosten bis zu 150 € erstattungsfähig
+                299 € einmalig · kein Abo · Ernährungs-App optional erhältlich
               </p>
             </div>
 
@@ -552,7 +551,7 @@ export default function AbnehmenChallengePage() {
               {[
                 ['Muss ich hungern?', 'Nein. Das Programm arbeitet mit einem moderaten Kaloriendefizit und hoher Sättigung — kein Crash-Diät-Ansatz.'],
                 ['Wie viel Zeit brauche ich?', '30–60 Minuten pro Woche für Check-in und Planung. Die Aufgaben integrierst du in deinen Alltag.'],
-                ['Was kostet die Challenge?', '299 € einmalig für die vollen 8 Wochen — kein Abo. Die enthaltene §20-zertifizierte Ernährungs-App kann zusätzlich separat über deine Krankenkasse erstattet werden.'],
+                ['Was kostet die Challenge?', '299 € einmalig für die vollen 8 Wochen — kein Abo, keine Folgekosten. Die §20-zertifizierte Ernährungs-App ist nicht im Preis enthalten, aber optional separat erhältlich und über deine Krankenkasse erstattungsfähig.'],
                 ['Was passiert nach der Anmeldung?', 'Du bekommst sofort deinen Challenge-Pass mit QR-Code — dein Platz ist reserviert. Zahlung und Start laufen im Studio: dort wird der Pass gescannt und deine Teilnahme aktiviert.'],
                 ['Was passiert nach 8 Wochen?', 'Du bekommst deine komplette Auswertung, deinen langfristigen Stack und kannst in die nächste Runde der Community starten.'],
               ].map(([q, a]) => (
