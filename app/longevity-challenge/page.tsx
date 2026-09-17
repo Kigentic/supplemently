@@ -289,7 +289,7 @@ export default function LongevityChallengePage() {
                 {
                   step: '03',
                   title: 'Nach 8 Wochen auswerten',
-                  text: 'Komplette Transformation sichtbar — Energie, Schlaf, Training, Körpergefühl. Die Top 3 gewinnen Preise. Du gewinnst auf jeden Fall.',
+                  text: 'Komplette Transformation sichtbar — Energie, Schlaf, Training, Körpergefühl. Schwarz auf weiß, was sich in 8 Wochen verändert hat.',
                 },
               ].map((s) => (
                 <div key={s.step} className="flex gap-5">
@@ -518,37 +518,6 @@ export default function LongevityChallengePage() {
             <p className="mt-3 text-xs text-text-muted">
               Reservierung unverbindlich — Zahlung &amp; Start erst bei deiner Aktivierung im Studio.
             </p>
-          </div>
-        </section>
-
-        {/* ═══ 10. GEWINNSPIEL ══════════════════════════════════════════════════ */}
-        <section className="bg-surface">
-          <div className="mx-auto max-w-5xl px-5 py-20 sm:py-28">
-            <div className="mx-auto max-w-2xl text-center">
-              <Kicker>On top</Kicker>
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
-                Mitmachen lohnt sich. Gewinnen auch.
-              </h2>
-              <p className="mt-4 text-base leading-relaxed text-text-muted">
-                Die 3 Teilnehmer mit dem höchsten Gesamtscore nach 8 Wochen gewinnen. Punkte gibt's für
-                Aufgaben-Compliance, Check-ins, Verbesserung deiner Werte und Einladungen.
-              </p>
-            </div>
-            <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              {[
-                { platz: '1', label: 'Platz 1', preis: 'Premium Supplement-Paket + Longevity-Coaching', border: 'border-amber-300' },
-                { platz: '2', label: 'Platz 2', preis: 'Supplement-Gutschein + Jahres-Zugang', border: 'border-outline' },
-                { platz: '3', label: 'Platz 3', preis: 'Personalisiertes Supplement-Starter-Paket', border: 'border-orange-200' },
-              ].map((p) => (
-                <div key={p.platz} className={`rounded-2xl border-2 bg-bg p-6 text-center ${p.border}`}>
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-lg font-bold text-on-accent mx-auto">
-                    {p.platz}
-                  </span>
-                  <p className="mt-4 font-semibold text-text">{p.label}</p>
-                  <p className="mt-1 text-sm text-text-muted">{p.preis}</p>
-                </div>
-              ))}
-            </div>
           </div>
         </section>
 
