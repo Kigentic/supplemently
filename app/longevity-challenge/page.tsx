@@ -7,8 +7,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import SiteHeader from '../_components/SiteHeader';
 import SiteFooter from '../_components/SiteFooter';
-import { StatBar, ProgressRing, PillarHub, WeekTimeline, ShieldHeartIcon } from '../_components/Illustrations';
+import { StatBar, ProgressRing, WeekTimeline, ShieldHeartIcon } from '../_components/Illustrations';
 import PresalesCoachWidget from '../_components/PresalesCoachWidget';
+import FlyIn from './_components/FlyIn';
 
 export const metadata = {
   title: 'Longevity Lifestyle Challenge — 8 Wochen zu deinem besseren Ich',
@@ -195,18 +196,45 @@ export default function LongevityChallengePage() {
         </section>
 
         {/* ═══ 3. MECHANISMUS — 3 Säulen ═══════════════════════════════════════ */}
-        <section id="mechanismus" className="mx-auto max-w-5xl scroll-mt-20 px-5 py-20 sm:py-28">
-          <div className="mx-auto max-w-2xl text-center">
-            <Kicker>Der Mechanismus</Kicker>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
-              3 Hebel. Individuell auf dich eingestellt.
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-text-muted">
-              Kein Programm von der Stange. Dein Profil entscheidet, was du bekommst.
-            </p>
-          </div>
-          <div className="mt-12">
-            <PillarHub />
+        <section id="mechanismus" className="relative isolate scroll-mt-20 overflow-hidden">
+          <Image
+            src="/gym2_ai.webp"
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover"
+            priority={false}
+          />
+          <div className="pointer-events-none absolute inset-0 bg-[#0a0a0b]/85" />
+
+          <div className="relative mx-auto max-w-5xl px-5 py-20 sm:py-28">
+            <div className="mx-auto max-w-2xl text-center">
+              <Kicker>Der Mechanismus</Kicker>
+              <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                3 Hebel. Individuell auf dich eingestellt.
+              </h2>
+              <p className="mt-4 text-base leading-relaxed text-white/70">
+                Kein Programm von der Stange. Dein Profil entscheidet, was du bekommst.
+              </p>
+            </div>
+
+            <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {[
+                { icon: '🏋️', label: 'Training', desc: 'Auf dein Level abgestimmt', from: 'left' as const },
+                { icon: '🥗', label: 'Ernährung', desc: 'Passend zu deinem Stil', from: 'bottom' as const },
+                { icon: '💊', label: 'Supplements', desc: 'Nur was du brauchst', from: 'right' as const },
+              ].map((p, i) => (
+                <FlyIn key={p.label} from={p.from} delayMs={i * 120}>
+                  <div className="flex h-full flex-col items-center rounded-2xl border border-white/15 bg-white/5 p-6 text-center backdrop-blur-sm">
+                    <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15 text-2xl">
+                      {p.icon}
+                    </div>
+                    <p className="font-semibold text-white">{p.label}</p>
+                    <p className="mt-1 text-sm text-white/70">{p.desc}</p>
+                  </div>
+                </FlyIn>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -262,8 +290,8 @@ export default function LongevityChallengePage() {
           <div className="mt-14 grid items-center gap-10 lg:grid-cols-2">
             <div className="relative aspect-[4/5] overflow-hidden rounded-3xl sm:aspect-[4/3]">
               <Image
-                src="/gym2_ai.webp"
-                alt="Training in der Longevity Lifestyle Challenge"
+                src="/gymberatung.webp"
+                alt="Beratungsgespräch in der Longevity Lifestyle Challenge"
                 fill
                 sizes="(min-width: 1024px) 40vw, 100vw"
                 className="object-cover"
