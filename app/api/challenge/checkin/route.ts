@@ -69,6 +69,10 @@ export async function POST(req: Request) {
   const isAdmin = !!profile?.ist_admin;
   const challenge = Array.isArray(teilnahme.challenges) ? teilnahme.challenges[0] : teilnahme.challenges;
 
+  if (teilnahme.status === 'gesperrt') {
+    return NextResponse.json({ error: 'Dein Zugang wurde gesperrt. Bitte wende dich an dein Studio.' }, { status: 403 });
+  }
+
   // Manuelle Freischaltung durch das Studio nötig (kein automatisiertes
   // Payment über uns) — solange nicht freigeschaltet, kein Check-in möglich.
   if (!isAdmin && challenge?.benoetigt_freischaltung && teilnahme.status === 'pre_registered') {

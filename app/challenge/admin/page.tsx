@@ -249,6 +249,14 @@ export default function AdminPage() {
           <div className="mt-4 flex flex-wrap gap-3">
             {scope !== 'studio' && (
               <Link
+                href="/challenge/admin/studios"
+                className="inline-block rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text"
+              >
+                Studios verwalten →
+              </Link>
+            )}
+            {scope !== 'studio' && (
+              <Link
                 href="/challenge/admin/checkin-test"
                 className="inline-block rounded-full border border-outline px-5 py-2.5 text-sm font-medium text-text transition hover:border-text"
               >

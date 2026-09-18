@@ -50,7 +50,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
 
   const { data: challenge } = await supabase
     .from('challenges')
-    .select('id, name, ist_offen, studios ( name, kontakt_email )')
+    .select('id, name, ist_offen, studios ( name, kontakt_email, gesperrt )')
     .eq('slug', slug)
     .maybeSingle();
 
@@ -58,6 +58,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     return NextResponse.json({ error: 'Dieser Durchgang ist nicht (mehr) offen für Anmeldungen.' }, { status: 404 });
   }
   const studio = Array.isArray(challenge.studios) ? challenge.studios[0] : challenge.studios;
+  if (studio?.gesperrt) {
+    return NextResponse.json({ error: 'Dieses Studio nimmt derzeit keine neuen Anmeldungen an.' }, { status: 403 });
+  }
 
   // Empfehlungslink: nur gültig, wenn er auf eine Teilnahme desselben
   // Durchgangs zeigt (verhindert Missbrauch über Challenge-Grenzen hinweg).

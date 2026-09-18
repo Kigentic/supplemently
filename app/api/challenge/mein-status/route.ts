@@ -22,11 +22,12 @@ export async function GET(req: Request) {
     .maybeSingle();
 
   if (!teilnahme) {
-    return NextResponse.json({ status: null, wartetAufFreischaltung: false }, { status: 200 });
+    return NextResponse.json({ status: null, wartetAufFreischaltung: false, gesperrt: false }, { status: 200 });
   }
 
   const challenge = Array.isArray(teilnahme.challenges) ? teilnahme.challenges[0] : teilnahme.challenges;
   const wartetAufFreischaltung = !!challenge?.benoetigt_freischaltung && teilnahme.status === 'pre_registered';
+  const gesperrt = teilnahme.status === 'gesperrt';
 
-  return NextResponse.json({ status: teilnahme.status, wartetAufFreischaltung }, { status: 200 });
+  return NextResponse.json({ status: teilnahme.status, wartetAufFreischaltung, gesperrt }, { status: 200 });
 }

@@ -46,6 +46,13 @@ export async function GET(req: Request) {
   const resolved = resolveStudioId(scope, requestedStudioId);
   if (typeof resolved !== 'string') return NextResponse.json({ error: resolved.error }, { status: 400 });
 
+  if (!scope.isMasterAdmin) {
+    const { data: studio } = await supabase.from('studios').select('gesperrt').eq('id', resolved).maybeSingle();
+    if (studio?.gesperrt) {
+      return NextResponse.json({ error: 'Dein Studio wurde vom Betreiber gesperrt. Bitte kontaktiere den Support.' }, { status: 403 });
+    }
+  }
+
   const { data, error } = await supabase
     .from('challenges')
     .select('id, name, slug, start_datum, end_datum, wochen_anzahl, ist_aktiv, ist_offen, benoetigt_freischaltung, challenge_typen ( name )')
@@ -94,6 +101,13 @@ export async function POST(req: Request) {
   const resolved = resolveStudioId(scope, body.studioId);
   if (typeof resolved !== 'string') return NextResponse.json({ error: resolved.error }, { status: 400 });
   const studioId = resolved;
+
+  if (!scope.isMasterAdmin) {
+    const { data: studioCheck } = await supabase.from('studios').select('gesperrt').eq('id', studioId).maybeSingle();
+    if (studioCheck?.gesperrt) {
+      return NextResponse.json({ error: 'Dein Studio wurde vom Betreiber gesperrt. Bitte kontaktiere den Support.' }, { status: 403 });
+    }
+  }
 
   if (!body.challengeTypId) {
     return NextResponse.json({ error: 'Bitte einen Challenge-Typ auswählen.' }, { status: 400 });

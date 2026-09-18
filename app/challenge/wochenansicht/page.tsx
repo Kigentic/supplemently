@@ -59,6 +59,13 @@ export default function WochenansichtPage() {
 
       if (cancelled) return;
 
+      // Gesperrt (Studio-weit oder individuell) — auch mit noch gültiger
+      // Session keinen Zugriff auf Inhalte geben.
+      if (teilnahme?.status === 'gesperrt') {
+        router.push('/challenge/gesperrt');
+        return;
+      }
+
       // Onboarding (Fragebogen) noch nicht ausgefüllt — erst dahin schicken,
       // bevor die Wochenansicht gezeigt wird.
       if (teilnahme && !teilnahme.onboarding_antworten) {

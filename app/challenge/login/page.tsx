@@ -84,6 +84,11 @@ export default function LoginPage() {
       .limit(1)
       .maybeSingle()) as { data: { status: string } | null };
 
+    if (teilnahme?.status === 'gesperrt') {
+      router.push('/challenge/gesperrt');
+      return;
+    }
+
     if (teilnahme?.status === 'aktiv' || teilnahme?.status === 'abgeschlossen') {
       router.push('/challenge/wochenansicht');
       return;
