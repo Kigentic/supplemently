@@ -62,7 +62,7 @@ function QuoteCard({ initial, color, text }: { initial: string; color: string; t
 
 export default function LongevityChallengePage() {
   return (
-    <div className="longevity-dark-theme min-h-screen bg-bg">
+    <div className="min-h-screen bg-bg">
       <SiteHeader
         ctaLabel="Challenge-Plan erstellen"
         ctaHref="/longevity-challenge/plan"

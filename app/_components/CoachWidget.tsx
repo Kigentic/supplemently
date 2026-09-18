@@ -73,7 +73,7 @@ export default function CoachWidget() {
   return (
     <>
       {open && (
-        <div className="fixed bottom-24 right-5 z-40 flex h-[min(34rem,72vh)] w-[min(24rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-[1.75rem] border border-black/5 bg-bg shadow-2xl ring-1 ring-black/5">
+        <div className="fixed bottom-24 right-5 z-40 flex h-[min(34rem,72vh)] w-[min(24rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-[1.75rem] border border-outline/50 bg-bg shadow-2xl ring-1 ring-black/20">
           {/* Header */}
           <div className="flex items-center gap-3 bg-gradient-to-br from-accent to-accent-hover px-5 py-4">
             <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-white/20 ring-2 ring-white/40">
