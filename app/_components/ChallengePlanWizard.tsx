@@ -12,7 +12,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
-import PresalesCoachWidget from '@/app/_components/PresalesCoachWidget';
 import { FRAGEN_MAP, GRUPPEN, validateFragebogenStep, type Answers } from '@/lib/questions';
 import { inputBase, OptionPill, BodyTypeSelector, QuestionBlock } from '@/app/_components/fragebogenUi';
 
@@ -509,7 +508,6 @@ export default function ChallengePlanWizard({
       </main>
 
       <SiteFooter />
-      <PresalesCoachWidget />
     </div>
   );
 }
