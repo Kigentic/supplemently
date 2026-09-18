@@ -97,7 +97,7 @@ export default function CoachWidget() {
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-surface/40 px-4 py-4">
             {messages.length === 0 && (
               <div className="flex items-start gap-2.5">
-                <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-black/5">
+                <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-accent/20 ring-1 ring-accent/30">
                   <Image src="/Trainer_Icon.png" alt="Charles" fill sizes="32px" className="object-cover object-top" />
                 </div>
                 <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-accent px-3.5 py-2.5 text-sm text-on-accent shadow-sm">
@@ -109,7 +109,7 @@ export default function CoachWidget() {
             {messages.map((m, i) => (
               <div key={i} className={`flex items-start gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {m.role === 'assistant' && (
-                  <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-black/5">
+                  <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-accent/20 ring-1 ring-accent/30">
                     <Image src="/Trainer_Icon.png" alt="Charles" fill sizes="32px" className="object-cover object-top" />
                   </div>
                 )}
@@ -126,7 +126,7 @@ export default function CoachWidget() {
             ))}
             {loading && (
               <div className="flex items-start gap-2.5">
-                <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-black/5">
+                <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-accent/20 ring-1 ring-accent/30">
                   <Image src="/Trainer_Icon.png" alt="Charles" fill sizes="32px" className="object-cover object-top" />
                 </div>
                 <div className="flex items-center gap-1 rounded-2xl rounded-tl-sm bg-accent px-4 py-3 shadow-sm">
