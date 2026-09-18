@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 
   const { data: studios, error } = await supabase
     .from('studios')
-    .select('id, name, slug, kontakt_email, abo_status, gesperrt, created_at')
+    .select('id, name, slug, kontakt_email, gesperrt, created_at')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -71,7 +71,6 @@ export async function GET(req: Request) {
     name: s.name,
     slug: s.slug,
     kontaktEmail: s.kontakt_email,
-    aboStatus: s.abo_status,
     gesperrt: s.gesperrt,
     createdAt: s.created_at,
     durchgaengeAnzahl: challengeIdsByStudio.get(s.id)?.length ?? 0,

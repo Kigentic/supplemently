@@ -137,7 +137,7 @@ export async function POST(req: Request) {
       ansprechpartner_vorname: ansprechpartnerVorname.trim(),
       ansprechpartner_nachname: ansprechpartnerNachname.trim(),
       telefon: telefon?.trim() || null,
-      abo_status: 'trial',
+      abo_status: 'active',
     })
     .select('id')
     .single();

@@ -16,7 +16,6 @@ interface Studio {
   name: string;
   slug: string;
   kontaktEmail: string | null;
-  aboStatus: string;
   gesperrt: boolean;
   createdAt: string;
   durchgaengeAnzahl: number;
@@ -198,7 +197,7 @@ export default function StudiosAdminPage() {
                         </span>
                       ) : (
                         <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                          {s.aboStatus === 'trial' ? 'Trial' : 'Aktiv'}
+                          Aktiv
                         </span>
                       )}
                     </td>
