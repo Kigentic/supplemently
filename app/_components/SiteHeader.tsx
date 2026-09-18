@@ -18,6 +18,7 @@ export default function SiteHeader({
   logoHref = '/',
   logoHeight = HEADER_LOGO,
   showNavLinks = true,
+  extraNavLinks,
 }: {
   ctaHref?: string;
   ctaLabel?: string;
@@ -30,6 +31,8 @@ export default function SiteHeader({
   logoHeight?: number;
   /** Startseite/Teilnehmer-Registrierung-Links — auf /turnkiste deaktiviert (Seite bleibt unangetastet). */
   showNavLinks?: boolean;
+  /** Zusätzliche Nav-Links (ausgeloggt), z.B. Studio-/Teilnehmer-Login auf der Startseite. */
+  extraNavLinks?: { href: string; label: string }[];
 }) {
   const router = useRouter();
   const [loggedIn, setLoggedIn] = useState(loggedInProp ?? false);
@@ -80,7 +83,7 @@ export default function SiteHeader({
 
   // Turnkiste bleibt unangetastet: ausgeloggt + showNavLinks=false gibt's
   // außer der CTA nichts zum Aufklappen — dann auch kein Hamburger-Icon.
-  const hasMobileMenu = loggedIn || showNavLinks;
+  const hasMobileMenu = loggedIn || showNavLinks || !!extraNavLinks?.length;
 
   const linkCls = 'text-xs font-medium text-text-muted transition hover:text-text sm:text-sm';
   const mobileLinkCls = 'rounded-lg px-3 py-2.5 text-sm font-medium text-text-muted transition hover:bg-outline/10 hover:text-text';
@@ -127,6 +130,9 @@ export default function SiteHeader({
                 <Link href="/challenge/registrierung" className={linkCls}>Teilnehmer-Registrierung</Link>
               </>
             )}
+            {extraNavLinks?.map((l) => (
+              <Link key={l.href + l.label} href={l.href} className={linkCls}>{l.label}</Link>
+            ))}
             <Link
               href={ctaHref}
               className="shrink-0 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition hover:bg-accent-hover"
@@ -180,6 +186,11 @@ export default function SiteHeader({
                 </Link>
               </>
             )}
+            {extraNavLinks?.map((l) => (
+              <Link key={l.href + l.label} href={l.href} className={mobileLinkCls} onClick={() => setMobileOpen(false)}>
+                {l.label}
+              </Link>
+            ))}
             {loggedIn && isStudioAdmin && (
               <Link href="/challenge/dashboard" className={mobileLinkCls} onClick={() => setMobileOpen(false)}>Dashboard</Link>
             )}

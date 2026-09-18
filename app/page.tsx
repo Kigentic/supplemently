@@ -80,7 +80,14 @@ const CHALLENGES = [
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-bg">
-      <SiteHeader ctaHref="#challenges" ctaLabel="Challenge wählen" />
+      <SiteHeader
+        ctaHref="#challenges"
+        ctaLabel="Challenge wählen"
+        extraNavLinks={[
+          { href: '/challenge/login', label: 'Studio-Login' },
+          { href: '/challenge/login', label: 'Teilnehmer-Login' },
+        ]}
+      />
 
       <main>
         {/* ═══ HERO ═══ */}

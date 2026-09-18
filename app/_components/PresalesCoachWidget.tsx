@@ -125,7 +125,7 @@ export default function PresalesCoachWidget({
                 <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-black/5">
                   <Image src="/Trainer_Icon.png" alt="Charles" fill sizes="32px" className="object-cover object-top" />
                 </div>
-                <div className="max-w-[85%] rounded-2xl rounded-tl-sm border border-accent/25 bg-accent/15 px-3.5 py-2.5 text-sm text-text shadow-sm">
+                <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-accent px-3.5 py-2.5 text-sm text-on-accent shadow-sm">
                   Hey 👋 Ich bin Charles. Schön, dass du dir die {challengeName} anschaust — was ist
                   bei dir gerade der größte Punkt, den du verändern willst? Und überlegst du schon
                   länger, damit anzufangen, oder bist du gerade erst am Schauen?
@@ -143,7 +143,7 @@ export default function PresalesCoachWidget({
                   className={`max-w-[80%] whitespace-pre-wrap px-3.5 py-2.5 text-sm shadow-sm ${
                     m.role === 'user'
                       ? 'rounded-2xl rounded-tr-sm bg-accent text-on-accent'
-                      : 'rounded-2xl rounded-tl-sm border border-accent/25 bg-accent/15 text-text'
+                      : 'rounded-2xl rounded-tl-sm bg-accent text-on-accent'
                   }`}
                 >
                   {m.content}
@@ -155,7 +155,7 @@ export default function PresalesCoachWidget({
                 <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-black/5">
                   <Image src="/Trainer_Icon.png" alt="Charles" fill sizes="32px" className="object-cover object-top" />
                 </div>
-                <div className="flex items-center gap-1 rounded-2xl rounded-tl-sm border border-accent/25 bg-accent/15 px-4 py-3 shadow-sm">
+                <div className="flex items-center gap-1 rounded-2xl rounded-tl-sm bg-accent px-4 py-3 shadow-sm">
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-text-muted [animation-delay:-0.3s]" />
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-text-muted [animation-delay:-0.15s]" />
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-text-muted" />
