@@ -42,13 +42,15 @@ export async function retrieveRelevantChunks(
   supabase: SupabaseClient,
   query: string,
   challengeTypId: string | null,
-  matchCount = 6
+  matchCount = 6,
+  excludeSourceTypes?: string[]
 ): Promise<RetrievedChunk[]> {
   const [embedding] = await embedTexts([query], SHORT_BACKOFF_STEPS_MS);
   const { data, error } = await supabase.rpc('match_kb_chunks', {
     query_embedding: embedding,
     match_count: matchCount,
     p_challenge_typ_id: challengeTypId,
+    p_exclude_source_types: excludeSourceTypes ?? null,
   });
   if (error) {
     console.error('match_kb_chunks error:', error);

@@ -36,6 +36,30 @@ export default function PresalesCoachWidget({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, open, loading]);
 
+  // Öffnet das Widget einmal pro Browser-Session automatisch, damit Charles
+  // proaktiv qualifiziert statt nur auf Klicks zu warten. Session-Flag pro
+  // Tab, damit es beim Seitenwechsel innerhalb des Besuchs nicht erneut poppt.
+  useEffect(() => {
+    const flagKey = `charles-auto-open-${challengeSlug}`;
+    let alreadyShown = true;
+    try {
+      alreadyShown = sessionStorage.getItem(flagKey) === '1';
+    } catch {
+      // sessionStorage kann in Private-Mode/eingebetteten Views fehlschlagen — dann einfach nicht auto-öffnen.
+      return;
+    }
+    if (alreadyShown) return;
+    const timer = setTimeout(() => {
+      setOpen(true);
+      try {
+        sessionStorage.setItem(flagKey, '1');
+      } catch {
+        // ignorieren
+      }
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [challengeSlug]);
+
   async function send() {
     const text = input.trim();
     if (!text || loading) return;
@@ -102,8 +126,9 @@ export default function PresalesCoachWidget({
                   <Image src="/Trainer_Icon.png" alt="Charles" fill sizes="32px" className="object-cover object-top" />
                 </div>
                 <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-bg px-3.5 py-2.5 text-sm text-text shadow-sm">
-                  Hey 👋 Ich bin Charles. Frag mich alles zur {challengeName} — Ablauf, Preis,
-                  Training, Ernährung, was auch immer dich noch unsicher macht.
+                  Hey 👋 Ich bin Charles. Schön, dass du dir die {challengeName} anschaust — was ist
+                  bei dir gerade der größte Punkt, den du verändern willst? Und überlegst du schon
+                  länger, damit anzufangen, oder bist du gerade erst am Schauen?
                 </div>
               </div>
             )}
