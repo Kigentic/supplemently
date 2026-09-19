@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/checkin-reminders",
       "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/reingest-trainingsplaene",
+      "schedule": "30 7 * * *"
     }
   ]
 }
