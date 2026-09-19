@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SiteHeader from '@/app/_components/SiteHeader';
 import SiteFooter from '@/app/_components/SiteFooter';
+import CoachWidget from '@/app/_components/CoachWidget';
 import { getBrowserClient } from '@/lib/supabaseBrowser';
 import { getChallengeSchedule } from '@/lib/challengeSchedule';
 import {
@@ -287,6 +288,7 @@ export default function TrainingsplanPage() {
           </div>
         </main>
         <SiteFooter />
+        <CoachWidget />
       </div>
     );
   }
@@ -468,6 +470,7 @@ export default function TrainingsplanPage() {
       </main>
 
       <SiteFooter />
+      <CoachWidget />
     </div>
   );
 }

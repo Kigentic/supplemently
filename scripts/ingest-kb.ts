@@ -235,22 +235,60 @@ async function ingestUebungsbibliothek(supabase: ReturnType<typeof getServiceCli
   await replaceDocumentWithChunks(supabase, 'Übungsbibliothek', 'exercise_library', null, chunks);
 }
 
-async function ingestTrainingsplanMarkdown(supabase: ReturnType<typeof getServiceClient>) {
-  const kbDir = path.join(process.cwd(), 'kb');
-  const files = fs.existsSync(kbDir)
-    ? fs.readdirSync(kbDir).filter((f) => /^H?[MF]\d+_.*\.md$/.test(f))
-    : [];
-
-  if (files.length === 0) {
-    console.log('Keine Trainingsplan-Markdown-Dateien in kb/ gefunden — überspringe.');
+// Quelle der Wahrheit sind die DB-Tabellen (trainingsplaene/
+// trainingsplan_uebungen), NICHT mehr die statischen kb/*.md-Dateien — die
+// waren nur der ursprüngliche Seed-Inhalt und driften seitdem auseinander,
+// sobald ein Plan direkt per Migration geändert wird (siehe Chat-Verlauf:
+// M4/F5-F8/M6/M7 überarbeitet, ohne dass Charles davon wusste). Diese
+// Funktion baut die Wissens-Dokumente live aus der DB, damit Charles nie
+// wieder veraltete Trainingsplan-Inhalte hat.
+async function ingestTrainingsplaeneAusDb(supabase: ReturnType<typeof getServiceClient>) {
+  const { data: plaene, error } = await supabase
+    .from('trainingsplaene')
+    .select(
+      'id, plan_key, name, zielgruppe, fokus_text, frequenz, netto_minuten, pause_hinweis, voraussetzung, phasen, trainer_hinweise'
+    );
+  if (error) throw new Error(`Konnte trainingsplaene nicht laden: ${error.message}`);
+  if (!plaene || plaene.length === 0) {
+    console.log('Keine Trainingspläne in der DB gefunden — überspringe.');
     return;
   }
 
-  for (const file of files) {
-    const raw = fs.readFileSync(path.join(kbDir, file), 'utf-8');
-    const heading = raw.match(/^#\s+(.+)$/m)?.[1]?.trim();
-    const title = heading ?? file.replace(/\.md$/, '');
-    await replaceDocument(supabase, title, 'trainingsplan_md', null, raw);
+  for (const plan of plaene as any[]) {
+    const { data: uebungen } = await supabase
+      .from('trainingsplan_uebungen')
+      .select('name, saetze, wiederholungen, pause_sekunden')
+      .eq('trainingsplan_id', plan.id)
+      .order('sort_order', { ascending: true });
+
+    const parts: string[] = [
+      `Trainingsplan ${plan.plan_key} — ${plan.name}`,
+      `Zielgruppe: ${plan.zielgruppe}`,
+      `Fokus: ${plan.fokus_text}`,
+      `Frequenz: ${plan.frequenz} · ca. ${plan.netto_minuten} Min. netto · Pause ${plan.pause_hinweis}`,
+    ];
+    if (plan.voraussetzung) parts.push(`Wichtiger Hinweis: ${plan.voraussetzung}`);
+    if (Array.isArray(plan.phasen) && plan.phasen.length > 0) {
+      parts.push(
+        'Phasen:\n' +
+          plan.phasen
+            .map((p: any) => `Phase ${p.nummer} (Woche ${p.wochen_von}-${p.wochen_bis}): ${p.ziel}`)
+            .join('\n')
+      );
+    }
+    parts.push(
+      'Übungen:\n' +
+        (uebungen ?? [])
+          .map((u: any) =>
+            `- ${u.name}${u.saetze ? ` — ${u.saetze} Sätze` : ''}${u.wiederholungen ? ` × ${u.wiederholungen}` : ''}${u.pause_sekunden ? `, ${u.pause_sekunden}s Pause` : ''}`
+          )
+          .join('\n')
+    );
+    if (Array.isArray(plan.trainer_hinweise) && plan.trainer_hinweise.length > 0) {
+      parts.push('Trainer-Hinweise:\n' + plan.trainer_hinweise.map((h: string) => `- ${h}`).join('\n'));
+    }
+
+    await replaceDocument(supabase, `🏋️ Trainingsplan ${plan.plan_key} – ${plan.name}`, 'trainingsplan', null, parts.join('\n\n'));
   }
 }
 
@@ -266,9 +304,9 @@ async function main() {
     console.log('Ingestiere Übungsbibliothek …');
     await ingestUebungsbibliothek(supabase);
   }
-  if (!only || only === 'trainingsplan_md') {
-    console.log('Ingestiere Trainingsplan-Markdown-Dateien …');
-    await ingestTrainingsplanMarkdown(supabase);
+  if (!only || only === 'trainingsplan') {
+    console.log('Ingestiere Trainingspläne (aus der DB) …');
+    await ingestTrainingsplaeneAusDb(supabase);
   }
   if (!only || only === 'pdf') {
     await ingestPdfs(supabase);
