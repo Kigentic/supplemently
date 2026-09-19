@@ -8,6 +8,7 @@ export const runtime = 'nodejs';
 
 const FOKUS_WERTE = ['kein', 'ruecken', 'beine_po', 'bauch_core', 'fatburn'];
 const ORT_WERTE = ['studio', 'zuhause'];
+const FREQUENZ_WERTE = ['1x', '2x', '3x'];
 
 export async function POST(req: Request) {
   const user = await getUserFromAuthHeader(req);
@@ -17,6 +18,7 @@ export async function POST(req: Request) {
   const gewuenscht = body?.gewuenscht;
   const fokus = body?.fokus;
   const ort = body?.ort;
+  const frequenz = body?.frequenz;
 
   if (typeof gewuenscht !== 'boolean') {
     return NextResponse.json({ error: 'gewuenscht (boolean) fehlt.' }, { status: 400 });
@@ -27,12 +29,15 @@ export async function POST(req: Request) {
   if (gewuenscht && ort !== undefined && !ORT_WERTE.includes(ort)) {
     return NextResponse.json({ error: 'Ungültiger Ort.' }, { status: 400 });
   }
+  if (gewuenscht && frequenz !== undefined && !FREQUENZ_WERTE.includes(frequenz)) {
+    return NextResponse.json({ error: 'Ungültige Frequenz.' }, { status: 400 });
+  }
 
   const supabase = getServiceClient();
 
   const { data: teilnahme } = await supabase
     .from('challenge_teilnahmen')
-    .select('id, trainingsplan_ort')
+    .select('id, trainingsplan_ort, trainingsplan_frequenz')
     .eq('user_id', user.id)
     .order('joined_at', { ascending: false })
     .limit(1)
@@ -40,13 +45,19 @@ export async function POST(req: Request) {
 
   if (!teilnahme) return NextResponse.json({ error: 'Keine Teilnahme gefunden.' }, { status: 404 });
 
-  // ort ist im Fokus-Picker optional mitschickbar — ohne Angabe bleibt der
-  // bisherige Wert (bzw. Default 'studio') erhalten, statt ihn zu löschen.
+  // ort/frequenz sind im Fokus-Picker optional mitschickbar — ohne Angabe
+  // bleibt der bisherige Wert (bzw. Default) erhalten, statt ihn zu löschen.
   const neuerOrt = gewuenscht ? (ort ?? teilnahme.trainingsplan_ort ?? 'studio') : null;
+  const neueFrequenz = gewuenscht ? (frequenz ?? teilnahme.trainingsplan_frequenz ?? '2x') : null;
 
   const { error } = await supabase
     .from('challenge_teilnahmen')
-    .update({ trainingsplan_gewuenscht: gewuenscht, trainingsplan_ort: neuerOrt, trainingsplan_fokus: gewuenscht ? fokus : null })
+    .update({
+      trainingsplan_gewuenscht: gewuenscht,
+      trainingsplan_ort: neuerOrt,
+      trainingsplan_fokus: gewuenscht ? fokus : null,
+      trainingsplan_frequenz: neueFrequenz,
+    })
     .eq('id', teilnahme.id);
 
   if (error) return NextResponse.json({ error: 'Speichern fehlgeschlagen.' }, { status: 500 });

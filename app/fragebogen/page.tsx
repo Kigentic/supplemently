@@ -21,6 +21,7 @@ const initial: FormState = {
   trainingsplan_gewuenscht: '',
   trainingsplan_ort: '',
   trainingsplan_fokus: '',
+  trainingsplan_frequenz: '',
   ernaehrungsstil: '',
   restriktionen: [] as string[],
   kochverhalten: '',
@@ -143,6 +144,7 @@ export default function FragebogenPage() {
       trainingsplan_gewuenscht: form.trainingsplan_gewuenscht,
       trainingsplan_ort: form.trainingsplan_gewuenscht === 'ja' ? form.trainingsplan_ort : undefined,
       trainingsplan_fokus: form.trainingsplan_gewuenscht === 'ja' ? form.trainingsplan_fokus : undefined,
+      trainingsplan_frequenz: form.trainingsplan_gewuenscht === 'ja' ? form.trainingsplan_frequenz : undefined,
       ernaehrungsstil: form.ernaehrungsstil,
       restriktionen,
       kochverhalten: form.kochverhalten,
@@ -333,6 +335,7 @@ export default function FragebogenPage() {
               if (!frage) return null;
               if (id === 'trainingsplan_ort' && form.trainingsplan_gewuenscht !== 'ja') return null;
               if (id === 'trainingsplan_fokus' && form.trainingsplan_gewuenscht !== 'ja') return null;
+              if (id === 'trainingsplan_frequenz' && form.trainingsplan_gewuenscht !== 'ja') return null;
               // Beine & Po / Bauch & Core gibt's aktuell nur für Frauen (kein passender Plan für Männer).
               const optionen =
                 id === 'trainingsplan_fokus' && form.geschlecht !== 'weiblich'

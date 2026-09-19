@@ -123,6 +123,7 @@ export async function runOnboarding(
       trainingsplan_gewuenscht: answers.trainingsplan_gewuenscht === 'ja',
       trainingsplan_ort: answers.trainingsplan_gewuenscht === 'ja' ? (answers.trainingsplan_ort ?? 'studio') : null,
       trainingsplan_fokus: answers.trainingsplan_gewuenscht === 'ja' ? (answers.trainingsplan_fokus ?? 'kein') : null,
+      trainingsplan_frequenz: answers.trainingsplan_gewuenscht === 'ja' ? (answers.trainingsplan_frequenz ?? '2x') : null,
     })
     .eq('id', teilnahmeId);
   if (updateError) {

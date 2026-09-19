@@ -7,6 +7,11 @@ export type TrainingsplanGeschlecht = 'maennlich' | 'weiblich';
 export type TrainingsplanLevel = 'beginner' | 'leicht_aktiv' | 'regelmaessig' | 'intensiv';
 export type TrainingsplanFokus = 'kein' | 'ruecken' | 'beine_po' | 'bauch_core' | 'fatburn';
 export type TrainingsplanOrt = 'studio' | 'zuhause';
+export type TrainingsplanFrequenz = '1x' | '2x' | '3x';
+
+export function mapFrequenz(frequenz: string | null | undefined): TrainingsplanFrequenz {
+  return frequenz === '1x' || frequenz === '3x' ? frequenz : '2x';
+}
 
 export function mapOrt(ort: string | null | undefined): TrainingsplanOrt {
   return ort === 'zuhause' ? 'zuhause' : 'studio';

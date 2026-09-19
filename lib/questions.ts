@@ -21,6 +21,7 @@ export type Koerperform = 'schlank' | 'normal' | 'untersetzt' | 'fett';
 export type TrainingsplanGewuenscht = 'ja' | 'nein';
 export type TrainingsplanOrt = 'studio' | 'zuhause';
 export type TrainingsplanFokus = 'kein' | 'ruecken' | 'beine_po' | 'bauch_core' | 'fatburn';
+export type TrainingsplanFrequenz = '1x' | '2x' | '3x';
 
 export interface Answers {
   // Persönliche Daten
@@ -35,6 +36,7 @@ export interface Answers {
   trainingsplan_gewuenscht: TrainingsplanGewuenscht;
   trainingsplan_ort?: TrainingsplanOrt;
   trainingsplan_fokus?: TrainingsplanFokus;
+  trainingsplan_frequenz?: TrainingsplanFrequenz;
   // Ernährung
   ernaehrungsstil: Ernaehrungsstil;
   restriktionen: Restriktion[];
@@ -182,6 +184,21 @@ export const FRAGEN: Frage[] = [
       { value: 'beine_po', label: 'Beine & Po' },
       { value: 'bauch_core', label: 'Bauch & Core' },
       { value: 'fatburn', label: 'Fatburn' },
+    ],
+  },
+  {
+    // Steuert bei den Studio-"kein Fokus"-Plänen, ob ein einzelner Ganzkörper-
+    // Solo-Plan (1x) oder das Ganzkörper-A/B-Wechselschema (2x/3x) angezeigt
+    // wird — siehe trainingsplan_zuordnung.trainingsplan_id_a/_b. Nur
+    // sichtbar/pflicht, wenn trainingsplan_gewuenscht === 'ja'.
+    id: 'trainingsplan_frequenz',
+    frage: 'Wie oft schaffst du realistisch 60 Minuten Training pro Woche?',
+    typ: 'single',
+    optional: true,
+    optionen: [
+      { value: '1x', label: '1× pro Woche' },
+      { value: '2x', label: '2× pro Woche' },
+      { value: '3x', label: '3× pro Woche' },
     ],
   },
 
@@ -386,7 +403,7 @@ export const FRAGEN: Frage[] = [
 
 export const GRUPPEN = [
   { id: 'profil',     titel: 'Persönliche Daten',       frageIds: ['geschlecht', 'alter', 'groesse', 'gewicht', 'koerperform'] },
-  { id: 'training',   titel: 'Training & Ziele',         frageIds: ['trainingslevel', 'trainingsziel', 'trainingsplan_gewuenscht', 'trainingsplan_ort', 'trainingsplan_fokus'] },
+  { id: 'training',   titel: 'Training & Ziele',         frageIds: ['trainingslevel', 'trainingsziel', 'trainingsplan_gewuenscht', 'trainingsplan_ort', 'trainingsplan_fokus', 'trainingsplan_frequenz'] },
   { id: 'ernaehrung', titel: 'Ernährung',                frageIds: ['ernaehrungsstil', 'restriktionen', 'kochverhalten', 'mahlzeiten_pro_tag', 'auswaerts_essen', 'alkohol', 'raucher'] },
   { id: 'schlaf',     titel: 'Schlaf',                   frageIds: ['schlafdauer', 'aufwachgefuehl', 'schlaf_durchschlafen'] },
   { id: 'stress',     titel: 'Stress & Regeneration',    frageIds: ['stresslevel', 'entspannung', 'gedanken_abschalten'] },
@@ -409,6 +426,7 @@ export function validateAnswers(
   const tpGewuenscht: TrainingsplanGewuenscht[] = ['ja', 'nein'];
   const tpOrt: TrainingsplanOrt[] = ['studio', 'zuhause'];
   const tpFokus: TrainingsplanFokus[] = ['kein', 'ruecken', 'beine_po', 'bauch_core', 'fatburn'];
+  const tpFrequenz: TrainingsplanFrequenz[] = ['1x', '2x', '3x'];
   const ern: Ernaehrungsstil[] = ['omnivor', 'vegetarisch', 'vegan'];
   const restr: Restriktion[] = ['laktose', 'gluten', 'nuesse', 'keine'];
   const kochv: Kochverhalten[] = ['frisch', 'gemischt', 'fertiggerichte'];
@@ -438,6 +456,8 @@ export function validateAnswers(
     return { ok: false, error: 'Bitte angeben, ob du im Studio oder zuhause trainierst.' };
   if (input.trainingsplan_gewuenscht === 'ja' && !inSet(input.trainingsplan_fokus, tpFokus))
     return { ok: false, error: 'Bitte einen Fokus für deinen Trainingsplan wählen.' };
+  if (input.trainingsplan_gewuenscht === 'ja' && !inSet(input.trainingsplan_frequenz, tpFrequenz))
+    return { ok: false, error: 'Bitte angeben, wie oft du realistisch trainieren kannst.' };
   if (!inSet(input.ernaehrungsstil, ern)) return { ok: false, error: 'Ungültiger Ernährungsstil.' };
   if (!inSet(input.kochverhalten, kochv)) return { ok: false, error: 'Ungültiges Kochverhalten.' };
   if (!inSet(input.mahlzeiten_pro_tag, mpt)) return { ok: false, error: 'Ungültige Mahlzeitenanzahl.' };
@@ -491,6 +511,7 @@ export function validateAnswers(
       trainingsplan_gewuenscht: input.trainingsplan_gewuenscht,
       trainingsplan_ort: input.trainingsplan_gewuenscht === 'ja' ? input.trainingsplan_ort : undefined,
       trainingsplan_fokus: input.trainingsplan_gewuenscht === 'ja' ? input.trainingsplan_fokus : undefined,
+      trainingsplan_frequenz: input.trainingsplan_gewuenscht === 'ja' ? input.trainingsplan_frequenz : undefined,
       ernaehrungsstil: input.ernaehrungsstil,
       restriktionen: restriktionen.length ? restriktionen : ['keine'],
       kochverhalten: input.kochverhalten,
