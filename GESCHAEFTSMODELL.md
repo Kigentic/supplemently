@@ -65,6 +65,29 @@ Alle Wege haben ein Henne-Ei-Problem: Marken zahlen erst, wenn Studios und Mitgl
 
 ---
 
+## Arbeitsstand: zwei Pakete für Studios
+
+Erlösweg ist noch nicht final, aktuelle Richtung: zwei Angebote nebeneinander.
+
+| | **Free** | **Premium** |
+|---|---|---|
+| Preis für Studio | 0 € | monatlich (Höhe offen) |
+| Inhalt | Supplement-Check, gebrandete Seite, QR/Link | Check + Check-in + 8-Wochen-Programm, Marketingmaterial, Charles |
+| Studio verdient | Provisionsanteil an Käufen seiner Mitglieder | höherer Anteil / Cashback auf Provision (Höhe offen) |
+| Marken | Wählen wir, Studio hat kein Mitspracherecht | wie Free (Mitsprache offen) |
+
+**Konsequenzen für Free:**
+- Wir onboarden die Marken und handeln die Provision selbst aus. Ohne mindestens einen Markendeal gibt es kein Free-Paket.
+- Produktauswahl nach Inhaltsstoff-Logik und Product Matching (siehe Produktlogik), nicht nach Studio-Wunsch.
+- Jeder Käufer muss einem Studio zugeordnet sein (Attribution). Technisch z. B. Studio-ID in Link/Session (Choicera nutzt Cookie plus Session-ID, hier Einwilligung nach § 25 TDDDG prüfen).
+- Auszahlung an das Studio erst nach Zahlungseingang der Marke.
+
+**Konsequenzen für Premium:**
+- Charles läuft über unsere Tokens, Limits je Studio nötig.
+- Challenge wird hier vom Hintergrundprojekt zum verkauften Baustein.
+
+---
+
 ## Produktlogik (unabhängig vom Erlösmodell)
 
 - Wir kuratieren auf Produktebene: pro Supplement Form, Dosis und Reinheit festlegen, daraus eine Whitelist konkreter Produkte (siehe Memory „Supplement-Formen/Bioverfügbarkeit“).
